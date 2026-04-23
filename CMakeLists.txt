@@ -168,12 +168,29 @@ Set(NODICT_HEADERS
   KFParticlePerformance/KFPartMatch.h
 )
 
-install(FILES ${HEADERS} ${NODICT_HEADERS} DESTINATION include/KFParticle)
-
-install(FILES ${SIMD_HEADERS} DESTINATION include/KFParticle/KFPSimd)
-install(FILES ${SIMD_UTILS_HEADERS} DESTINATION include/KFParticle/Utils) 
-install(FILES ${SIMD_SSE_HEADERS} DESTINATION include/KFParticle/SSE) 
-
-install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle_rdict.pcm DESTINATION lib OPTIONAL)
-install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle.rootmap DESTINATION lib)
 install(TARGETS KFParticle DESTINATION lib)
+
+install(DIRECTORY KFParticle
+        DESTINATION include
+        FILES_MATCHING
+        PATTERN "*.h")
+
+install(DIRECTORY KFParticlePerformance
+        DESTINATION include
+        FILES_MATCHING
+        PATTERN "*.h")
+
+install(DIRECTORY KFParticleTest
+        DESTINATION include
+        FILES_MATCHING
+        PATTERN "*.h")
+
+#install(FILES ${HEADERS} ${NODICT_HEADERS} DESTINATION include/KFParticle)
+
+#install(FILES ${SIMD_HEADERS} DESTINATION include/KFParticle/KFPSimd)
+#install(FILES ${SIMD_UTILS_HEADERS} DESTINATION include/KFParticle/Utils) 
+#install(FILES ${SIMD_SSE_HEADERS} DESTINATION include/KFParticle/SSE) 
+
+#install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle_rdict.pcm DESTINATION lib OPTIONAL)
+#install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle.rootmap DESTINATION lib)
+#install(TARGETS KFParticle DESTINATION lib)
