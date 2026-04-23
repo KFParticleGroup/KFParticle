@@ -139,10 +139,6 @@ else(FIXTARGET)
   add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DHomogeneousField -DUSE_TIMERS")
 endif(FIXTARGET)
 
-if (ROOT_VERSION_MAJOR LESS 6)
-    add_custom_target(libKFParticle.rootmap ALL DEPENDS KFParticle COMMAND rlibmap -o libKFParticle.rootmap -l libKFParticle.so -c ${PROJECT_SOURCE_DIR}/KFLinkDef.h)
-endif (ROOT_VERSION_MAJOR LESS 6)
-
 Set(NODICT_HEADERS
   KFParticle/KFParticleTopoReconstructor.h
   KFParticle/KFParticlePVReconstructor.h
