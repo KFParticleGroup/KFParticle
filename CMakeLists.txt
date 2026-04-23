@@ -109,15 +109,8 @@ set (HEADERS
 Message("CMAKE_BUILD_DIRECTORY: ${CMAKE_BUILD_DIRECTORY}")
 
 if(FIXTARGET)
-
-  ROOT_GENERATE_DICTIONARY(G__KFParticle ${HEADERS}
-    LINKDEF KFLinkDef.h
-    OPTIONS "-DDO_TPCCATRACKER_EFF_PERFORMANCE"
-            "-DNonhomogeneousField"
-            "-DUSE_TIMERS"
-    MODULE KFParticle
-    NO_ROOTMAP
-  )
+  ROOT_GENERATE_DICTIONARY(G__KFParticle ${HEADERS} LINKDEF KFLinkDef.h OPTIONS "-DDO_TPCCATRACKER_EFF_PERFORMANCE" "-DNonhomogeneousField" "-DCBM" "-DUSE_TIMERS")
+#  ROOT_GENERATE_DICTIONARY(G__KFParticle ${HEADERS} LINKDEF KFLinkDef.h OPTIONS "-DDO_TPCCATRACKER_EFF_PERFORMANCE" "-DHomogeneousField" "-DCBM" "-DUSE_TIMERS")
 
   find_program(BIN_SED sed)
   if(BIN_SED)
@@ -145,6 +138,7 @@ else()
   add_library(KFParticle SHARED ${SOURCES} G__KFParticle.cxx)
 
 endif()
+
 
 Set(NODICT_HEADERS
   KFParticle/KFParticleTopoReconstructor.h
@@ -187,6 +181,10 @@ install(DIRECTORY KFParticleTest
         DESTINATION include
         FILES_MATCHING
         PATTERN "*.h")
+
+if(EXISTS ${CMAKE_BINARY_DIR}/libKFParticle.rootmap)
+    install(FILES ${CMAKE_BINARY_DIR}/libKFParticle.rootmap DESTINATION lib)
+endif()        
 
 #install(FILES ${HEADERS} ${NODICT_HEADERS} DESTINATION include/KFParticle)
 
