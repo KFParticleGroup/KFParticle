@@ -22,20 +22,15 @@
 #ifndef KFParticleDef_H
 #define KFParticleDef_H
 
-#ifdef __ROOT__ // for the STAR experiment
-//#define HomogeneousField
-#endif
 
 #if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
 #include "RootTypesDef.h"
 #else
 #include "TObject.h"
+#include "simd.h"
 #endif
 
 #define NInputSets 8
-#if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
-#include "simd.h"
-#endif
 
 using float32_v = KFP::SIMD::simd_float;
 using int32_v = KFP::SIMD::simd_int;
