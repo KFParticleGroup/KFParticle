@@ -37,42 +37,50 @@
  ** Also,Calculates the needed amount of memory to be allocated
  **/
 
-class KFPHistogramSet
-{
- public:
-  KFPHistogramSet(int iPart=0);
+class KFPHistogramSet {
+public:
+  KFPHistogramSet(int iPart = 0);
   ~KFPHistogramSet() {}
-  
-  void Fill(const KFParticle& particle);
-  
-  inline int GetNHisto1D() const { return NHisto1D; } ///< Returns a number of one dimensional histograms in the set.
-  inline int DataSize() const 
-  {
+
+  void Fill(const KFParticle &particle);
+
+  inline int GetNHisto1D() const {
+    return NHisto1D;
+  } ///< Returns a number of one dimensional histograms in the set.
+  inline int DataSize() const {
     int dataSize = 0;
-    for(int i=0; i<NHisto1D; i++)
+    for (int i = 0; i < NHisto1D; i++)
       dataSize += fKFPHistogram1D[i].DataSize();
     return dataSize;
-  } ///< Returns the size of the memory in blocks of integer (or 4 bytes, or 32 bits) to be allocated for the histogram set. \see KFPHistogram, where memory is allocated.
-  KFPHistogram1D GetHistogram1D(int iHistogram) const { return fKFPHistogram1D[iHistogram]; } ///< Returns one dimensional histogram with index "iHistogram".
-  
+  } ///< Returns the size of the memory in blocks of integer (or 4 bytes, or 32
+    ///< bits) to be allocated for the histogram set. \see KFPHistogram, where
+    ///< memory is allocated.
+  KFPHistogram1D GetHistogram1D(int iHistogram) const {
+    return fKFPHistogram1D[iHistogram];
+  } ///< Returns one dimensional histogram with index "iHistogram".
+
   /**Sets bin content of the histogram "iHisto" to a given value.
    ** \param[in] iHisto - index of the histogram in the set
    ** \param[in] iBin - number of the bin
    ** \param[in] value - value to be set
    **/
-  inline void SetHisto1DBinContent(int iHisto, int iBin, int value)   { fKFPHistogram1D[iHisto].SetBinContent(iBin,value); }
-  
-  inline void operator += ( const KFPHistogramSet &h )
-  {
-    for(int i=0; i<NHisto1D; i++)
+  inline void SetHisto1DBinContent(int iHisto, int iBin, int value) {
+    fKFPHistogram1D[iHisto].SetBinContent(iBin, value);
+  }
+
+  inline void operator+=(const KFPHistogramSet &h) {
+    for (int i = 0; i < NHisto1D; i++)
       fKFPHistogram1D[i] += h.fKFPHistogram1D[i];
-  } ///< Adds all histograms bin-by-bin from the histogram set "h" to the current set.
-  
-  void SetHistogramMemory(int* pointer);
-  
- private:
-  static const int NHisto1D = 17; ///< Number of histogram per each particle specie.
-  KFPHistogram1D fKFPHistogram1D[NHisto1D]; ///< A set of the one dimensional histograms.
+  } ///< Adds all histograms bin-by-bin from the histogram set "h" to the
+    ///< current set.
+
+  void SetHistogramMemory(int *pointer);
+
+private:
+  static const int NHisto1D =
+      17; ///< Number of histogram per each particle specie.
+  KFPHistogram1D
+      fKFPHistogram1D[NHisto1D]; ///< A set of the one dimensional histograms.
 };
 
 #endif

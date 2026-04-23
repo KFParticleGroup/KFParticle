@@ -1612,8 +1612,8 @@ void KFTopoPerformance::FillParticleParameters(KFParticle& TempPart,
   //for all particle-candidates
   for(int iParam=0; iParam<17; iParam++)
     histoParameters[0][iParticle][iParam]->Fill(parameters[iParam], 1);
-  for(int iParam=0; iParam<8; iParam++)
-    histoParameters[0][iParticle][18+iParam]->Fill(errors[iParam], 1);
+  // for(int iParam=0; iParam<8; iParam++)
+  //   histoParameters[0][iParticle][18+iParam]->Fill(errors[iParam], 1);
 
   if(multiplicities)
     multiplicities[0][iParticle]++;
@@ -1750,8 +1750,8 @@ void KFTopoPerformance::FillParticleParameters(KFParticle& TempPart,
       {
         for(int iParam=0; iParam<17; iParam++)
           histoParameters[4][iParticle][iParam]->Fill(parameters[iParam], weight);
-        for(int iParam=0; iParam<8; iParam++)
-          histoParameters[4][iParticle][18+iParam]->Fill(errors[iParam], weight);
+        // for(int iParam=0; iParam<8; iParam++)
+        //   histoParameters[4][iParticle][18+iParam]->Fill(errors[iParam], weight);
 
         if(multiplicities)
           multiplicities[4][iParticle]++;
@@ -1772,8 +1772,8 @@ void KFTopoPerformance::FillParticleParameters(KFParticle& TempPart,
       {
         for(int iParam=0; iParam<17; iParam++)
           histoParameters[5][iParticle][iParam]->Fill(parameters[iParam], weight);
-        for(int iParam=0; iParam<8; iParam++)
-          histoParameters[5][iParticle][18+iParam]->Fill(errors[iParam], weight);
+        // for(int iParam=0; iParam<8; iParam++)
+        //   histoParameters[5][iParticle][18+iParam]->Fill(errors[iParam], weight);
   
         if(multiplicities)
           multiplicities[5][iParticle]++;
@@ -1834,8 +1834,8 @@ void KFTopoPerformance::FillParticleParameters(KFParticle& TempPart,
   //for signal particles
   for(int iParam=0; iParam<17; iParam++)
     histoParameters[iSet][iParticle][iParam]->Fill(parameters[iParam]);
-  for(int iParam=0; iParam<8; iParam++)
-    histoParameters[iSet][iParticle][18+iParam]->Fill(errors[iParam]);
+  // for(int iParam=0; iParam<8; iParam++)
+  //   histoParameters[iSet][iParticle][18+iParam]->Fill(errors[iParam]);
 
   if(multiplicities)
     multiplicities[iSet][iParticle]++;

@@ -143,6 +143,7 @@ void KFParticlePerformanceBase::CreateHistos(std::string histoDir, TDirectory* o
    ** \param[in] decays - a list of decays, for which histograms are created, if empty - histograms are
    ** created for all decay channels from the KF Particle Finder reconstruction scheme
    **/
+  std::cout << "KFParticlePerformanceBase::CreateHistos" << std::endl;
   TDirectory *curdir = gDirectory;
   if (outFile) {
     outFile->cd();
@@ -236,10 +237,13 @@ void KFParticlePerformanceBase::CreateHistos(std::string histoDir, TDirectory* o
           CreateFitHistograms(hFitQA[iPart], iPart);
           CreateEfficiencyHistograms(hPartEfficiency[iPart], hPartEfficiency2D[iPart], hPartEfficiencyMulti[iPart], iPart);
         }
+
         gDirectory->mkdir("Parameters");
         gDirectory->cd("Parameters");
+        std::cout << "KFParticlePerformanceBase::CreateHistos : gDirectory->cd(\"Parameters\")" << std::endl;
         {
           const bool drawZR = IsCollectZRHistogram(iPart);
+          std::cout << "KFParticlePerformanceBase::CreateHistos : CreateParameterHistograms : 0" << std::endl;
           CreateParameterHistograms(hPartParam[0], hPartParam2D[0], hPartParam3D[0], iPart, drawZR);
 
           if(IsCollect3DHistogram(iPart))
@@ -247,12 +251,14 @@ void KFParticlePerformanceBase::CreateHistos(std::string histoDir, TDirectory* o
             gDirectory->mkdir("SignalReco");
             gDirectory->cd("SignalReco");
             {
+              std::cout << "KFParticlePerformanceBase::CreateHistos : CreateParameterHistograms : 4" << std::endl;
               CreateParameterHistograms(hPartParam[4], hPartParam2D[4], 0, iPart, drawZR);
             }
             gDirectory->cd(".."); // Parameters
             gDirectory->mkdir("BGReco");
             gDirectory->cd("BGReco");
             {
+              std::cout << "KFParticlePerformanceBase::CreateHistos : CreateParameterHistograms : 5" << std::endl;
               CreateParameterHistograms(hPartParam[5], hPartParam2D[5], 0, iPart, drawZR);
             }
             gDirectory->cd(".."); // Parameters
@@ -263,24 +269,28 @@ void KFParticlePerformanceBase::CreateHistos(std::string histoDir, TDirectory* o
             gDirectory->mkdir("Signal");
             gDirectory->cd("Signal");
             {
+              std::cout << "KFParticlePerformanceBase::CreateHistos : CreateParameterHistograms : 1" << std::endl;
               CreateParameterHistograms(hPartParam[1], hPartParam2D[1], 0, iPart, drawZR);
             }
             gDirectory->cd(".."); // particle directory / Parameters
             gDirectory->mkdir("Background");
             gDirectory->cd("Background");
             {
+              std::cout << "KFParticlePerformanceBase::CreateHistos : CreateParameterHistograms : 2" << std::endl;
               CreateParameterHistograms(hPartParam[2], hPartParam2D[2], 0, iPart, drawZR);
             }
             gDirectory->cd(".."); // particle directory
             gDirectory->mkdir("Ghost");
             gDirectory->cd("Ghost");
             {
+              std::cout << "KFParticlePerformanceBase::CreateHistos : CreateParameterHistograms : 3" << std::endl;
               CreateParameterHistograms(hPartParam[3], hPartParam2D[3], 0, iPart, drawZR);
             }
             gDirectory->cd(".."); // Parameters
             gDirectory->mkdir("MCSignal");
             gDirectory->cd("MCSignal");
             {
+              std::cout << "KFParticlePerformanceBase::CreateHistos : CreateParameterHistograms : 6" << std::endl;
               CreateParameterHistograms(hPartParam[6], hPartParam2D[6], 0, iPart, drawZR);
             }
             gDirectory->cd(".."); // Parameters
@@ -300,6 +310,7 @@ void KFParticlePerformanceBase::CreateHistos(std::string histoDir, TDirectory* o
                                             
             if(fStorePrimSecHistograms && plotPrimaryHistograms)
             {
+              std::cout << "KFParticlePerformanceBase::CreateHistos : if(fStorePrimSecHistograms && plotPrimaryHistograms)" << std::endl;
               gDirectory->mkdir("Primary");
               gDirectory->cd("Primary");
               {
@@ -313,6 +324,7 @@ void KFParticlePerformanceBase::CreateHistos(std::string histoDir, TDirectory* o
             
             if(fStorePrimSecHistograms && plotSecondaryHistograms)
             {
+              std::cout << "KFParticlePerformanceBase::CreateHistos : if(fStorePrimSecHistograms && plotSecondaryHistograms)" << std::endl;
               gDirectory->mkdir("Secondary");
               gDirectory->cd("Secondary");
               {
@@ -923,9 +935,15 @@ void KFParticlePerformanceBase::CreateParameterHistograms(TH1F* histoParameters[
    ** \param[in] iPart - number of the decay in the KF Particle Finder reconstruction scheme
    ** \param[in] drawZR - flag showing if Z-R histogram should be created
    **/
+  std::cout << "KFParticlePerformanceBase::CreateParameterHistograms : nHistoPartParam = " << nHistoPartParam << std::endl;
+#ifdef CBM
+  TString parName[nHistoPartParam] = {"M","p","p_{t}","y","DecayL","c#tau","chi2ndf","prob","#theta","phi",
+                                      "X","Y","Z","R", "L", "l/dl","m_{t}","Multiplicity"};
+#else
   TString parName[nHistoPartParam] = {"M","p","p_{t}","y","DecayL","c#tau","chi2ndf","prob","#theta","phi",
                                       "X","Y","Z","R", "L", "l/dl","m_{t}","Multiplicity",
                                       "dX", "dY", "dZ", "dPx", "dPy", "dPz", "dE", "dM"};
+#endif
   TString parTitle[nHistoPartParam];
   TString parName2D[nHistoPartParam2D] = {"y-p_{t}", "Z-R", "Armenteros", "y-m_{t}", "dalitz1", "dalitz2", "dalitz3"};
   TString parTitle2D[nHistoPartParam2D];
@@ -940,7 +958,12 @@ void KFParticlePerformanceBase::CreateParameterHistograms(TH1F* histoParameters[
     if(iParam<nHistoPartParam3D)
       parTitle3D[iParam] = path + parName3D[iParam];
   }
-  
+#ifdef CBM
+  TString parAxisName[nHistoPartParam] = {"m [GeV/c^{2}]","p [GeV/c]","p_{t} [GeV/c]",
+                                          "y","Decay length [cm]","Life time c#tau [cm]",
+                                          "chi2/ndf","prob","#theta [rad]",
+                                          "phi [rad]","x [cm]","y [cm]","z [cm]","Rxy [cm]", "L [cm]", "L/dL","m_{t} [GeV/c^{2}]","Multiplicity"};
+#else
   TString parAxisName[nHistoPartParam] = {"m [GeV/c^{2}]","p [GeV/c]","p_{t} [GeV/c]",
                                           "y","Decay length [cm]","Life time c#tau [cm]",
                                           "chi2/ndf","prob","#theta [rad]",
@@ -948,6 +971,7 @@ void KFParticlePerformanceBase::CreateParameterHistograms(TH1F* histoParameters[
                                           "#sigma_{X}, [cm]", "#sigma_{Y}, [cm]", "#sigma_{Z}, [cm]",
                                           "#sigma_{p_{x}}/|p_{x}|", "#sigma_{p_{y}}/|p_{y}|", "#sigma_{p_{z}}/|p_{z}|",
                                           "#sigma_{E}/E", "#sigma_{M}, [GeV/c^{2}]"};
+#endif
 #ifdef CBM
   int nBins[nHistoPartParam] =  {1000, // M
                                   100, // p
@@ -1091,8 +1115,12 @@ void KFParticlePerformanceBase::CreateParameterHistograms(TH1F* histoParameters[
     xMax[10] = 50; xMax[11] = 50; xMax[12] = 100; xMax[13] = 50; xMax[14] = 50; 
   }
 #endif
+std::cout << "KFParticlePerformanceBase::CreateParameterHistograms : 1D histograms" << std::endl;
+  
   for(int iH=0; iH<nHistoPartParam; iH++)
   {
+    std::cout << "Creating histogram " << iH << " : " << parName[iH] << " for particle " << iPart << std::endl;
+    std::cout << "  nBins = " << nBins[iH] << ", xMin = " << xMin[iH] << ", xMax = " << xMax[iH] << std::endl;
     histoParameters[iPart][iH] = new TH1F(parName[iH].Data(),parTitle[iH].Data(),
                                           nBins[iH],xMin[iH],xMax[iH]);
     histoParameters[iPart][iH]->GetXaxis()->SetTitle(parAxisName[iH].Data());

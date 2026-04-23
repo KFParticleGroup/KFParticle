@@ -56,7 +56,7 @@ void KFParticleTopoReconstructor::SetField(double b)
 }
 #endif
 
-#ifdef KFPWITHTRACKER
+#ifdef KFPWITHTRACKER 
 void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker, vector<int>* pdg)
 {
   if(!fTracks) 
@@ -110,7 +110,7 @@ void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker, vector<int
       }
           
       const float x0 = 0;
-      trParam.TransportToXWithMaterial( x0, tracker->Slice(0).Param().cBz( ) );
+      trParam.TransportToXWithMaterial( x0, tracker->Slice(0).Param().cBz( ) ); 
 
         // -- convert parameters
       fTracks[arrayIndex].SetParameter(trParam.X(), 0, iOTr); // X
@@ -303,6 +303,17 @@ void KFParticleTopoReconstructor::Init(vector<KFParticle> &particles, vector<int
 #endif // USE_TIMERS
 }
 
+
+void KFParticleTopoReconstructor::SetTarget(float targetX, float targetY, float targetZ){
+    fKFParticlePVReconstructor->SetTargetPosition({targetX, targetY, targetZ});
+}
+void KFParticleTopoReconstructor::SetTarget(const std::array<float, 3>& target){
+    fKFParticlePVReconstructor->SetTargetPosition(target);
+}
+const std::array<float, 3> KFParticleTopoReconstructor::GetTargetPosition(){
+  return fKFParticlePVReconstructor->GetTargetPosition();
+}
+
 void KFParticleTopoReconstructor::Init(KFPTrackVector &tracks, KFPTrackVector &tracksAtLastPoint)
 {
 #ifdef USE_TIMERS
@@ -314,6 +325,8 @@ void KFParticleTopoReconstructor::Init(KFPTrackVector &tracks, KFPTrackVector &t
   
   fParticles.clear();
   fPV.clear(); 
+
+
   
   int nTracks = tracks.Size();
   fTracks[0].Resize(nTracks);
@@ -393,6 +406,7 @@ void KFParticleTopoReconstructor::ReconstructPrimVertex(bool isHeavySystem)
     for(int iPV=0; iPV<nPrimVtx; iPV++)
       fPV[iPV] = GetPrimVertex(iPV);
   }
+
   
   for(int iPV=0; iPV<NPrimaryVertices(); iPV++)
   {
@@ -502,6 +516,8 @@ void KFParticleTopoReconstructor::SortTracks()
         }
       }
     }
+
+    
     
     for(int iTV=1; iTV<4; iTV++)  
       fTracks[iTV+offset[iSet]].SetTracks(fTracks[offset[iSet]], trackIndex[iTV], nTracks[iTV]);
@@ -703,7 +719,7 @@ void KFParticleTopoReconstructor::SelectParticleCandidates()
     {
       KFParticle tmp = fParticles[iParticle];
       tmp.SetProductionVertex(GetPrimVertex(iPV));
-      if(tmp.Chi2()/tmp.NDF()<3.)
+      if(tmp.Chi2()/tmp.NDF()<5.)
         isSecondary=0;
     }
     if(isSecondary)
@@ -942,25 +958,25 @@ void KFParticleTopoReconstructor::SelectParticleCandidates()
 //       KFParticleDatabase::Instance()->GetMotherMass(fParticles[iParticle].GetPDG(), massPDG, massPDGSigma);
 // //       
 // //       float dm = fabs(mass - massPDG)/massPDGSigma;
-//       
+      
 //       KFParticle tmp = fParticles[iParticle];
 // //       tmp.SetNonlinearMassConstraint(massPDG);
-//       
+      
 //       particleInfo.push_back(ParticleInfo(iParticle, tmp.Chi2()));
 //     }
 //   }
-//   
+  
 //   std::sort(particleInfo.begin(), particleInfo.end(), ParticleInfo::compare);
-//   
+  
 //   for(unsigned int iPI=0; iPI<particleInfo.size(); iPI++)
 //   {
 //     const int index = particleInfo[iPI].fParticleIndex;
 //     if(deleteCandidate[index]) continue;
-//     
+    
 //     bool isStore = true;
 //     for(int iDaughter=0; iDaughter<fParticles[index].NDaughters(); iDaughter++)
 //       isStore &= !(isUsed[ fParticles[index].DaughterIds()[iDaughter] ]);
-//     
+    
 //     if(isStore)
 //     {
 //       for(int iDaughter=0; iDaughter<fParticles[index].NDaughters(); iDaughter++)
@@ -994,7 +1010,7 @@ bool KFParticleTopoReconstructor::ParticleHasRepeatingDaughters(const KFParticle
    ** chains. Such candidates should be rejected.
    **/
   if(particle.NDaughters() < 2) return 0;
-  if((abs(particle.GetPDG()) > 7e6) && (abs(particle.GetPDG()) < 1e7)) return 0; // missing mass 
+  //if((abs(particle.GetPDG()) > 7e6) && (abs(particle.GetPDG()) < 1e7)) return 0; // missing mass 
   
   vector<int> daughters;
   GetListOfDaughterTracks(particle, daughters);
@@ -1048,13 +1064,13 @@ void KFParticleTopoReconstructor::ReconstructParticles()
 
   fKFParticleFinder->FindParticles(fTracks, fChiToPrimVtx, fParticles, fPV, fPV.size());
 // #pragma omp critical 
-//   std::cout << "NPart " << fParticles.size() << " " << fTracks[0].Size() << " "<< fTracks[1].Size() << " " << fTracks[2].Size() << " " << fTracks[3].Size()<< std::endl;
+   std::cout << "NPart " << fParticles.size() << " " << fTracks[0].Size() << " "<< fTracks[1].Size() << " " << fTracks[2].Size() << " " << fTracks[3].Size()<< std::endl;
     
-  for(unsigned int iParticle=0; iParticle<fParticles.size(); iParticle++)
-    if(ParticleHasRepeatingDaughters(fParticles[iParticle]))
-      fParticles[iParticle].SetPDG(-1);
+  // for(unsigned int iParticle=0; iParticle<fParticles.size(); iParticle++)
+  //   if(ParticleHasRepeatingDaughters(fParticles[iParticle]))
+  //     fParticles[iParticle].SetPDG(-1);
     
-  SelectParticleCandidates();
+  // SelectParticleCandidates();
       
 #ifdef USE_TIMERS
   timer.Stop();

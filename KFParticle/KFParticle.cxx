@@ -26,6 +26,7 @@
 
 #include "KFPTrack.h"
 #include "KFPVertex.h"
+#include <iostream>
 
 #ifndef KFParticleStandalone
 ClassImp(KFParticle);
@@ -65,7 +66,8 @@ void KFParticle::Clear(Option_t *option) {
 
 void KFParticle::Print(Option_t *opt) const {
   std::cout << *this << std::endl;
-  if (opt && (opt[0] == 'a' || opt[0] == 'A')) {
+  if (opt && (opt[0] == 'a' || opt[0] == 'A'))
+   {
     TRVector P(8,fP); std::cout << "par. " << P << std::endl;
     TRSymMatrix C(8,fC); std::cout << "cov. " << C << std::endl;
     
@@ -135,6 +137,8 @@ KFParticle::KFParticle( const KFPTrack &track, const int PID ): KFParticle()
   fQ = track.Charge();
   track.GetCovarianceXYZPxPyPz( fC );
 
+ 
+
   float mass = KFParticleDatabase::Instance()->GetMass(PID);
 
   float energy = sqrt( mass*mass + fP[3]*fP[3] + fP[4]*fP[4] + fP[5]*fP[5]);
@@ -161,6 +165,9 @@ KFParticle::KFParticle( const KFPTrack &track, const int PID ): KFParticle()
 
   SumDaughterMass = mass;
   fMassHypo = mass;
+
+ // fAtProductionVertex = 0;
+  fSFromDecay = 0;
 
   SetPDG(PID);
 #ifdef NonhomogeneousField
@@ -190,6 +197,75 @@ void KFParticle::operator +=( const KFParticle &Daughter )
   AddDaughter( Daughter );
 }
 
+void KFParticle::Create(const float Param[], const float Cov[], Int_t Charge, Double_t mass)
+{
+  /** Constructor from a "cartesian" track, mass hypothesis should be provided
+   ** \param[in] Param[6] = { X, Y, Z, Px, Py, Pz } - position and momentum
+   ** \param[in] Cov[21]  - lower-triangular part of the covariance matrix:@n
+   ** \verbatim
+             (  0  .  .  .  .  . )
+             (  1  2  .  .  .  . )
+   Cov[21] = (  3  4  5  .  .  . )
+             (  6  7  8  9  .  . )
+             ( 10 11 12 13 14  . )
+             ( 15 16 17 18 19 20 )
+   \endverbatim
+   ** \param[in] Charge - charge of the particle in elementary charge units
+   ** \param[in] mass - the mass hypothesis
+   **/
+  float C[21];
+  for (int i = 0; i < 21; i++) {
+    C[i] = Cov[i];
+  }
+
+  Initialize(Param, C, Charge, mass);
+}
+
+void KFParticle::Create(const Double_t Param[], const Double_t Cov[], Int_t Charge, Double_t mass)
+{
+  /** Constructor from a "cartesian" track, mass hypothesis should be provided
+   ** \param[in] Param[6] = { X, Y, Z, Px, Py, Pz } - position and momentum
+   ** \param[in] Cov[21]  - lower-triangular part of the covariance matrix:@n
+   ** \verbatim
+             (  0  .  .  .  .  . )
+             (  1  2  .  .  .  . )
+   Cov[21] = (  3  4  5  .  .  . )
+             (  6  7  8  9  .  . )
+             ( 10 11 12 13 14  . )
+             ( 15 16 17 18 19 20 )
+   \endverbatim
+   ** \param[in] Charge - charge of the particle in elementary charge units
+   ** \param[in] mass - the mass hypothesis
+   **/
+  float P[6];
+  for (int i = 0; i < 6; i++) {
+    P[i] = Param[i];
+  }
+  float C[21];
+  for (int i = 0; i < 21; i++) {
+    C[i] = Cov[i];
+  }
+
+  Initialize(P, C, Charge, mass);
+}
+
+void KFParticle::Create(Double_t Param[],
+                        Double_t Cov[],
+                        Int_t Charge,
+                        Double_t mass)
+{
+  Create(const_cast<const Double_t*>(Param),
+         const_cast<const Double_t*>(Cov),
+         Charge,
+         mass);
+}
+void KFParticle::Create(float Param[], float Cov[], Int_t Charge, Double_t mass)
+{
+    Create(const_cast<const float*>(Param),
+           const_cast<const float*>(Cov),
+           Charge,
+           mass);
+}
 bool KFParticle::GetMeasurement( const KFParticle& daughter, float m[], float V[], float D[3][3] )
 {
   /** Obtains the measurements from the current particle and the daughter to be added for the Kalman filter
@@ -204,7 +280,6 @@ bool KFParticle::GetMeasurement( const KFParticle& daughter, float m[], float V[
    ** \param[out] V[36] - the output covariance matrix of the daughter parameters, takes into account the correlation
    ** \param[out] D[3][3] - the correlation matrix between the current and daughter particles
    **/
-  
   if(fNDF == -1)
   {
     float ds[2] = {0.f,0.f};
@@ -219,8 +294,7 @@ bool KFParticle::GetMeasurement( const KFParticle& daughter, float m[], float V[
     }
     GetDStoParticle( daughter, ds, dsdr );
     
-    if( fabs(ds[0]*fP[5]) > 1000.f || fabs(ds[1]*daughter.fP[5]) > 1000.f)
-      return 0;
+    if( fabs(ds[0]*fP[5]) > 1000.f || fabs(ds[1]*daughter.fP[5]) > 1000.f) return 0;
 
     float V0Tmp[36] = {0.};
     float V1Tmp[36] = {0.};
@@ -228,8 +302,8 @@ bool KFParticle::GetMeasurement( const KFParticle& daughter, float m[], float V[
     float C[36];
     for(int iC=0; iC<36; iC++)
       C[iC] = fC[iC];
-          
-             Transport(ds[0], dsdr[0], fP, fC, dsdr[1], F1, F2);
+
+    Transport(ds[0], dsdr[0], fP, fC, dsdr[1], F1, F2);
     daughter.Transport(ds[1], dsdr[3],  m,  V, dsdr[2], F4, F3);
     
     MultQSQt(F2, daughter.fC, V0Tmp, 6);
@@ -288,9 +362,10 @@ bool KFParticle::GetMeasurement( const KFParticle& daughter, float m[], float V[
     
     float dsdp[6] = {-dsdr[0], -dsdr[1], -dsdr[2], 0, 0, 0};
     
-    float F1[36];
+    float F1[36] = {0.};
+
     daughter.Transport(dS, dsdr, m, V, dsdp, nullptr, F1);
-    
+
     float VFT[3][3];
     VFT[0][0] = fC[0]*F1[ 0] + fC[1]*F1[ 1] + fC[3]*F1[ 2];
     VFT[0][1] = fC[0]*F1[ 6] + fC[1]*F1[ 7] + fC[3]*F1[ 8];
@@ -321,7 +396,7 @@ bool KFParticle::GetMeasurement( const KFParticle& daughter, float m[], float V[
           D[i][j] +=  fC[IJ(j,k)] * F1[i*6+k];
         }
       }
-      
+
     V[0] += FVFT[0];
     V[1] += FVFT[1];
     V[2] += FVFT[2];
@@ -349,7 +424,6 @@ void KFParticle::AddDaughter( const KFParticle &Daughter )
    **/
   
   AddDaughterId( Daughter.Id() );
-  
   if( fNDF<-1 ){ // first daughter -> just copy
 #ifdef NonhomogeneousField
     for(int i=0; i<10; i++)
@@ -359,6 +433,7 @@ void KFParticle::AddDaughter( const KFParticle &Daughter )
     fQ     =  Daughter.GetQ();
     for( Int_t i=0; i<7; i++) fP[i] = Daughter.fP[i];
     for( Int_t i=0; i<28; i++) fC[i] = Daughter.fC[i];
+    fSFromDecay = 0;
     fMassHypo = Daughter.fMassHypo;
     SumDaughterMass = Daughter.SumDaughterMass;
     return;
@@ -382,21 +457,25 @@ void KFParticle::AddDaughterWithEnergyFit( const KFParticle &Daughter )
    ** unphysical - smaller then the threshold.
    ** \param[in] Daughter - the daughter particle
    **/
-
   Int_t maxIter = 1;
 
   for( Int_t iter=0; iter<maxIter; iter++ ){
 
     float m[8], mV[36];
 
+    for (int i=0; i<8; i++)m[i] =0;
+    for (int i=0; i<36; i++)mV[i] =0;
+
+
     float D[3][3];
     if(! GetMeasurement(Daughter, m, mV, D) )
       return;
-    
+      
     float mS[6]= { fC[0]+mV[0], 
                    fC[1]+mV[1], fC[2]+mV[2], 
                    fC[3]+mV[3], fC[4]+mV[4], fC[5]+mV[5] };
                    
+
     InvertCholetsky3(mS);
 
     //* Residual (measured - estimated)
@@ -405,8 +484,9 @@ void KFParticle::AddDaughterWithEnergyFit( const KFParticle &Daughter )
 
     float dChi2 = (mS[0]*zeta[0] + mS[1]*zeta[1] + mS[3]*zeta[2])*zeta[0]
            +      (mS[1]*zeta[0] + mS[2]*zeta[1] + mS[4]*zeta[2])*zeta[1]
-           +      (mS[3]*zeta[0] + mS[4]*zeta[1] + mS[5]*zeta[2])*zeta[2]; 
+           +      (mS[3]*zeta[0] + mS[4]*zeta[1] + mS[5]*zeta[2])*zeta[2];
     if (dChi2 > 1e9) return;
+    if (dChi2 != dChi2) return;
 //     if(fNDF > 100 && dChi2 > 9) return;
     
     float K[3][3];
@@ -512,6 +592,7 @@ void KFParticle::AddDaughterWithEnergyFit( const KFParticle &Daughter )
 
     fNDF  += 2;
     fQ    +=  Daughter.GetQ();
+    fSFromDecay = 0;
     fChi2 += dChi2;    
 
   }
@@ -529,7 +610,7 @@ void KFParticle::SubtractDaughter( const KFParticle &Daughter )
   float m[8], mV[36];
 
   float D[3][3];
-  if(! GetMeasurement(Daughter, m, mV, D) )
+  if(!GetMeasurement(Daughter, m, mV, D) )
     return;
   
   float mS[6]= { fC[0]+mV[0], 
@@ -649,6 +730,7 @@ void KFParticle::SubtractDaughter( const KFParticle &Daughter )
 
   fNDF  += 2;
   fQ    +=  Daughter.GetQ();
+  fSFromDecay = 0;
   fChi2 += dChi2;    
 }
 
@@ -874,6 +956,7 @@ void KFParticle::AddDaughterWithEnergyFitMC( const KFParticle &Daughter )
 
     fNDF  += 2;
     fQ    +=  Daughter.GetQ();
+    fSFromDecay = 0;
     fChi2 += (mS[0]*zeta[0] + mS[1]*zeta[1] + mS[3]*zeta[2])*zeta[0]
       +      (mS[1]*zeta[0] + mS[2]*zeta[1] + mS[4]*zeta[2])*zeta[1]
       +      (mS[3]*zeta[0] + mS[4]*zeta[1] + mS[5]*zeta[2])*zeta[2];
@@ -900,6 +983,14 @@ void KFParticle::SetProductionVertex( const KFParticle &Vtx )
     for(int iD2=0; iD2<6; iD2++)
       D[iD1][iD2] = 0.f;
 
+  Bool_t noS = ( fC[35]<=0 ); // no decay length allowed
+
+  if( noS ){ 
+    fP[7] = 0;
+    fC[28] = fC[29] = fC[30] = fC[31] = fC[32] = fC[33] = fC[34] = fC[35] = 0;
+    fSFromDecay = 0;
+  }
+  else
   {
     float dsdr[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
     float dS = GetDStoPoint(Vtx.fP, dsdr);
@@ -1013,6 +1104,12 @@ void KFParticle::SetProductionVertex( const KFParticle &Vtx )
         +  (mS[1]*res[0] + mS[2]*res[1] + mS[4]*res[2])*res[1]
         +  (mS[3]*res[0] + mS[4]*res[1] + mS[5]*res[2])*res[2];
   fNDF += 2;
+
+  if( noS ){ 
+    fP[7] = 0;
+    fC[28] = fC[29] = fC[30] = fC[31] = fC[32] = fC[33] = fC[34] = fC[35] = 0;
+  }
+  else
    
   {
     float dsdr[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
@@ -1046,6 +1143,7 @@ void KFParticle::SetProductionVertex( const KFParticle &Vtx )
         fC[35] -= dsdpV*dsdr[iDsDr];
       }
     }  
+    fSFromDecay = -fP[7];
   }
 }
 
@@ -1241,6 +1339,7 @@ void KFParticle::Construct( const KFParticle* vDaughters[], Int_t nDaughters, co
   const int maxIter = 1;
   for( Int_t iter=0; iter<maxIter; iter++ ){
     SumDaughterMass = 0;
+    fSFromDecay = 0;
 
     for(Int_t i=0;i<36;++i) fC[i]=0.;
     fC[35] = 1.;
@@ -1253,6 +1352,7 @@ void KFParticle::Construct( const KFParticle* vDaughters[], Int_t nDaughters, co
       AddDaughter( *vDaughters[itr] );    
     }
   }
+  
 
   if( Mass>=0 ) SetMassConstraint( Mass );
   if( Parent ) SetProductionVertex( *Parent );
@@ -1434,7 +1534,9 @@ void KFParticle::MultQSQt( const float Q[], const float S[], float SOut[], const
     for( Int_t j=0; j<=i; j++ ){
       Int_t ij = ( j<=i ) ? i*(i+1)/2+j :j*(j+1)/2+i;
       SOut[ij] = 0 ;
-      for( Int_t k=0; k<kN; k++ )  SOut[ij] += Q[ i*kN+k ] * mA[ k*kN+j ];
+      for( Int_t k=0; k<kN; k++ )  {
+        SOut[ij] += Q[ i*kN+k ] * mA[ k*kN+j ];
+      }
     }
   }
   
@@ -1693,10 +1795,10 @@ float KFParticle::GetDStoPointCBM( const float xyz[3], float dsdr[6] ) const
    ** \param[out] dsdr[6] = ds/dr partial derivatives of the parameter dS over the state vector of the current particle
    **/
 
-  float dS = 0;
+  float dS = 0; 
   float fld[3];
-  GetFieldValue( fP, fld );
-  dS = GetDStoPointBy( fld[1], xyz, dsdr );
+  GetFieldValue(fP, fld);
+  dS = GetDStoPointBy(fld[1], xyz, dsdr);
   
   return dS;
 }
@@ -2512,6 +2614,7 @@ void KFParticle::TransportToDS( float dS, const float* dsdr )
    **/
  
   Transport( dS, dsdr, fP, fC );
+  fSFromDecay+= dS; 
 }
 
 void KFParticle::TransportCBM( float dS, const float* dsdr, float P[], float C[], float* dsdr1, float* F, float* F1) const
@@ -2554,6 +2657,7 @@ void KFParticle::TransportCBM( float dS, const float* dsdr, float P[], float C[]
     px   = fP[3],
     py   = fP[4],
     pz   = fP[5];
+
       
   float sx=0, sy=0, sz=0, syy=0, syz=0, syyy=0, ssx=0, ssy=0, ssz=0, ssyy=0, ssyz=0, ssyyy=0;
 
@@ -2669,23 +2773,29 @@ void KFParticle::TransportCBM( float dS, const float* dsdr, float P[], float C[]
     mJds[4][3]= -sz/dS;                 mJds[4][4]=0;         mJds[4][5] = sx/dS + 2.f*syz/dS;
     mJds[5][3]= sy/dS - 3.f*syyy/dS;    mJds[5][4]=-sx/dS;    mJds[5][5]= -2.f*syy/dS;
   }
-  
+
   for(int i1=0; i1<6; i1++)
     for(int i2=0; i2<6; i2++)
       mJ[i1][i2] += mJds[i1][3]*px*dsdr[i2] + mJds[i1][4]*py*dsdr[i2] + mJds[i1][5]*pz*dsdr[i2];
   
   MultQSQt( mJ[0], fC, C, 8);
-  
-  if(F)
-  {
-    for(int i=0; i<6; i++)
-      for(int j=0; j<6; j++)
-        F[i*6+j] = mJ[i][j];
 
-    for(int i1=0; i1<6; i1++)
-      for(int i2=0; i2<6; i2++)
-        F1[i1*6 + i2] = mJds[i1][3]*px*dsdr1[i2] + mJds[i1][4]*py*dsdr1[i2] + mJds[i1][5]*pz*dsdr1[i2];
+  if (F) {
+    for (int i = 0; i < 6; i++) {
+      for (int j = 0; j < 6; j++) {
+        F[i * 6 + j] = mJ[i][j];
+      }
+    }
   }
+
+  if (F1) {
+    for (int i1 = 0; i1 < 6; i1++) {
+      for (int i2 = 0; i2 < 6; i2++) {
+        F1[i1 * 6 + i2] = mJds[i1][3] * px * dsdr1[i2] + mJds[i1][4] * py * dsdr1[i2] + mJds[i1][5] * pz * dsdr1[i2];
+      }
+    }
+  }
+
 }
 
 void KFParticle::TransportBz( float Bz, float dS, const float* dsdr, float P[], float C[], float* dsdr1, float* F, float* F1, const bool fullC ) const 
@@ -3012,7 +3122,10 @@ void KFParticle::TransportLine( float dS, const float* dsdr, float P[], float C[
     for(int i=0; i<6; i++)
       for(int j=0; j<6; j++)
         F[i*6+j] = mJ[i][j];
+  }
 
+  if(F1) 
+  {
     for(int i1=0; i1<6; i1++)
       for(int i2=0; i2<6; i2++)
         F1[i1*6 + i2] = mJds[i1][3]*px*dsdr1[i2] + mJds[i1][4]*py*dsdr1[i2] + mJds[i1][5]*pz*dsdr1[i2];
@@ -3144,9 +3257,14 @@ float KFParticle::GetDeviationFromVertex( const float v[], const float Cv[] ) co
   float dsdr[6] = {0.f,0.f,0.f,0.f,0.f,0.f};
   const float dS = GetDStoPoint(v, dsdr);
   float dsdp[6] = {-dsdr[0], -dsdr[1], -dsdr[2], 0, 0, 0};
-  float F1[36];
-  Transport( dS, dsdr, mP, mC, dsdp, nullptr, F1, false );
 
+  float F[36] = {0.f};
+  float F1[36] = {0.f};
+
+  Transport(dS, dsdr, mP, mC, dsdp, F, F1);
+  //Transport( dS, dsdr, mP, mC, dsdp, nullptr, F1, false );
+
+  /* move back to old approach
   if(Cv)
   {
 //     float VFT[3][6];
@@ -3199,8 +3317,37 @@ float KFParticle::GetDeviationFromVertex( const float v[], const float Cv[] ) co
     mC[4] += FVFT[4] + Cv[4];
     mC[5] += FVFT[5] + Cv[5];
   }
+  */
+
+  if (Cv) {
+    float VFT[3][6];
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 6; j++) {
+        VFT[i][j] = 0;
+        for (int k = 0; k < 3; k++) {
+          VFT[i][j] += Cv[IJ(i, k)] * F1[j * 6 + k];
+        }
+      }
+    }
+    float FVFT[6][6];
+    for (int i = 0; i < 6; i++) {
+      for (int j = 0; j < 6; j++) {
+        FVFT[i][j] = 0;
+        for (int k = 0; k < 3; k++) {
+          FVFT[i][j] += F1[i * 6 + k] * VFT[k][j];
+        }
+      }
+    }
+    mC[0] += FVFT[0][0] + Cv[0];
+    mC[1] += FVFT[1][0] + Cv[1];
+    mC[2] += FVFT[1][1] + Cv[2];
+    mC[3] += FVFT[2][0] + Cv[3];
+    mC[4] += FVFT[2][1] + Cv[4];
+    mC[5] += FVFT[2][2] + Cv[5];
+  }
   
   InvertCholetsky3(mC);
+
   
   float d[3]={ v[0]-mP[0], v[1]-mP[1], v[2]-mP[2]};
 

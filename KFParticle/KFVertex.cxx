@@ -21,7 +21,7 @@
 
 
 #include "KFVertex.h"
-
+#include <iostream>
 #ifndef KFParticleStandalone
 ClassImp(KFVertex);
 #endif
@@ -34,7 +34,10 @@ KFVertex::KFVertex( const KFPVertex &vertex ): fIsConstrained(0)
   vertex.GetCovarianceMatrix( fC );  
   fChi2 = vertex.GetChi2();  
   fNDF = 2*vertex.GetNContributors() - 3;
+  fNDF = vertex.GetNDF();
   fQ = 0;
+//  fAtProductionVertex = 0;
+//  fSFromDecay = 0;
 }
 
 void KFVertex::SetBeamConstraint( float x, float y, float z, 
@@ -79,7 +82,6 @@ void KFVertex::ConstructPrimaryVertex( const KFParticle *vDaughters[],
    ** \param[in] ChiCut - cut on the chi2-deviation of the particle from the created
    ** seed, by default the cut is set to 3.5
    **/
-
   if( nDaughters<2 ) return;
   float constrP[3]={fP[0], fP[1], fP[2]};
   float constrC[6]={fC[0], fC[1], fC[2], fC[3], fC[4], fC[5]};
@@ -113,9 +115,10 @@ void KFVertex::ConstructPrimaryVertex( const KFParticle *vDaughters[],
 //     nRest--;
 //   } 
 
+
   for( Int_t it=0; it<nDaughters; it++ ){
     const KFParticle &p = *(vDaughters[it]);
-    float chi = p.GetDeviationFromVertex( *this );      
+    float chi = p.GetDeviationFromVertex( *this );  
     if( chi >= ChiCut ){
       vtxFlag[it] = 0;    
       nRest--;
@@ -138,6 +141,7 @@ void KFVertex::ConstructPrimaryVertex( const KFParticle *vDaughters[],
     Construct( vDaughtersNew, nDaughtersNew, 0, -1 );
     if (vDaughtersNew) delete[] vDaughtersNew;
   }
+ 
 
   if( nRest<=2 && GetChi2() > ChiCut*ChiCut*GetNDF() ) {
     for( int i=0; i<nDaughters; i++ ) vtxFlag[i] = 0;
