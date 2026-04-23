@@ -127,6 +127,16 @@ if(FIXTARGET)
 #  file(WRITE ${SourceFile_new} ${Contents_Modified})
 
   add_library(KFParticle SHARED ${SOURCES} G__KFParticle_mod.cxx)
+  target_include_directories(KFParticle
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/KFParticle
+        ${PROJECT_SOURCE_DIR}/KFParticlePerformance
+        ${PROJECT_SOURCE_DIR}/KFParticleTest
+        ${PROJECT_SOURCE_DIR}/KFParticle/KFPSimd
+        ${PROJECT_SOURCE_DIR}/KFParticle/KFPSimd/Utils
+        ${PROJECT_SOURCE_DIR}/KFParticle/KFPSimd/SSE
+)
   target_link_libraries(KFParticle ${ROOT_LIBRARIES} ${Vc_LIBRARIES} )
   add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DNonhomogeneousField -DCBM -DUSE_TIMERS")
 #  add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DHomogeneousField -DCBM -DUSE_TIMERS")
@@ -190,9 +200,10 @@ install(DIRECTORY KFParticleTest
         PATTERN "*.h")
 
 
-if(EXISTS ${CMAKE_BINARY_DIR}/lib/libKFParticle.rootmap)     
+#if(EXISTS ${CMAKE_BINARY_DIR}/lib/libKFParticle.rootmap)     
   install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle.rootmap DESTINATION lib)
-endif()
+  install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle_rdict.pcm DESTINATION lib)
+#endif()
 
 #install(FILES ${HEADERS} ${NODICT_HEADERS} DESTINATION include/KFParticle)
 
