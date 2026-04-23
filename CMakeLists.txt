@@ -130,13 +130,11 @@ if(FIXTARGET)
   target_link_libraries(KFParticle ${ROOT_LIBRARIES} ${Vc_LIBRARIES} )
   add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DNonhomogeneousField -DCBM -DUSE_TIMERS")
 #  add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DHomogeneousField -DCBM -DUSE_TIMERS")
-<<<<<<< HEAD
-=======
+
 
   ROOT_GENERATE_DICTIONARY(G__KFParticle ${HEADERS} MODULE KFParticle LINKDEF KFLinkDef.h OPTIONS "-DDO_TPCCATRACKER_EFF_PERFORMANCE" "-DNonhomogeneousField" "-DCBM" "-DUSE_TIMERS")
 #  ROOT_GENERATE_DICTIONARY(G__KFParticle ${HEADERS} LINKDEF KFLinkDef.h OPTIONS "-DDO_TPCCATRACKER_EFF_PERFORMANCE" "-DHomogeneousField" "-DCBM" "-DUSE_TIMERS")
 
->>>>>>> aa4b9b2 (Import code from STAR framework (https://github.com/star-bnl/star-sw/pull/722) and apply bug fixes and adaptations for CBM reconstruction)
 else(FIXTARGET)
   ROOT_GENERATE_DICTIONARY(G__KFParticle ${HEADERS} LINKDEF KFLinkDef.h OPTIONS "-DDO_TPCCATRACKER_EFF_PERFORMANCE" "-DHomogeneousField" "-DUSE_TIMERS")
   add_library(KFParticle SHARED ${SOURCES} G__KFParticle.cxx)
@@ -191,17 +189,10 @@ install(DIRECTORY KFParticleTest
         FILES_MATCHING
         PATTERN "*.h")
 
-<<<<<<< HEAD
+
 if(EXISTS ${CMAKE_BINARY_DIR}/lib/libKFParticle.rootmap)     
   install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle.rootmap DESTINATION lib)
 endif()
-=======
-set(KFP_ROOTMAP "${CMAKE_CURRENT_BINARY_DIR}/libKFParticle.rootmap")
-set(KFP_PCM "${CMAKE_CURRENT_BINARY_DIR}/libKFParticle_rdict.pcm")
-
-install(FILES ${KFP_ROOTMAP} DESTINATION lib OPTIONAL)
-install(FILES ${KFP_PCM} DESTINATION lib OPTIONAL)
->>>>>>> aa4b9b2 (Import code from STAR framework (https://github.com/star-bnl/star-sw/pull/722) and apply bug fixes and adaptations for CBM reconstruction)
 
 #install(FILES ${HEADERS} ${NODICT_HEADERS} DESTINATION include/KFParticle)
 
