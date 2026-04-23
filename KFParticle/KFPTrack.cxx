@@ -21,7 +21,7 @@
 
 #include "KFPTrack.h"
 
-#ifdef __ROOT__
+#if defined(__ROOT__) && !defined(CBM_ONLINE)
 #include "Riostream.h"
 #include "TString.h"
 #include "TMath.h"

@@ -843,7 +843,7 @@ inline void KFParticleFinder::ConstructV0(KFPTrackVector* vTracks,
     motherTopo.SetProductionVertex(PrimVtx[iP]);
     motherTopo.GetDecayLength(l[iP], dl[iP]);
     float32_v ldl = (l[iP]/dl[iP]);
-    ldlMin( (ldl < ldlMin) && saveParticle) = ldl;
+    ldlMin = select(ldl < ldlMin && saveParticle,ldl,ldlMin);
   }
 #endif
   saveParticle &= ( ((!isPrimary) && ldlMin > ldlCut) || isPrimary );
@@ -1220,7 +1220,8 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, kfvector_floa
 #ifdef CBM          
           if( !((negPDG == -1).isEmpty()) )
           {
-            trackPdgNeg(negPVIndex<0 && (negPDG == -1) ) = -211;
+            //trackPdgNeg(negPVIndex<0 && (negPDG == -1) ) = -211;
+            trackPdgNeg = select( (negPVIndex < 0) && (negPDG == -1), int32_v(-211), trackPdgNeg );
                 
             activeNeg |= (negPVIndex < 0) && (negPDG == -1) ;
           }
@@ -1289,7 +1290,8 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, kfvector_floa
               }
               else
               {
-                trackPdgPos[0](isSecondary && posPDG == -1) = 211;
+                //trackPdgPos[0](isSecondary && posPDG == -1) = 211;
+                trackPdgPos[0] = select(isSecondary && posPDG == -1, int32_v(-211), trackPdgPos[0]);
                 trackPdgPos[1] = 2212;
                 
                 active[0] |= isSecondary && (posPDG == -1);

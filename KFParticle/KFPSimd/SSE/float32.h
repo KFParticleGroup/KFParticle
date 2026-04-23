@@ -357,7 +357,38 @@ public:
         return result;
     }
 
+    // ---------------------------
+    // Proxy for element-wise assignment
+    // ---------------------------
+    struct Proxy {
+        Float32_128& vec;
+        int idx;
 
+        operator float() const {
+            float tmp[SimdLen];
+            vec.storeUnaligned(tmp);
+            return tmp[idx];
+        }
+
+        Proxy& operator=(float value) {
+            float tmp[SimdLen];
+            vec.storeUnaligned(tmp);
+            tmp[idx] = value;
+            vec.loadUnaligned(tmp);
+            return *this;
+        }
+
+        Proxy& operator=(const Proxy& other) {
+            *this = float(other);
+            return *this;
+        }
+    };
+
+    Proxy operator[](int idx) {
+        assert(idx >= 0 && idx < SimdLen);
+        return Proxy{*this, idx};
+    }
+    
 private:
     alignas(SimdSize) __m128 m_data;
 };

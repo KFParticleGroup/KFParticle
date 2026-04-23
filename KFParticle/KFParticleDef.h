@@ -19,29 +19,36 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef KFParticleDef_H
 #define KFParticleDef_H
 
-#ifdef __ROOT__ //for the STAR experiment
-#define HomogeneousField
+#ifndef KFP_SIMD_SSE
+#define KFP_SIMD_SSE
 #endif
 
-#ifdef HLTCA_STANDALONE
+#include <vector>
+#include <cstring>
+
+#if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
 #include "RootTypesDef.h"
+#include "simd.h"
 #else
 #include "TObject.h"
+#include "KFPSimd/simd.h"
 #endif
 
 #define NInputSets 8
-
-#include "KFPSimd/simd.h"
 
 using float32_v = KFP::SIMD::simd_float;
 using int32_v = KFP::SIMD::simd_int;
 using mask32_v = KFP::SIMD::simd_mask;
 using KFP::SIMD::SimdLen;
 using KFP::SIMD::SimdSize;
+
+using float_v = KFP::SIMD::simd_float;
+using int_v = KFP::SIMD::simd_int;
+using mask_v = KFP::SIMD::simd_mask;
+using uint_v = KFP::SIMD::simd_int;
 
 // using ::Vc::float32_v;
 // using ::Vc::double_v;
@@ -58,12 +65,16 @@ using KFP::SIMD::SimdSize;
 // using ::Vc::isfinite;
 
 #ifdef VC_VERSION_NUMBER
-#if VC_VERSION_NUMBER < VC_VERSION_CHECK(1,0,0)
-template <typename To, typename From> To simd_cast(From &&x) { return static_cast<To>(x); }
+#if VC_VERSION_NUMBER < VC_VERSION_CHECK(1, 0, 0)
+template <typename To, typename From> To simd_cast(From &&x) {
+  return static_cast<To>(x);
+}
 #endif
 #elif defined(Vc_VERSION_NUMBER)
-#if Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1,0,0)
-template <typename To, typename From> To simd_cast(From &&x) { return static_cast<To>(x); }
+#if Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1, 0, 0)
+template <typename To, typename From> To simd_cast(From &&x) {
+  return static_cast<To>(x);
+}
 #endif
 #endif
 
@@ -72,14 +83,15 @@ typedef unsigned char UChar_t;
 typedef UChar_t Byte_t;
 typedef int Int_t;
 typedef double Double_t;
+#elif defined(CBM_ONLINE)
 #else
 #include "Rtypes.h"
 #endif
 
-#include "KFPSimdAllocator.h"    
-typedef std::vector<float32_v, KFPSimdAllocator<float32_v> > kfvector_floatv;
+#include "KFPSimdAllocator.h"
+typedef std::vector<float32_v, KFPSimdAllocator<float32_v>> kfvector_floatv;
 
-typedef std::vector<float, KFPSimdAllocator<float> > kfvector_float;
-typedef std::vector<int, KFPSimdAllocator<int> > kfvector_int;
+typedef std::vector<float, KFPSimdAllocator<float>> kfvector_float;
+typedef std::vector<int, KFPSimdAllocator<int>> kfvector_int;
 
-#endif 
+#endif
