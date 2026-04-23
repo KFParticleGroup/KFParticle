@@ -33,7 +33,9 @@
 #endif
 
 #define NInputSets 8
+#if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
 #include "simd.h"
+#endif
 
 using float32_v = KFP::SIMD::simd_float;
 using int32_v = KFP::SIMD::simd_int;
