@@ -31,7 +31,7 @@
 #define CBM
 #endif
 
-#ifdef HLTCA_STANDALONE
+#if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
 #include "RootTypesDef.h"
 #else
 #include "TObject.h"
@@ -65,8 +65,11 @@ class KFPVertex;
  ** to other particles and vertices, get deviations from them in terms of
  *errors, etc.
  **/
-class KFParticle : public TObject {
-
+class KFParticle 
+#if !defined(CBM_ONLINE)
+    : public TObject
+#endif
+{
 public:
   //*
   //*  INITIALIZATION
@@ -603,7 +606,7 @@ protected:
   float fieldRegion[10];
 #endif
 
-#ifndef KFParticleStandalone
+#if !defined(KFParticleStandalone) && !defined(CBM_ONLINE)
   ClassDef(KFParticle, 4)
 #endif
 };

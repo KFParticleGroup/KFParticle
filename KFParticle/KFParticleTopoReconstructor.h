@@ -32,7 +32,7 @@
 #include "KFParticleSIMD.h"
 
 #ifdef USE_TIMERS
-#ifndef HLTCA_STANDALONE
+#if !defined(HLTCA_STANDALONE) && !defined(CBM_ONLINE)
 #include "TStopwatch.h"
 typedef TStopwatch Stopwatch;
 #else

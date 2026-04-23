@@ -26,7 +26,7 @@
 //#define HomogeneousField
 #endif
 
-#ifdef HLTCA_STANDALONE
+#if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
 #include "RootTypesDef.h"
 #else
 #include "TObject.h"
@@ -79,6 +79,7 @@ typedef unsigned char UChar_t;
 typedef UChar_t Byte_t;
 typedef int Int_t;
 typedef double Double_t;
+#elif defined(CBM_ONLINE)
 #else
 #include "Rtypes.h"
 #endif

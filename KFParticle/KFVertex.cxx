@@ -22,7 +22,7 @@
 
 #include "KFVertex.h"
 #include <iostream>
-#ifndef KFParticleStandalone
+#if !defined(KFParticleStandalone) && !defined(CBM_ONLINE)
 ClassImp(KFVertex);
 #endif
 

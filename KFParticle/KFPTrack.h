@@ -36,11 +36,13 @@
  ** the unique Id of the track and the field approximation along the track
  *trajectory.
  **/
-
+#if !defined(CBM_ONLINE)
 #include "TObject.h"
+#endif
+
 #include <cmath>
 class KFPTrack
-#ifdef __ROOT__
+#if defined(__ROOT__) && !defined(CBM_ONLINE)
     : public TObject
 #endif
 {
@@ -301,7 +303,7 @@ private:
    **/
   float fieldRegion[10];
 #endif
-#ifdef __ROOT__
+#if defined(__ROOT__) && !defined(CBM_ONLINE)
   ClassDef(KFPTrack, 1)
 #endif
 };
