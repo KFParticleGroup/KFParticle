@@ -33,6 +33,16 @@
 #include "TObject.h"
 #endif
 
+<<<<<<< HEAD
+=======
+#include <cmath>
+#include <vector>
+
+#include <iostream>
+using std::ofstream;
+
+
+>>>>>>> f520bae (Import code from STAR framework (https://github.com/star-bnl/star-sw/pull/722) and apply bug fixes and adaptations for CBM reconstruction)
 using std::vector;
 
 
