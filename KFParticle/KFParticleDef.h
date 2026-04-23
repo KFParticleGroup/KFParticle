@@ -41,12 +41,7 @@
 using std::ofstream;
 #include <cstring>
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 1009691 (Import code from STAR framework (https://github.com/star-bnl/star-sw/pull/722) and apply bug fixes and adaptations for CBM reconstruction)
 using std::vector;
-
 
 
 #define NInputSets 8
