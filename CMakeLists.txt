@@ -115,29 +115,33 @@ if(FIXTARGET)
   find_program(BIN_SED sed)
   if(BIN_SED)
     add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/G__KFParticle_mod.cxx
-      COMMAND sed -e "s#${CMAKE_SOURCE_DIR}/##g"
-              ${CMAKE_BINARY_DIR}/G__KFParticle.cxx
-              > ${CMAKE_BINARY_DIR}/G__KFParticle_mod.cxx
-      DEPENDS ${CMAKE_BINARY_DIR}/G__KFParticle.cxx
-    )
+                       COMMAND sed -e "s#${CMAKE_SOURCE_DIR}/##g" ${CMAKE_BINARY_DIR}/G__KFParticle.cxx > ${CMAKE_BINARY_DIR}/G__KFParticle_mod.cxx
+                       DEPENDS ${CMAKE_BINARY_DIR}/G__KFParticle.cxx
+                      )
   else()
-    message("Can't correct KFParticle dictionary")
+    Message("Can't correct KFParticle dictionary. Running KFParticle from an installed CbmRoot will not be possible")
   endif()
 
+#  set(SourceFile "${CMAKE_BINARY_DIR}/G__KFParticle.cxx")
+#  set(SourceFile_new "${CMAKE_BINARY_DIR}/G__KFParticle_mod.cxx")
+#  file(READ ${SourceFile} Contents)
+#  STRING(REGEX REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" Contents_Modified "${Contents}" )
+#  file(WRITE ${SourceFile_new} ${Contents_Modified})
+
   add_library(KFParticle SHARED ${SOURCES} G__KFParticle_mod.cxx)
-
-else()
-
-  ROOT_GENERATE_DICTIONARY(G__KFParticle ${HEADERS}
-    LINKDEF KFLinkDef.h
-    OPTIONS "-DDO_TPCCATRACKER_EFF_PERFORMANCE"
-            "-DHomogeneousField"
-            "-DUSE_TIMERS"
-  )
-
+  target_link_libraries(KFParticle ${ROOT_LIBRARIES} ${Vc_LIBRARIES} )
+  add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DNonhomogeneousField -DCBM -DUSE_TIMERS")
+#  add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DHomogeneousField -DCBM -DUSE_TIMERS")
+else(FIXTARGET)
+  ROOT_GENERATE_DICTIONARY(G__KFParticle ${HEADERS} LINKDEF KFLinkDef.h OPTIONS "-DDO_TPCCATRACKER_EFF_PERFORMANCE" "-DHomogeneousField" "-DUSE_TIMERS")
   add_library(KFParticle SHARED ${SOURCES} G__KFParticle.cxx)
+  target_link_libraries(KFParticle ${ROOT_LIBRARIES} ${Vc_LIBRARIES} )
+  add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DHomogeneousField -DUSE_TIMERS")
+endif(FIXTARGET)
 
-endif()
+if (ROOT_VERSION_MAJOR LESS 6)
+    add_custom_target(libKFParticle.rootmap ALL DEPENDS KFParticle COMMAND rlibmap -o libKFParticle.rootmap -l libKFParticle.so -c ${PROJECT_SOURCE_DIR}/KFLinkDef.h)
+endif (ROOT_VERSION_MAJOR LESS 6)
 
 
 Set(NODICT_HEADERS
@@ -182,9 +186,9 @@ install(DIRECTORY KFParticleTest
         FILES_MATCHING
         PATTERN "*.h")
 
-if(EXISTS ${CMAKE_BINARY_DIR}/libKFParticle.rootmap)
-    install(FILES ${CMAKE_BINARY_DIR}/libKFParticle.rootmap DESTINATION lib)
-endif()        
+if(EXISTS ${CMAKE_BINARY_DIR}/lib/libKFParticle.rootmap)     
+  install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle.rootmap DESTINATION lib)
+endif()
 
 #install(FILES ${HEADERS} ${NODICT_HEADERS} DESTINATION include/KFParticle)
 
