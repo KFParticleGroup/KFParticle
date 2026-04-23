@@ -27,7 +27,7 @@
 #define KFPARTICLE_H
 
 #ifdef __ROOT__ // for the STAR experiment
-//#define HomogeneousField
+#define HomogeneousField
 #define CBM
 #endif
 
