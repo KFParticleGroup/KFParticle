@@ -9,6 +9,9 @@ Emails: mithran@fias.uni-frankfurt.de
 #ifndef KFP_SIMD_H
 #define KFP_SIMD_H
 
+#pragma GCC target("sse4.1")
+#include <smmintrin.h>
+
 // Determine instruction set, and define platform-dependent functions
 #include "Utils/macros.h"
 // #include "Utils/memory.h"
