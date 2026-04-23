@@ -31,8 +31,9 @@
 #include "RootTypesDef.h"
 #else
 #include "TObject.h"
-#include "simd.h"
 #endif
+
+using std::vector;
 
 
 
