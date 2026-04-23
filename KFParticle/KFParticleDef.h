@@ -30,7 +30,10 @@
 #include "simd.h"
 #endif
 
+
+
 #define NInputSets 8
+#include "KFPSimd/simd.h"
 
 using float32_v = KFP::SIMD::simd_float;
 using int32_v = KFP::SIMD::simd_int;
