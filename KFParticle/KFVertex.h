@@ -67,7 +67,7 @@ public:
 protected:
   Bool_t fIsConstrained; ///< Flag showing if the the beam constraint is set
 
-#ifndef KFParticleStandalone
+#if !defined(KFParticleStandalone) && !defined(CBM_ONLINE)
   ClassDef(KFVertex, 2)
 #endif
 };
