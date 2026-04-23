@@ -45,7 +45,7 @@ using std::vector;
 
 
 #define NInputSets 8
-#include "KFPSimd/simd.h"
+#include "simd.h"
 
 using float32_v = KFP::SIMD::simd_float;
 using int32_v = KFP::SIMD::simd_int;
