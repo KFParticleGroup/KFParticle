@@ -37,7 +37,7 @@ ClassImp(KFParticle);
 float KFParticle::fgBz = -5.;  //* Bz compoment of the magnetic field
 #endif
 
-#ifdef __ROOT__
+#if defined(__ROOT__) && !defined(CBM_ONLINE)
 #include "TClass.h"
 #include "TRSymMatrix.h"
 #include "TRVector.h"
@@ -110,7 +110,7 @@ std::ostream&  operator<<(std::ostream& os, const KFParticle& particle) {
 }
 #endif
 
-#ifndef __ROOT__
+#if defined(__ROOT__) && !defined(CBM_ONLINE)
 KFParticle::KFParticle() : fChi2(0), 
    SumDaughterMass(0), fMassHypo(-1), fNDF(-3), fId(-1), fQ(0), fConstructMethod(0), fPDG(0), fDaughtersIds()
 { 

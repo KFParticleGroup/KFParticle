@@ -284,7 +284,7 @@ public:
    * \param[in] i - index of the element */
   void SetFieldCoeff(float c, int i) { fieldRegion[i] = c; }
 #endif
-#ifdef __ROOT__ // for the STAR experiment
+#if defined(__ROOT__) && !defined(CBM_ONLINE) // for the STAR experiment
   virtual void Print(Option_t *opt = "") const;
 #endif
 private:
@@ -307,7 +307,7 @@ private:
   ClassDef(KFPTrack, 1)
 #endif
 };
-#ifdef __ROOT__ // for the STAR experiment
+#if defined(__ROOT__) && !defined(CBM_ONLINE) // for the STAR experiment
 std::ostream &operator<<(std::ostream &os, KFPTrack const &track);
 #endif
 
