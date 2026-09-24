@@ -1,10 +1,10 @@
 #pragma once
 #define MAKE_VERTEX_COV_MAT
 
+#include "../ParticleStructures/MCParticleStructure.h"
+
 #include <cmath>
 #include <vector>
-
-#include "../ParticleStructures/MCParticleStructure.h"
 
 // This function is just an example, but not
 // a real analysis template. Please, do not
@@ -26,7 +26,8 @@
 //
 // xx, yy, zz,... - in cm^2
 
-std::vector<float> MakeVertexCovMatrix(const MCParticleStruct &part) {
+std::vector<float> MakeVertexCovMatrix(const MCParticleStruct& part)
+{
   // 3x3 matrix has 6 indep. elements. Lets define all of them.
   std::vector<float> covmat(6);
 
@@ -36,12 +37,12 @@ std::vector<float> MakeVertexCovMatrix(const MCParticleStruct &part) {
   else
       pt = part.initialPT();*/
 
-  covmat[0] = 1e-6;                                        // σxx
-  covmat[1] = 1e-6 * (-1 + (double)rand() / RAND_MAX * 2); // σxy
-  covmat[2] = 1e-6;                                        // σyy
-  covmat[3] = 1e-6 * (-1 + (double)rand() / RAND_MAX * 2); // σxz
-  covmat[4] = 1e-6 * (-1 + (double)rand() / RAND_MAX * 2); // σyz
-  covmat[5] = 1e-6;                                        // σzz
+  covmat[0] = 1e-6;                                          // σxx
+  covmat[1] = 1e-6 * (-1 + (double) rand() / RAND_MAX * 2);  // σxy
+  covmat[2] = 1e-6;                                          // σyy
+  covmat[3] = 1e-6 * (-1 + (double) rand() / RAND_MAX * 2);  // σxz
+  covmat[4] = 1e-6 * (-1 + (double) rand() / RAND_MAX * 2);  // σyz
+  covmat[5] = 1e-6;                                          // σzz
 
   // Random number generator
   // std::random_device rd;

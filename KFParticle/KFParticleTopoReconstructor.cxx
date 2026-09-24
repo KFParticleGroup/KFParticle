@@ -26,15 +26,15 @@
 #include "AliHLTTPCCAGBTracker.h"
 #endif
 
-#include "KFParticleSIMD.h"
 #include "KFParticleDatabase.h"
+#include "KFParticleSIMD.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <algorithm>
-using std::string;
 using std::ofstream;
+using std::string;
 using std::vector;
 
 #include "KFPInputData.h"
@@ -42,9 +42,9 @@ using std::vector;
 KFParticleTopoReconstructor::~KFParticleTopoReconstructor()
 {
   /** The default destructor. Deallocates memory for all pointers if objects exist. **/
-  if (fKFParticlePVReconstructor) delete fKFParticlePVReconstructor;
-  if (fKFParticleFinder) delete fKFParticleFinder;
-  if(fTracks) delete [] fTracks;
+  if (fKFParticlePVReconstructor) { delete fKFParticlePVReconstructor; }
+  if (fKFParticleFinder) { delete fKFParticleFinder; }
+  if (fTracks) { delete[] fTracks; }
 }
 
 #ifdef HomogeneousField
@@ -56,11 +56,10 @@ void KFParticleTopoReconstructor::SetField(double b)
 }
 #endif
 
-#ifdef KFPWITHTRACKER 
+#ifdef KFPWITHTRACKER
 void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker, vector<int>* pdg)
 {
-  if(!fTracks) 
-    fTracks = new KFPTrackVector[NInputSets];
+  if (!fTracks) { fTracks = new KFPTrackVector[NInputSets]; }
 
   fTracks[0].Resize(0);
   fTracks[1].Resize(0);
@@ -70,84 +69,81 @@ void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker, vector<int
   fTracks[5].Resize(0);
   fTracks[6].Resize(0);
   fTracks[7].Resize(0);
-  
+
 #ifdef USE_TIMERS
   timer.Start();
-#endif // USE_TIMERS
+#endif  // USE_TIMERS
 
-  KFParticle::SetField( tracker->Slice(0).Param().Bz() );
-  KFParticleSIMD::SetField( tracker->Slice(0).Param().Bz() );
+  KFParticle::SetField(tracker->Slice(0).Param().Bz());
+  KFParticleSIMD::SetField(tracker->Slice(0).Param().Bz());
 
-    // create and fill array of tracks to init KFParticleTopoReconstructor
+  // create and fill array of tracks to init KFParticleTopoReconstructor
   const int nTracks = tracker->NTracks();
-  fTracks[1].Resize( int(nTracks/SimdLen+1)*SimdLen );
-  fTracks[5].Resize( int(nTracks/SimdLen+1)*SimdLen );
+  fTracks[1].Resize(int(nTracks / SimdLen + 1) * SimdLen);
+  fTracks[5].Resize(int(nTracks / SimdLen + 1) * SimdLen);
   fParticles.clear();
-  int iOTr = 0; // index in out array
-  
+  int iOTr = 0;  // index in out array
+
   float32_v alpha(Vc::Zero);
-  int nElements=0;
-  
-  for ( int iTr = 0; iTr < nTracks; iTr++ ) {
-      // get track params in local CS
-    
-    bool ok = true;
-    const int q = -(tracker->Tracks()[ iTr ].InnerParam().QPt()>=0 ? 1 : -1);
-    
-    for(int iParamSet=0; iParamSet<2; iParamSet++)
-    {
+  int nElements = 0;
+
+  for (int iTr = 0; iTr < nTracks; iTr++) {
+    // get track params in local CS
+
+    bool ok     = true;
+    const int q = -(tracker->Tracks()[iTr].InnerParam().QPt() >= 0 ? 1 : -1);
+
+    for (int iParamSet = 0; iParamSet < 2; iParamSet++) {
       AliHLTTPCCATrackParam trParam;
       int arrayIndex = -1;
-      if(iParamSet==0)
-      {
+      if (iParamSet == 0) {
         arrayIndex = 1;
-        trParam = tracker->Tracks()[ iTr ].InnerParam();
+        trParam    = tracker->Tracks()[iTr].InnerParam();
       }
-      if(iParamSet==1)
-      {
+      if (iParamSet == 1) {
         arrayIndex = 5;
-        trParam = tracker->Tracks()[ iTr ].OuterParam();
+        trParam    = tracker->Tracks()[iTr].OuterParam();
       }
-          
+
       const float x0 = 0;
-      trParam.TransportToXWithMaterial( x0, tracker->Slice(0).Param().cBz( ) ); 
+      trParam.TransportToXWithMaterial(x0, tracker->Slice(0).Param().cBz());
 
-        // -- convert parameters
-      fTracks[arrayIndex].SetParameter(trParam.X(), 0, iOTr); // X
-      fTracks[arrayIndex].SetParameter(trParam.Y(), 1, iOTr); // Y
-      fTracks[arrayIndex].SetParameter(trParam.Z(), 2, iOTr); // Z
+      // -- convert parameters
+      fTracks[arrayIndex].SetParameter(trParam.X(), 0, iOTr);  // X
+      fTracks[arrayIndex].SetParameter(trParam.Y(), 1, iOTr);  // Y
+      fTracks[arrayIndex].SetParameter(trParam.Z(), 2, iOTr);  // Z
 
-      const float pt = CAMath::Abs( 1.f / trParam.QPt() );
-//       const int q = -(trParam.QPt()>=0 ? 1 : -1);
-  //    if ( pt < 1 ) continue; // dbg
-      ok = ok && !( trParam.NDF() < 10+5); //if ( trParam.NDF() < 10+5 ) continue; // at least 15 hits in track
-      ok = ok && !( trParam.Chi2() > 10*trParam.NDF() ); //if ( trParam.Chi2() > 10*trParam.NDF() ) continue; // dbg
-  //    if ( iOTr >= 4 ) continue; // dbg
-      
+      const float pt = CAMath::Abs(1.f / trParam.QPt());
+      //       const int q = -(trParam.QPt()>=0 ? 1 : -1);
+      //    if ( pt < 1 ) continue; // dbg
+      ok = ok && !(trParam.NDF() < 10 + 5);  //if ( trParam.NDF() < 10+5 ) continue; // at least 15 hits in track
+      ok = ok && !(trParam.Chi2() > 10 * trParam.NDF());  //if ( trParam.Chi2() > 10*trParam.NDF() ) continue; // dbg
+                                                          //    if ( iOTr >= 4 ) continue; // dbg
+
       const float cosL = trParam.DzDs();
-      fTracks[arrayIndex].SetParameter(pt * trParam.GetCosPhi(), 3, iOTr); // Px
-      fTracks[arrayIndex].SetParameter(pt * trParam.SinPhi()   , 4, iOTr); // Py
-      fTracks[arrayIndex].SetParameter(pt * cosL               , 5, iOTr); // Pz
-      
-        // -- convert cov matrix
-        // get jacobian
-      float J[6][6];
-      for (int i = 0; i < 6; i++)
-        for (int j = 0; j < 6; j++)
-          J[i][j] = 0;
-      J[0][0] = 1; // x -> x
-      J[1][1] = 1; // y -> y
-      J[2][2] = 1; // z -> z
-      J[3][3] = -pt * trParam.SinPhi() / trParam.GetCosPhi();
-      J[3][5] = -q * pt * pt * trParam.GetCosPhi(); // q/pt -> px
-      J[4][3] = pt; // sinPhi -> py
-      J[4][5] = -q* pt * pt * trParam.SinPhi(); // q/pt -> py
-      J[5][4] = pt; // dz/ds -> pz
-      J[5][5] = -q* pt * pt * cosL; // q/pt -> pz
+      fTracks[arrayIndex].SetParameter(pt * trParam.GetCosPhi(), 3, iOTr);  // Px
+      fTracks[arrayIndex].SetParameter(pt * trParam.SinPhi(), 4, iOTr);     // Py
+      fTracks[arrayIndex].SetParameter(pt * cosL, 5, iOTr);                 // Pz
 
-      float CovIn[6][6]; // triangular -> symmetric matrix
+      // -- convert cov matrix
+      // get jacobian
+      float J[6][6];
+      for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) { J[i][j] = 0; }
+      }
+      J[0][0] = 1;  // x -> x
+      J[1][1] = 1;  // y -> y
+      J[2][2] = 1;  // z -> z
+      J[3][3] = -pt * trParam.SinPhi() / trParam.GetCosPhi();
+      J[3][5] = -q * pt * pt * trParam.GetCosPhi();  // q/pt -> px
+      J[4][3] = pt;                                  // sinPhi -> py
+      J[4][5] = -q * pt * pt * trParam.SinPhi();     // q/pt -> py
+      J[5][4] = pt;                                  // dz/ds -> pz
+      J[5][5] = -q * pt * pt * cosL;                 // q/pt -> pz
+
+      float CovIn[6][6];  // triangular -> symmetric matrix
       {
-        CovIn[0][0] = .001f*.001f; // dx. From nowhere. TODO
+        CovIn[0][0] = .001f * .001f;  // dx. From nowhere. TODO
         for (int i = 1; i < 6; i++) {
           CovIn[i][0] = 0;
           CovIn[0][i] = 0;
@@ -160,107 +156,98 @@ void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker, vector<int
           }
         }
       }
-      
-      float CovInJ[6][6];      // CovInJ = CovIn * J^t
-      for (int i = 0; i < 6; i++)
+
+      float CovInJ[6][6];  // CovInJ = CovIn * J^t
+      for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 6; j++) {
           CovInJ[i][j] = 0;
-          for (int k = 0; k < 6; k++) {
-            CovInJ[i][j] += CovIn[i][k] * J[j][k];
-          }
+          for (int k = 0; k < 6; k++) { CovInJ[i][j] += CovIn[i][k] * J[j][k]; }
         }
-      
-      float CovOut[6][6];      // CovOut = J * CovInJ
-      for (int i = 0; i < 6; i++)
+      }
+
+      float CovOut[6][6];  // CovOut = J * CovInJ
+      for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 6; j++) {
           CovOut[i][j] = 0;
-          for (int k = 0; k < 6; k++) {
-            CovOut[i][j] += J[i][k] * CovInJ[k][j];
-          }
+          for (int k = 0; k < 6; k++) { CovOut[i][j] += J[i][k] * CovInJ[k][j]; }
         }
+      }
 
-      float KFPCov[21]; // symmetric matrix -> triangular
+      float KFPCov[21];  // symmetric matrix -> triangular
       {
         int k = 0;
         for (int i = 0; i < 6; i++) {
           for (int j = 0; j <= i; j++, k++) {
             KFPCov[k] = CovOut[i][j];
-            ASSERT( !isFinite(CovOut[i][j]) ||  CovOut[i][j] == 0 || fabs( 1. - CovOut[j][i]/CovOut[i][j] ) <= 0.05,
-              "CovOut[" << i << "][" << j << "] == CovOut[" << j << "][" << i << "] : " << CovOut[i][j] << " == " << CovOut[j][i]);
+            ASSERT(!isFinite(CovOut[i][j]) || CovOut[i][j] == 0 || fabs(1. - CovOut[j][i] / CovOut[i][j]) <= 0.05,
+                   "CovOut[" << i << "][" << j << "] == CovOut[" << j << "][" << i << "] : " << CovOut[i][j]
+                             << " == " << CovOut[j][i]);
           }
         }
       }
-      
-      if(iParamSet == 0)
-      {   // check cov matrix
+
+      if (iParamSet == 0) {  // check cov matrix
         int k = 0;
         for (int i = 0; i < 6; i++) {
-          for (int j = 0; j <= i; j++, k++) {
-            ok &= isFinite( KFPCov[k] );
-          }
-          ok &= ( KFPCov[k-1] > 0 );
+          for (int j = 0; j <= i; j++, k++) { ok &= isFinite(KFPCov[k]); }
+          ok &= (KFPCov[k - 1] > 0);
         }
       }
-      
-      if(ok)
-      {
-        int trackPDG = -1;  
-        if(pdg)
-          trackPDG = (*pdg)[iTr];
-      
-        for(int iC=0; iC<21; iC++)
-          fTracks[arrayIndex].SetCovariance( KFPCov[iC], iC, iOTr);
+
+      if (ok) {
+        int trackPDG = -1;
+        if (pdg) { trackPDG = (*pdg)[iTr]; }
+
+        for (int iC = 0; iC < 21; iC++) { fTracks[arrayIndex].SetCovariance(KFPCov[iC], iC, iOTr); }
         fTracks[arrayIndex].SetId(iTr, iOTr);
         fTracks[arrayIndex].SetPDG(trackPDG, iOTr);
         fTracks[arrayIndex].SetQ(q, iOTr);
         fTracks[arrayIndex].SetPVIndex(-1, iOTr);
       }
     }
-    if (!ok) continue;
-    
+    if (!ok) { continue; }
+
     iOTr++;
-    
+
     // convert into Global CS. Can't be done erlier because in tracker X hasn't correspondent covMatrix elements.
-    alpha[nElements] = tracker->Tracks()[ iTr ].Alpha();
+    alpha[nElements] = tracker->Tracks()[iTr].Alpha();
     nElements++;
-    if(nElements == SimdLen)
-    {
-      fTracks[1].RotateXY( alpha, iOTr-nElements);
-      fTracks[5].RotateXY( alpha, iOTr-nElements);
-      nElements=0;
+    if (nElements == SimdLen) {
+      fTracks[1].RotateXY(alpha, iOTr - nElements);
+      fTracks[5].RotateXY(alpha, iOTr - nElements);
+      nElements = 0;
     }
   }
-  if(nElements>0)
-  {
-    fTracks[1].RotateXY( alpha, iOTr-nElements);
-    fTracks[5].RotateXY( alpha, iOTr-nElements);
+  if (nElements > 0) {
+    fTracks[1].RotateXY(alpha, iOTr - nElements);
+    fTracks[5].RotateXY(alpha, iOTr - nElements);
   }
-    
+
   fTracks[0].Resize(iOTr);
-  fTracks[0].Set(fTracks[1],iOTr,0);
+  fTracks[0].Set(fTracks[1], iOTr, 0);
 
   fTracks[4].Resize(iOTr);
-  fTracks[4].Set(fTracks[5],iOTr,0);
-  
-  fKFParticlePVReconstructor->Init( &fTracks[0], iOTr );
+  fTracks[4].Set(fTracks[5], iOTr, 0);
+
+  fKFParticlePVReconstructor->Init(&fTracks[0], iOTr);
 #ifdef USE_TIMERS
   timer.Stop();
   fStatTime[0] = timer.RealTime();
-#endif // USE_TIMERS
-} // void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker)
+#endif  // USE_TIMERS
+}  // void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker)
 #endif
 
-void KFParticleTopoReconstructor::Init(vector<KFParticle> &particles, vector<int>* pdg, vector<int>* nPixelHits, bool initPVTracks)
+void KFParticleTopoReconstructor::Init(vector<KFParticle>& particles, vector<int>* pdg, vector<int>* nPixelHits,
+                                       bool initPVTracks)
 {
 #ifdef USE_TIMERS
   timer.Start();
-#endif // USE_TIMERS
-  
-  if(!fTracks) 
-    fTracks = new KFPTrackVector[NInputSets];
-  
+#endif  // USE_TIMERS
+
+  if (!fTracks) { fTracks = new KFPTrackVector[NInputSets]; }
+
   fParticles.clear();
-  fPV.clear(); 
+  fPV.clear();
 
   int nTracks = particles.size();
   fTracks[0].Resize(nTracks);
@@ -271,63 +258,52 @@ void KFParticleTopoReconstructor::Init(vector<KFParticle> &particles, vector<int
   fTracks[5].Resize(0);
   fTracks[6].Resize(0);
   fTracks[7].Resize(0);
-  
-  for(int iTr=0; iTr<nTracks; iTr++)
-  {  
+
+  for (int iTr = 0; iTr < nTracks; iTr++) {
     int trackPDG = -1;
-    if(pdg)
-      trackPDG = (*pdg)[iTr];
-    
+    if (pdg) { trackPDG = (*pdg)[iTr]; }
+
     int npixelhits = 0;
-    if(nPixelHits)
-      npixelhits = nPixelHits->at(iTr);
-    
-    for(int iP=0; iP<6; iP++)
-      fTracks[0].SetParameter(particles[iTr].Parameters()[iP], iP, iTr);
-    for(int iC=0; iC<21; iC++)
-      fTracks[0].SetCovariance(particles[iTr].CovarianceMatrix()[iC], iC, iTr);
-//     fTracks[0].SetId(iTr, iTr);
+    if (nPixelHits) { npixelhits = nPixelHits->at(iTr); }
+
+    for (int iP = 0; iP < 6; iP++) { fTracks[0].SetParameter(particles[iTr].Parameters()[iP], iP, iTr); }
+    for (int iC = 0; iC < 21; iC++) { fTracks[0].SetCovariance(particles[iTr].CovarianceMatrix()[iC], iC, iTr); }
+    //     fTracks[0].SetId(iTr, iTr);
     fTracks[0].SetId(particles[iTr].Id(), iTr);
     fTracks[0].SetPDG(trackPDG, iTr);
     fTracks[0].SetQ(particles[iTr].Q(), iTr);
     fTracks[0].SetPVIndex(-1, iTr);
-    fTracks[0].SetNPixelHits(npixelhits,iTr);
+    fTracks[0].SetNPixelHits(npixelhits, iTr);
   }
 
-  if(initPVTracks)
-    fKFParticlePVReconstructor->Init( &fTracks[0], nTracks );
-  
+  if (initPVTracks) { fKFParticlePVReconstructor->Init(&fTracks[0], nTracks); }
+
 #ifdef USE_TIMERS
   timer.Stop();
   fStatTime[0] = timer.RealTime();
-#endif // USE_TIMERS
+#endif  // USE_TIMERS
 }
 
 
-void KFParticleTopoReconstructor::SetTarget(float targetX, float targetY, float targetZ){
-    fKFParticlePVReconstructor->SetTargetPosition({targetX, targetY, targetZ});
-}
-void KFParticleTopoReconstructor::SetTarget(const std::array<float, 3>& target){
-    fKFParticlePVReconstructor->SetTargetPosition(target);
-}
-const std::array<float, 3> KFParticleTopoReconstructor::GetTargetPosition(){
-  return fKFParticlePVReconstructor->GetTargetPosition();
-}
+void KFParticleTopoReconstructor::SetTarget(float targetX, float targetY, float targetZ)
+{ fKFParticlePVReconstructor->SetTargetPosition({targetX, targetY, targetZ}); }
+void KFParticleTopoReconstructor::SetTarget(const std::array<float, 3>& target)
+{ fKFParticlePVReconstructor->SetTargetPosition(target); }
+const std::array<float, 3> KFParticleTopoReconstructor::GetTargetPosition()
+{ return fKFParticlePVReconstructor->GetTargetPosition(); }
 
-void KFParticleTopoReconstructor::Init(KFPTrackVector &tracks, KFPTrackVector &tracksAtLastPoint)
+void KFParticleTopoReconstructor::Init(KFPTrackVector& tracks, KFPTrackVector& tracksAtLastPoint)
 {
 #ifdef USE_TIMERS
   timer.Start();
-#endif // USE_TIMERS
-  
-  if(!fTracks) 
-    fTracks = new KFPTrackVector[NInputSets];
-  
+#endif  // USE_TIMERS
+
+  if (!fTracks) { fTracks = new KFPTrackVector[NInputSets]; }
+
   fParticles.clear();
-  fPV.clear(); 
+  fPV.clear();
 
 
-  
   int nTracks = tracks.Size();
   fTracks[0].Resize(nTracks);
   fTracks[0].Set(tracks, nTracks, 0);
@@ -339,34 +315,33 @@ void KFParticleTopoReconstructor::Init(KFPTrackVector &tracks, KFPTrackVector &t
   fTracks[5].Resize(0);
   fTracks[6].Resize(0);
   fTracks[7].Resize(0);
-  fKFParticlePVReconstructor->Init( &fTracks[0], nTracks );
-  
+  fKFParticlePVReconstructor->Init(&fTracks[0], nTracks);
+
 #ifdef USE_TIMERS
   timer.Stop();
   fStatTime[0] = timer.RealTime();
-#endif // USE_TIMERS
+#endif  // USE_TIMERS
 }
 
-void KFParticleTopoReconstructor::Init(const KFPTrackVector *particles, const vector<KFParticle>& pv)
-{ 
+void KFParticleTopoReconstructor::Init(const KFPTrackVector* particles, const vector<KFParticle>& pv)
+{
 #ifdef USE_TIMERS
   timer.Start();
-#endif // USE_TIMERS
+#endif  // USE_TIMERS
   fParticles.clear();
-  fPV.clear(); 
+  fPV.clear();
 
-  fTracks = const_cast< KFPTrackVector* >(particles);
+  fTracks = const_cast<KFPTrackVector*>(particles);
   fChiToPrimVtx[0].resize(fTracks[0].Size());
   fChiToPrimVtx[1].resize(fTracks[1].Size());
   fPV.resize(pv.size());
 
-  for(unsigned int iPV=0; iPV<fPV.size(); iPV++)
-    fPV[iPV] = KFParticleSIMD(const_cast<KFParticle&>(pv[iPV]));
+  for (unsigned int iPV = 0; iPV < fPV.size(); iPV++) { fPV[iPV] = KFParticleSIMD(const_cast<KFParticle&>(pv[iPV])); }
 
 #ifdef USE_TIMERS
   timer.Stop();
   fStatTime[0] = timer.RealTime();
-#endif // USE_TIMERS
+#endif  // USE_TIMERS
 }
 
 void KFParticleTopoReconstructor::ReconstructPrimVertex(bool isHeavySystem)
@@ -376,66 +351,58 @@ void KFParticleTopoReconstructor::ReconstructPrimVertex(bool isHeavySystem)
    **/
 #ifdef USE_TIMERS
   timer.Start();
-#endif // USE_TIMERS
+#endif  // USE_TIMERS
   fKFParticlePVReconstructor->ReconstructPrimVertex();
-  
-  fPV.clear(); 
+
+  fPV.clear();
 
   int nPrimVtx = NPrimaryVertices();
-  int nPV = 0;
-  if(isHeavySystem)
-  {
-    if(NPrimaryVertices() > 1)
-    {
+  int nPV      = 0;
+  if (isHeavySystem) {
+    if (NPrimaryVertices() > 1) {
       unsigned int nMax = GetPVTrackIndexArray(0).size();
-      for(int i=1; i<NPrimaryVertices(); i++)
-        if(GetPVTrackIndexArray(i).size() > nMax)
-        {
+      for (int i = 1; i < NPrimaryVertices(); i++) {
+        if (GetPVTrackIndexArray(i).size() > nMax) {
           nMax = GetPVTrackIndexArray(i).size();
-          nPV = i;
+          nPV  = i;
         }
+      }
     }
-  
+
     nPrimVtx = 1;
     fPV.resize(nPrimVtx);
     fPV[0] = GetPrimVertex(nPV);
   }
-  else
-  {
+  else {
     fPV.resize(nPrimVtx);
-    for(int iPV=0; iPV<nPrimVtx; iPV++)
-      fPV[iPV] = GetPrimVertex(iPV);
+    for (int iPV = 0; iPV < nPrimVtx; iPV++) { fPV[iPV] = GetPrimVertex(iPV); }
   }
 
-  
-  for(int iPV=0; iPV<NPrimaryVertices(); iPV++)
-  {
+
+  for (int iPV = 0; iPV < NPrimaryVertices(); iPV++) {
     int pvI = iPV;
 
-    if( isHeavySystem )
-    {
-      if(iPV != nPV) continue;
-      pvI = 0; //save only one PV
+    if (isHeavySystem) {
+      if (iPV != nPV) { continue; }
+      pvI = 0;  //save only one PV
     }
 
     vector<int>& tracks = GetPVTrackIndexArray(iPV);
-    for(unsigned int iTr=0; iTr<tracks.size(); iTr++)
-      fTracks[0].SetPVIndex(pvI, tracks[iTr]);
+    for (unsigned int iTr = 0; iTr < tracks.size(); iTr++) { fTracks[0].SetPVIndex(pvI, tracks[iTr]); }
   }
-  
-  if(isHeavySystem)
-  {
+
+  if (isHeavySystem) {
     vector<int> pvTracks = fKFParticlePVReconstructor->GetPVTrackIndexArray(nPV);
-    KFVertex pv = fKFParticlePVReconstructor->GetPrimKFVertex(nPV);
+    KFVertex pv          = fKFParticlePVReconstructor->GetPrimKFVertex(nPV);
     fKFParticlePVReconstructor->CleanPV();
     fKFParticlePVReconstructor->AddPV(pv, pvTracks);
   }
-  
+
 #ifdef USE_TIMERS
   timer.Stop();
   fStatTime[1] = timer.RealTime();
-#endif // USE_TIMERS
-} // void KFParticleTopoReconstructor::ReconstructPrimVertex
+#endif  // USE_TIMERS
+}  // void KFParticleTopoReconstructor::ReconstructPrimVertex
 
 void KFParticleTopoReconstructor::SortTracks()
 {
@@ -456,60 +423,55 @@ void KFParticleTopoReconstructor::SortTracks()
    **/
 #ifdef USE_TIMERS
   timer.Start();
-#endif // USE_TIMERS
-  
+#endif  // USE_TIMERS
+
   int offset[2] = {0, 4};
-  int nSets = 2;
-  
-  if(fTracks[4].Size() == 0)
-    nSets = 1;
-  
-  for(int iSet=nSets-1; iSet>=0; iSet--)
-  {
+  int nSets     = 2;
+
+  if (fTracks[4].Size() == 0) { nSets = 1; }
+
+  for (int iSet = nSets - 1; iSet >= 0; iSet--) {
     int Size = fTracks[0].Size();
-    
+
     vector<KFPTrackIndex> sortedTracks(Size);
     kfvector_int trackIndex[4];
-    for(int iTV=0; iTV<4; iTV++)
-      trackIndex[iTV].resize(Size);
-    int nTracks[4] = {0,0,0,0};
-    
-    for(int iTr=0; iTr<Size; iTr++)
-    {
+    for (int iTV = 0; iTV < 4; iTV++) { trackIndex[iTV].resize(Size); }
+    int nTracks[4] = {0, 0, 0, 0};
+
+    for (int iTr = 0; iTr < Size; iTr++) {
       sortedTracks[iTr].fIndex = iTr;
-      sortedTracks[iTr].fPdg = fTracks[0].PDG()[iTr];
+      sortedTracks[iTr].fPdg   = fTracks[0].PDG()[iTr];
     }
-    
+
     std::sort(sortedTracks.begin(), sortedTracks.end(), KFPTrackIndex::Compare);
-    
-    for(int iTr=0; iTr<Size; iTr++)
-    {
+
+    for (int iTr = 0; iTr < Size; iTr++) {
       int iTrSorted = sortedTracks[iTr].fIndex;
-      
+
       //int q = fTracks[offset[iSet]].Q()[iTrSorted];
-      int q = fTracks[0].Q()[iTrSorted]; //take the charge at the first point to avoid ambiguities in array size
-      if(fTracks[0].PVIndex()[iTrSorted] < 0) //secondary track
+      int q = fTracks[0].Q()[iTrSorted];        //take the charge at the first point to avoid ambiguities in array size
+      if (fTracks[0].PVIndex()[iTrSorted] < 0)  //secondary track
       {
 
-        if(q<0) //secondary negative track
+        if (q < 0)  //secondary negative track
         {
           trackIndex[1][nTracks[1]] = iTrSorted;
           nTracks[1]++;
         }
-        else //secondary positive track
+        else  //secondary positive track
         {
           trackIndex[0][nTracks[0]] = iTrSorted;
           nTracks[0]++;
         }
       }
-      else //primary track
+      else  //primary track
       {
-        if(q<0) //primary negative track
+        if (q < 0)  //primary negative track
         {
           trackIndex[3][nTracks[3]] = iTrSorted;
           nTracks[3]++;
         }
-        else //primary positive track
+        else  //primary positive track
         {
           trackIndex[2][nTracks[2]] = iTrSorted;
           nTracks[2]++;
@@ -517,57 +479,55 @@ void KFParticleTopoReconstructor::SortTracks()
       }
     }
 
-    
-    
-    for(int iTV=1; iTV<4; iTV++)  
-      fTracks[iTV+offset[iSet]].SetTracks(fTracks[offset[iSet]], trackIndex[iTV], nTracks[iTV]);
-      
+
+    for (int iTV = 1; iTV < 4; iTV++) {
+      fTracks[iTV + offset[iSet]].SetTracks(fTracks[offset[iSet]], trackIndex[iTV], nTracks[iTV]);
+    }
+
     KFPTrackVector positive;
     positive.SetTracks(fTracks[offset[iSet]], trackIndex[0], nTracks[0]);
     fTracks[offset[iSet]].Resize(nTracks[0]);
-    fTracks[offset[iSet]].Set(positive,nTracks[0],0);
-      
-    for(int iTV=0; iTV<4; iTV++)
-      fTracks[iTV+offset[iSet]].RecalculateLastIndex();
-    
-    //correct index of tracks in primary clusters with respect to the sorted array 
-    if(iSet == 0)
-    {
+    fTracks[offset[iSet]].Set(positive, nTracks[0], 0);
+
+    for (int iTV = 0; iTV < 4; iTV++) { fTracks[iTV + offset[iSet]].RecalculateLastIndex(); }
+
+    //correct index of tracks in primary clusters with respect to the sorted array
+    if (iSet == 0) {
       vector<int> newIndex(Size);
-      int iCurrentTrack=0;
-      for(int iTC=0; iTC<4; iTC++)
-      {
-        for(int iTrackIndex=0; iTrackIndex<fTracks[iTC].Size(); iTrackIndex++)
-        {
+      int iCurrentTrack = 0;
+      for (int iTC = 0; iTC < 4; iTC++) {
+        for (int iTrackIndex = 0; iTrackIndex < fTracks[iTC].Size(); iTrackIndex++) {
           newIndex[trackIndex[iTC][iTrackIndex]] = iCurrentTrack;
           iCurrentTrack++;
         }
       }
-      
-      for(int iPV=0; iPV<NPrimaryVertices(); iPV++)
-        for(unsigned int iTrack=0; iTrack<GetPVTrackIndexArray(iPV).size(); iTrack++)
+
+      for (int iPV = 0; iPV < NPrimaryVertices(); iPV++) {
+        for (unsigned int iTrack = 0; iTrack < GetPVTrackIndexArray(iPV).size(); iTrack++) {
           fKFParticlePVReconstructor->GetPVTrackIndexArray(iPV)[iTrack] = newIndex[GetPVTrackIndexArray(iPV)[iTrack]];
+        }
+      }
     }
   }
-  
-  if(fTracks[6].Size() > 0)
-  {
-    for(int iTrack=0; iTrack<fTracks[2].Size(); iTrack++)
+
+  if (fTracks[6].Size() > 0) {
+    for (int iTrack = 0; iTrack < fTracks[2].Size(); iTrack++) {
       fTracks[6].SetPVIndex(fTracks[2].PVIndex()[iTrack], iTrack);
+    }
   }
-  if(fTracks[7].Size() > 0)
-  {
-    for(int iTrack=0; iTrack<fTracks[3].Size(); iTrack++)
+  if (fTracks[7].Size() > 0) {
+    for (int iTrack = 0; iTrack < fTracks[3].Size(); iTrack++) {
       fTracks[7].SetPVIndex(fTracks[3].PVIndex()[iTrack], iTrack);
+    }
   }
-  
+
   fChiToPrimVtx[0].resize(fTracks[0].Size(), -1);
   fChiToPrimVtx[1].resize(fTracks[1].Size(), -1);
-  
+
 #ifdef USE_TIMERS
   timer.Stop();
   fStatTime[2] = timer.RealTime();
-#endif // USE_TIMERS
+#endif  // USE_TIMERS
 }
 
 void KFParticleTopoReconstructor::TransportPVTracksToPrimVertex()
@@ -579,69 +539,61 @@ void KFParticleTopoReconstructor::TransportPVTracksToPrimVertex()
   alignas(SimdSize) float pointArray[3][SimdLen];
   float32_v point[3];
   KFParticleSIMD tmpPart;
-  
-  for(int iTV=2; iTV<4; iTV++)
-  {
-    unsigned int NTr = fTracks[iTV].Size(); 
-    for(unsigned int iTr=0; iTr < NTr; iTr += SimdLen) 
-    { 
-      const int32_v& pdg = reinterpret_cast<const int32_v&>(fTracks[iTV].PDG()[iTr]);
+
+  for (int iTV = 2; iTV < 4; iTV++) {
+    unsigned int NTr = fTracks[iTV].Size();
+    for (unsigned int iTr = 0; iTr < NTr; iTr += SimdLen) {
+      const int32_v& pdg     = reinterpret_cast<const int32_v&>(fTracks[iTV].PDG()[iTr]);
       const int32_v& pvIndex = reinterpret_cast<const int32_v&>(fTracks[iTV].PVIndex()[iTr]);
-      
+
       tmpPart.Load(fTracks[iTV], iTr, pdg);
-      
-      for(unsigned int iV=0; iV < (unsigned int)SimdLen; iV++)
-      {
-        if(iV+iTr >= NTr) continue;
-        
-        int iPV = pvIndex[iV];
+
+      for (unsigned int iV = 0; iV < (unsigned int) SimdLen; iV++) {
+        if (iV + iTr >= NTr) { continue; }
+
+        int iPV           = pvIndex[iV];
         pointArray[0][iV] = fPV[iPV].X()[0];
         pointArray[1][iV] = fPV[iPV].Y()[0];
-        pointArray[2][iV] = fPV[iPV].Z()[0];     
+        pointArray[2][iV] = fPV[iPV].Z()[0];
       }
       point[0].load(pointArray[0]);
       point[1].load(pointArray[1]);
       point[2].load(pointArray[2]);
-      
+
       tmpPart.TransportToPoint(point);
-      
-      for(int iP=0; iP<6; iP++)
-        fTracks[iTV].SetParameter( tmpPart.GetParameter(iP), iP, iTr );
-      for(int iC=0; iC<21; iC++)
-        fTracks[iTV].SetCovariance( tmpPart.GetCovariance(iC), iC, iTr ); 
+
+      for (int iP = 0; iP < 6; iP++) { fTracks[iTV].SetParameter(tmpPart.GetParameter(iP), iP, iTr); }
+      for (int iC = 0; iC < 21; iC++) { fTracks[iTV].SetCovariance(tmpPart.GetCovariance(iC), iC, iTr); }
     }
   }
 }
 
 void KFParticleTopoReconstructor::GetChiToPrimVertex(KFParticleSIMD* pv, const int nPV)
-{ 
+{
   /** Calculates the chi2-deviation from the primary vertex. If several primary vertices
    ** are found the minimum value is stored.
    ** \param[in] pv - pointer to the array with primary vertices
    ** \param[in] nPV - number of the primary vertices in the array
    **/
   KFParticleSIMD tmpPart;
-  
-  for(int iTV=0; iTV<2; iTV++)
-  {
+
+  for (int iTV = 0; iTV < 2; iTV++) {
     unsigned int NTr = fTracks[iTV].Size();
-    for(unsigned int iTr=0; iTr < NTr; iTr += SimdLen) 
-    { 
+    for (unsigned int iTr = 0; iTr < NTr; iTr += SimdLen) {
       int32_v trackIndex = int32_v::indicesSequence(iTr);
       const int32_v& pdg = reinterpret_cast<const int32_v&>(fTracks[iTV].PDG()[iTr]);
-      tmpPart.Create(fTracks[iTV],trackIndex, pdg);
-      
-      float32_v& chi2 = reinterpret_cast<float32_v&>(fChiToPrimVtx[iTV][iTr]);
-      chi2 = select(trackIndex<NTr, 10000.f, chi2);
+      tmpPart.Create(fTracks[iTV], trackIndex, pdg);
 
-      for(int iPV=0; iPV<nPV; iPV++)
-      {
+      float32_v& chi2 = reinterpret_cast<float32_v&>(fChiToPrimVtx[iTV][iTr]);
+      chi2            = select(trackIndex < NTr, 10000.f, chi2);
+
+      for (int iPV = 0; iPV < nPV; iPV++) {
         const float32_v point[3] = {pv[iPV].X(), pv[iPV].Y(), pv[iPV].Z()};
         tmpPart.TransportToPoint(point);
         const float32_v& chiVec = tmpPart.GetDeviationFromVertex(pv[iPV]);
-        chi2 = select( (chi2>chiVec) && (trackIndex<NTr), chiVec, chi2 );
+        chi2                    = select((chi2 > chiVec) && (trackIndex < NTr), chiVec, chi2);
       }
-    } 
+    }
   }
 }
 
@@ -656,17 +608,17 @@ void KFParticleTopoReconstructor::GetChiToPrimVertex(KFParticleSIMD* pv, const i
  ** sort the array with particle candidates according to the smallest difference. Then only
  ** the best candidate is stored.
  **/
-struct ParticleInfo
-{
-  ParticleInfo():fParticleIndex(-1),fMassDistance(1.e9f) {};
+struct ParticleInfo {
+  ParticleInfo() : fParticleIndex(-1), fMassDistance(1.e9f) {};
   /** \brief Constructor with all parameters initialised by user. */
-  ParticleInfo(int index, float massDistance):fParticleIndex(index),fMassDistance(massDistance) {};
-  
+  ParticleInfo(int index, float massDistance) : fParticleIndex(index), fMassDistance(massDistance) {};
+
   /** \brief Sorting function, returns true if the mass difference of "a" is smaller then of "b". The array is sorted according to the smallest difference.*/
   static bool compare(const ParticleInfo& a, const ParticleInfo& b) { return (a.fMassDistance < b.fMassDistance); }
-  
-  int   fParticleIndex; ///< Index in the array of the particle candidates.
-  float fMassDistance;  ///< difference between the mass of the candidate and the table mass normalised to the width of the peak.
+
+  int fParticleIndex;  ///< Index in the array of the particle candidates.
+  float
+    fMassDistance;  ///< difference between the mass of the candidate and the table mass normalised to the width of the peak.
 };
 
 bool UseParticleInCompetition(int PDG)
@@ -674,15 +626,15 @@ bool UseParticleInCompetition(int PDG)
   /** Defines if a particle with a given PDG code should be used in the
    ** competition between reconstructed particle candidates.
    **/
-  bool use = (PDG == 310) ||         //K0
-             (PDG == 22) ||          //gamma
-             (PDG == 111) ||         //pi0
-             (abs(PDG) == 3122) ||   //Lambda
-             (abs(PDG) == 3312) ||   //Xi
-             (abs(PDG) == 3334) ||   //Omega
-             (abs(PDG) == 3103) ||   //LambdaNN
-             (abs(PDG) == 3203) ||   //LLn
-             (abs(PDG) >= 3003 && abs(PDG) <= 3040); //hypernuclei
+  bool use = (PDG == 310) ||                          //K0
+             (PDG == 22) ||                           //gamma
+             (PDG == 111) ||                          //pi0
+             (abs(PDG) == 3122) ||                    //Lambda
+             (abs(PDG) == 3312) ||                    //Xi
+             (abs(PDG) == 3334) ||                    //Omega
+             (abs(PDG) == 3103) ||                    //LambdaNN
+             (abs(PDG) == 3203) ||                    //LLn
+             (abs(PDG) >= 3003 && abs(PDG) <= 3040);  //hypernuclei
   use &= PDG != 3008;
   return use;
 }
@@ -697,33 +649,28 @@ void KFParticleTopoReconstructor::SelectParticleCandidates()
    ** 4) in the dielectron spectrum for low mass vector mesons only those
    ** candidates are left, which have both daughters identified as electrons.
    **/
-  
+
   std::vector<ParticleInfo> particleInfo;
   std::vector<bool> isUsed(fParticles.size());
   std::vector<bool> deleteCandidate(fParticles.size());
-  std::vector<int>  bestMother(fParticles.size());
-  
-  for(unsigned int iParticle=0; iParticle<fParticles.size(); iParticle++)
-  {
-    isUsed[iParticle] = false;
-    deleteCandidate[iParticle] = false; 
-    bestMother[iParticle] = -1;
+  std::vector<int> bestMother(fParticles.size());
+
+  for (unsigned int iParticle = 0; iParticle < fParticles.size(); iParticle++) {
+    isUsed[iParticle]          = false;
+    deleteCandidate[iParticle] = false;
+    bestMother[iParticle]      = -1;
   }
 
-  for(unsigned int iParticle=0; iParticle<fParticles.size(); iParticle++)
-  {
-    if(!UseParticleInCompetition(fParticles[iParticle].GetPDG())) continue;
-    
+  for (unsigned int iParticle = 0; iParticle < fParticles.size(); iParticle++) {
+    if (!UseParticleInCompetition(fParticles[iParticle].GetPDG())) { continue; }
+
     bool isSecondary = 1;
-    for(int iPV=0; iPV<NPrimaryVertices(); iPV++)
-    {
+    for (int iPV = 0; iPV < NPrimaryVertices(); iPV++) {
       KFParticle tmp = fParticles[iParticle];
       tmp.SetProductionVertex(GetPrimVertex(iPV));
-      if(tmp.Chi2()/tmp.NDF()<5.)
-        isSecondary=0;
+      if (tmp.Chi2() / tmp.NDF() < 5.) { isSecondary = 0; }
     }
-    if(isSecondary)
-      deleteCandidate[iParticle] = true;
+    if (isSecondary) { deleteCandidate[iParticle] = true; }
   }
 #if 0
 //   for(unsigned int iParticle=0; iParticle<fParticles.size(); iParticle++)
@@ -998,9 +945,9 @@ void KFParticleTopoReconstructor::SelectParticleCandidates()
       }
   }
 #endif
-  for(unsigned int iParticle=0; iParticle<fParticles.size(); iParticle++)
-    if(deleteCandidate[iParticle])
-      fParticles[iParticle].SetPDG(-1);
+  for (unsigned int iParticle = 0; iParticle < fParticles.size(); iParticle++) {
+    if (deleteCandidate[iParticle]) { fParticles[iParticle].SetPDG(-1); }
+  }
 }
 
 bool KFParticleTopoReconstructor::ParticleHasRepeatingDaughters(const KFParticle& particle)
@@ -1009,17 +956,15 @@ bool KFParticleTopoReconstructor::ParticleHasRepeatingDaughters(const KFParticle
    ** with the same index including tracks from the daughter particles in the decay
    ** chains. Such candidates should be rejected.
    **/
-  if(particle.NDaughters() < 2) return 0;
-  //if((abs(particle.GetPDG()) > 7e6) && (abs(particle.GetPDG()) < 1e7)) return 0; // missing mass 
-  
+  if (particle.NDaughters() < 2) { return 0; }
+  //if((abs(particle.GetPDG()) > 7e6) && (abs(particle.GetPDG()) < 1e7)) return 0; // missing mass
+
   vector<int> daughters;
   GetListOfDaughterTracks(particle, daughters);
   std::sort(daughters.begin(), daughters.end());
-  bool sameDaughter=0;
-  for(unsigned int iDaughter=1; iDaughter<daughters.size(); iDaughter++)
-  {
-    if(daughters[iDaughter] == daughters[iDaughter-1])
-    {
+  bool sameDaughter = 0;
+  for (unsigned int iDaughter = 1; iDaughter < daughters.size(); iDaughter++) {
+    if (daughters[iDaughter] == daughters[iDaughter - 1]) {
       sameDaughter = 1;
       break;
     }
@@ -1034,11 +979,12 @@ void KFParticleTopoReconstructor::GetListOfDaughterTracks(const KFParticle& part
    ** \param[in] particle - the particle to be processed
    ** \param[out] daughters - a vector with indices of all daughter tracks
    **/
-  if(particle.NDaughters() == 1)
-    daughters.push_back( particle.DaughterIds()[0] );
-  else
-    for(int iDaughter=0; iDaughter<particle.NDaughters(); iDaughter++)
-      GetListOfDaughterTracks( fParticles[ particle.DaughterIds()[iDaughter] ], daughters);
+  if (particle.NDaughters() == 1) { daughters.push_back(particle.DaughterIds()[0]); }
+  else {
+    for (int iDaughter = 0; iDaughter < particle.NDaughters(); iDaughter++) {
+      GetListOfDaughterTracks(fParticles[particle.DaughterIds()[iDaughter]], daughters);
+    }
+  }
 }
 
 void KFParticleTopoReconstructor::ReconstructParticles()
@@ -1052,88 +998,86 @@ void KFParticleTopoReconstructor::ReconstructParticles()
    **/
 #ifdef USE_TIMERS
   timer.Start();
-#endif // USE_TIMERS
+#endif  // USE_TIMERS
 
   fParticles.clear();
 
-  if(fPV.size() < 1) return;
+  if (fPV.size() < 1) { return; }
 
   TransportPVTracksToPrimVertex();
   //calculate chi to primary vertex, chi = sqrt(dr C-1 dr)
   GetChiToPrimVertex(&(fPV[0]), fPV.size());
 
   fKFParticleFinder->FindParticles(fTracks, fChiToPrimVtx, fParticles, fPV, fPV.size());
-// #pragma omp critical 
-   std::cout << "NPart " << fParticles.size() << " " << fTracks[0].Size() << " "<< fTracks[1].Size() << " " << fTracks[2].Size() << " " << fTracks[3].Size()<< std::endl;
-    
+  // #pragma omp critical
+  std::cout << "NPart " << fParticles.size() << " " << fTracks[0].Size() << " " << fTracks[1].Size() << " "
+            << fTracks[2].Size() << " " << fTracks[3].Size() << std::endl;
+
   // for(unsigned int iParticle=0; iParticle<fParticles.size(); iParticle++)
   //   if(ParticleHasRepeatingDaughters(fParticles[iParticle]))
   //     fParticles[iParticle].SetPDG(-1);
-    
+
   // SelectParticleCandidates();
-      
+
 #ifdef USE_TIMERS
   timer.Stop();
   fStatTime[3] = timer.RealTime();
-#endif // USE_TIMERS
-} // void KFParticleTopoReconstructor::ReconstructPrimVertex
+#endif  // USE_TIMERS
+}  // void KFParticleTopoReconstructor::ReconstructPrimVertex
 
 #ifdef WITHSCIF
-void KFParticleTopoReconstructor::SendDataToXeonPhi( int iHLT, scif_epd_t& endpoint, void* buffer, off_t& offsetServer, off_t& offsetSender, float Bz)
+void KFParticleTopoReconstructor::SendDataToXeonPhi(int iHLT, scif_epd_t& endpoint, void* buffer, off_t& offsetServer,
+                                                    off_t& offsetSender, float Bz)
 {
   //pack the input data
-  int* data = reinterpret_cast<int*>(buffer);
-  int dataSize = NInputSets + 1 + 1; //sizes of the track vectors and pv vector, and field
-  for(int iSet=0; iSet<NInputSets; iSet++)
-    dataSize += fTracks[iSet].DataSize();
+  int* data    = reinterpret_cast<int*>(buffer);
+  int dataSize = NInputSets + 1 + 1;  //sizes of the track vectors and pv vector, and field
+  for (int iSet = 0; iSet < NInputSets; iSet++) { dataSize += fTracks[iSet].DataSize(); }
   dataSize += fPV.size() * 9;
-      
-  for(int iSet=0; iSet<NInputSets; iSet++)
-    data[iSet] = fTracks[iSet].Size();
+
+  for (int iSet = 0; iSet < NInputSets; iSet++) { data[iSet] = fTracks[iSet].Size(); }
   data[NInputSets] = fPV.size();
-  
-  float& field = reinterpret_cast<float&>(data[NInputSets+1]);
-  field = Bz;
-  
-  int offset = NInputSets+2;
-      
-  for(int iSet=0; iSet<NInputSets; iSet++)
-    fTracks[iSet].SetDataToVector(data, offset);
-  
-  for(int iP=0; iP<3; iP++)
-  {
-    for(unsigned int iPV=0; iPV<fPV.size(); iPV++)
-    {
+
+  float& field = reinterpret_cast<float&>(data[NInputSets + 1]);
+  field        = Bz;
+
+  int offset = NInputSets + 2;
+
+  for (int iSet = 0; iSet < NInputSets; iSet++) { fTracks[iSet].SetDataToVector(data, offset); }
+
+  for (int iP = 0; iP < 3; iP++) {
+    for (unsigned int iPV = 0; iPV < fPV.size(); iPV++) {
       float& tmpFloat = reinterpret_cast<float&>(data[offset + iPV]);
-      tmpFloat = fPV[iPV].Parameter(iP)[0];
+      tmpFloat        = fPV[iPV].Parameter(iP)[0];
     }
     offset += fPV.size();
   }
-  
-  for(int iC=0; iC<6; iC++)
-  {
-    for(unsigned int iPV=0; iPV<fPV.size(); iPV++)
-    {
+
+  for (int iC = 0; iC < 6; iC++) {
+    for (unsigned int iPV = 0; iPV < fPV.size(); iPV++) {
       float& tmpFloat = reinterpret_cast<float&>(data[offset + iPV]);
-      tmpFloat = fPV[iPV].Covariance(iC)[0];
+      tmpFloat        = fPV[iPV].Covariance(iC)[0];
     }
     offset += fPV.size();
   }
-  
+
   //send the input data to Xeon Phi
-  int msgSize = sizeof(int) * dataSize;//1000 * sizeof(int);
-  
+  int msgSize = sizeof(int) * dataSize;  //1000 * sizeof(int);
+
   const uint16_t portSenderId = 2000 + iHLT;
 
   int controlSignal = portSenderId;
   scif_send(endpoint, &msgSize, sizeof(int), SCIF_SEND_BLOCK);
   scif_recv(endpoint, &controlSignal, sizeof(controlSignal), 1);
-  if(controlSignal != portSenderId) { std::cout << controlSignal << " " << portSenderId << std::endl; return; }
-  
+  if (controlSignal != portSenderId) {
+    std::cout << controlSignal << " " << portSenderId << std::endl;
+    return;
+  }
+
   int ret = scif_writeto(endpoint, offsetServer, msgSize, offsetSender, 0);
-  if ( ret == -1 ) std::cout << "Fail sending array to the server. Error: " << errno << std::endl;
-      
-  scif_send(endpoint, &controlSignal, sizeof(int), SCIF_SEND_BLOCK); // synchronization
+  if (ret == -1) { std::cout << "Fail sending array to the server. Error: " << errno << std::endl; }
+
+  scif_send(endpoint, &controlSignal, sizeof(int), SCIF_SEND_BLOCK);  // synchronization
 }
 #endif
 
@@ -1146,79 +1090,63 @@ void KFParticleTopoReconstructor::SaveInputParticles(const string prefix, bool o
    ** "event#_KFPTracks.data", where "#" is the number of the event.
    ** \param[in] prefix - path to the output folder
    ** \param[in] onlySecondary - flag shows if only secondary tracks should be stored
-   **/ 
+   **/
   static int nEvents = 0;
   string outFileName = "/event";
-  char Result[16]; // string which will contain the number
-  sprintf ( Result, "%d", nEvents ); 
+  char Result[16];  // string which will contain the number
+  sprintf(Result, "%d", nEvents);
   outFileName += string(Result);
   outFileName += "_KFPTracks.data";
 
-  ofstream out((prefix+outFileName).data());
-  
+  ofstream out((prefix + outFileName).data());
+
   //save tracks. tracks are already propagated to the beam
-  
+
   int nSets = NInputSets;
-  if(onlySecondary)
-    nSets = 2;
-    
+  if (onlySecondary) { nSets = 2; }
+
   float B[3] = {0.f}, r[3] = {0.f};
   KFParticle kfpTmp;
   kfpTmp.GetFieldValue(r, B);
   out << B[2] << std::endl;
   out << nSets << std::endl;
-  for(int iSet=0; iSet<nSets; iSet++)
-  {
+  for (int iSet = 0; iSet < nSets; iSet++) {
     out << fTracks[iSet].Size() << std::endl;
-    for(int iP=0; iP<6; iP++)
-    {
-      for(int iTr=0; iTr<fTracks[iSet].Size(); iTr++)
-        out << fTracks[iSet].Parameter(iP)[iTr]<< " ";
+    for (int iP = 0; iP < 6; iP++) {
+      for (int iTr = 0; iTr < fTracks[iSet].Size(); iTr++) { out << fTracks[iSet].Parameter(iP)[iTr] << " "; }
       out << std::endl;
     }
 
-    for(int iC=0; iC<21; iC++)
-    {
-      for(int iTr=0; iTr<fTracks[iSet].Size(); iTr++)
-        out << fTracks[iSet].Covariance(iC)[iTr]<< " ";
+    for (int iC = 0; iC < 21; iC++) {
+      for (int iTr = 0; iTr < fTracks[iSet].Size(); iTr++) { out << fTracks[iSet].Covariance(iC)[iTr] << " "; }
       out << std::endl;
     }
 
-    for(int iTr=0; iTr<fTracks[iSet].Size(); iTr++)
-      out <<  fTracks[iSet].Id()[iTr] << " ";
-    out << std::endl;
-    
-    for(int iTr=0; iTr<fTracks[iSet].Size(); iTr++)
-      out <<  fTracks[iSet].PDG()[iTr] << " ";
+    for (int iTr = 0; iTr < fTracks[iSet].Size(); iTr++) { out << fTracks[iSet].Id()[iTr] << " "; }
     out << std::endl;
 
-    for(int iTr=0; iTr<fTracks[iSet].Size(); iTr++)
-      out <<  fTracks[iSet].Q()[iTr] << " ";
+    for (int iTr = 0; iTr < fTracks[iSet].Size(); iTr++) { out << fTracks[iSet].PDG()[iTr] << " "; }
     out << std::endl;
-    
-    for(int iTr=0; iTr<fTracks[iSet].Size(); iTr++)
-      out <<  fTracks[iSet].PVIndex()[iTr] << " ";
+
+    for (int iTr = 0; iTr < fTracks[iSet].Size(); iTr++) { out << fTracks[iSet].Q()[iTr] << " "; }
     out << std::endl;
-    
-    out << fTracks[iSet].LastElectron() << " "
-        << fTracks[iSet].LastMuon() << " "
-        << fTracks[iSet].LastPion() << " "
-        << fTracks[iSet].LastKaon() << " "
-        << fTracks[iSet].LastProton() << std::endl;
+
+    for (int iTr = 0; iTr < fTracks[iSet].Size(); iTr++) { out << fTracks[iSet].PVIndex()[iTr] << " "; }
+    out << std::endl;
+
+    out << fTracks[iSet].LastElectron() << " " << fTracks[iSet].LastMuon() << " " << fTracks[iSet].LastPion() << " "
+        << fTracks[iSet].LastKaon() << " " << fTracks[iSet].LastProton() << std::endl;
   }
 
   //Save PVs
   out << fPV.size() << std::endl;
-  for(unsigned int iPV=0; iPV < fPV.size(); iPV++)
-  {
+  for (unsigned int iPV = 0; iPV < fPV.size(); iPV++) {
     out << fPV[iPV].X()[0] << " " << fPV[iPV].Y()[0] << " " << fPV[iPV].Z()[0] << " " << std::endl;
-  
-    for(int iC=0; iC<6; iC++)
-      out << fPV[iPV].GetCovariance(iC)[0] << " ";
+
+    for (int iC = 0; iC < 6; iC++) { out << fPV[iPV].GetCovariance(iC)[0] << " "; }
     out << std::endl;
   }
   out.close();
-  
+
   nEvents++;
 }
-

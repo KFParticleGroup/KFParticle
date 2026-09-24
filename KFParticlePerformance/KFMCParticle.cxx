@@ -25,22 +25,21 @@
 ClassImp(KFMCParticle)
 #endif
 
-KFMCParticle::KFMCParticle() :fDaughterIds(), fMCTrackID(-1), fMotherId(-1), fPDG(0), fInitialParticleId(-1)
+  KFMCParticle::KFMCParticle()
+  : fDaughterIds()
+  , fMCTrackID(-1)
+  , fMotherId(-1)
+  , fPDG(0)
+  , fInitialParticleId(-1)
 {
-  for(int i=0; i<3; i++)
-  {
+  for (int i = 0; i < 3; i++) {
     fIsReconstructable[i] = 0;
-    fIsV0[i] = 0;
+    fIsV0[i]              = 0;
   }
   fIsReconstructable[3] = 0;
   fIsReconstructable[4] = 0;
 }
 
-KFMCParticle::~KFMCParticle()
-{
-}
+KFMCParticle::~KFMCParticle() {}
 
-void KFMCParticle::AddDaughter( int i )
-{
-  fDaughterIds.push_back(i);
-}
+void KFMCParticle::AddDaughter(int i) { fDaughterIds.push_back(i); }

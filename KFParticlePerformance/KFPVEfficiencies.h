@@ -27,6 +27,7 @@
 #endif
 
 #include "KFMCCounter.h"
+
 #include <iomanip>
 #include <map>
 
@@ -47,10 +48,20 @@
  **/
 
 class KFPVEfficiencies : public TNamed {
-public:
+ public:
   KFPVEfficiencies()
-      : names(), indices(), ratio_reco(), mc(), reco(), ratio_ghost(),
-        ratio_bg(), ratio_clone(), ghost(), bg(), clone() {
+    : names()
+    , indices()
+    , ratio_reco()
+    , mc()
+    , reco()
+    , ratio_ghost()
+    , ratio_bg()
+    , ratio_clone()
+    , ghost()
+    , bg()
+    , clone()
+  {
     AddCounter(Form("%s", "PV"), Form("%-*s", 12, "PV"));
     AddCounter(Form("%s", "PVtrigger"), Form("%-*s", 12, "PV trigger"));
     AddCounter(Form("%s", "PVpileup"), Form("%-*s", 12, "PV pileup "));
@@ -58,7 +69,8 @@ public:
 
   ~KFPVEfficiencies() {}
 
-  void AddCounter(TString shortname, TString name) {
+  void AddCounter(TString shortname, TString name)
+  {
     /** Adds a counter with the name defined by "name" to all counter
      ** objects. For easiness of operation with counters, a shortname is
      *assigned
@@ -85,7 +97,8 @@ public:
 
   /** \brief Operator to add efficiency table from object "a" to the current
    * object. Returns the current object after addition. */
-  KFPVEfficiencies &operator+=(KFPVEfficiencies &a) {
+  KFPVEfficiencies& operator+=(KFPVEfficiencies& a)
+  {
     mc += a.mc;
     reco += a.reco;
     ghost += a.ghost;
@@ -96,16 +109,18 @@ public:
 
   /** \brief Function to calculate efficiency after all counters are set. If the
    * counters are modified the function should be called again. */
-  void CalcEff() {
+  void CalcEff()
+  {
     ratio_reco = reco / mc;
 
     KFMCCounter<int> allReco = reco + ghost + bg;
-    ratio_ghost = ghost / allReco;
-    ratio_bg = bg / allReco;
-    ratio_clone = clone / allReco;
+    ratio_ghost              = ghost / allReco;
+    ratio_bg                 = bg / allReco;
+    ratio_clone              = clone / allReco;
   };
 
-  void Inc(bool isReco, int nClones, TString name) {
+  void Inc(bool isReco, int nClones, TString name)
+  {
     /** Increases counters by one, if the corresponding boolean variable is
      *"true".
      ** MC counter is increased in any case.
@@ -119,13 +134,12 @@ public:
     const int index = indices[name];
 
     mc.counters[index]++;
-    if (isReco)
-      reco.counters[index]++;
-    if (nClones > 0)
-      clone.counters[index] += nClones;
+    if (isReco) { reco.counters[index]++; }
+    if (nClones > 0) { clone.counters[index] += nClones; }
   };
 
-  void IncReco(bool isGhost, bool isBg, TString name) {
+  void IncReco(bool isGhost, bool isBg, TString name)
+  {
     /** Increases counters by one, if the corresponding boolean variable is
      *"true".
      ** \param[in] isGhost - "true" if ghost is added
@@ -135,14 +149,13 @@ public:
      **/
     const int index = indices[name];
 
-    if (isGhost)
-      ghost.counters[index]++;
-    if (isBg)
-      bg.counters[index]++;
+    if (isGhost) { ghost.counters[index]++; }
+    if (isBg) { bg.counters[index]++; }
   };
 
   /** \brief Prints the efficiency table on the screen. */
-  void PrintEff() {
+  void PrintEff()
+  {
     std::ios_base::fmtflags original_flags = std::cout.flags();
     std::cout.setf(std::ios::fixed);
     std::cout.setf(std::ios::showpoint);
@@ -168,24 +181,20 @@ public:
 
     int NCounters = mc.NCounters;
     for (int iC = 0; iC < NCounters; iC++) {
-      std::cout
-          << names[iC] << "  : " << std::setw(6) << ratio_reco.counters[iC]
-          << "  / " << std::setw(6)
-          << ratio_ghost.counters[iC] // particles w\o MCParticle
-          << "  / " << std::setw(6)
-          << ratio_bg.counters[iC] // particles with incorrect MCParticle
-          << "  / " << std::setw(6)
-          << ratio_clone.counters[iC] // particles with incorrect MCParticle
-          << "  / " << std::setw(6) << ghost.counters[iC] << "  / "
-          << std::setw(7) << bg.counters[iC] << "  / " << std::setw(6)
-          << reco.counters[iC] << "  / " << std::setw(7) << clone.counters[iC]
-          << "  | " << std::setw(6) << mc.counters[iC] << std::endl;
+      std::cout << names[iC] << "  : " << std::setw(6) << ratio_reco.counters[iC] << "  / " << std::setw(6)
+                << ratio_ghost.counters[iC]                            // particles w\o MCParticle
+                << "  / " << std::setw(6) << ratio_bg.counters[iC]     // particles with incorrect MCParticle
+                << "  / " << std::setw(6) << ratio_clone.counters[iC]  // particles with incorrect MCParticle
+                << "  / " << std::setw(6) << ghost.counters[iC] << "  / " << std::setw(7) << bg.counters[iC] << "  / "
+                << std::setw(6) << reco.counters[iC] << "  / " << std::setw(7) << clone.counters[iC] << "  | "
+                << std::setw(6) << mc.counters[iC] << std::endl;
     }
     std::cout.flags(original_flags);
   };
 
   /** \brief Operator to write efficiencies to file. */
-  friend std::fstream &operator<<(std::fstream &strm, KFPVEfficiencies &a) {
+  friend std::fstream& operator<<(std::fstream& strm, KFPVEfficiencies& a)
+  {
 
     strm << a.ratio_reco;
     strm << a.mc;
@@ -200,7 +209,8 @@ public:
     return strm;
   }
   /** \brief Operator to read efficiencies from file. */
-  friend std::fstream &operator>>(std::fstream &strm, KFPVEfficiencies &a) {
+  friend std::fstream& operator>>(std::fstream& strm, KFPVEfficiencies& a)
+  {
 
     strm >> a.ratio_reco;
     strm >> a.mc;
@@ -216,33 +226,31 @@ public:
   }
   /** \brief Adds efficiency from the file with the name defined by "fileName"
    * to the current objects. */
-  void AddFromFile(TString fileName) {
+  void AddFromFile(TString fileName)
+  {
     std::fstream file(fileName.Data(), std::fstream::in);
     file >> *this;
   }
 
-private:
-  std::vector<TString>
-      names; ///< Names of the counters. The same for all counters objects.
-  std::map<TString, int>
-      indices; ///< Map between the counter index and its short name.
+ private:
+  std::vector<TString> names;      ///< Names of the counters. The same for all counters objects.
+  std::map<TString, int> indices;  ///< Map between the counter index and its short name.
 
-  KFMCCounter<double> ratio_reco; ///< Efficiency.
+  KFMCCounter<double> ratio_reco;  ///< Efficiency.
 
-  KFMCCounter<int> mc;   ///< Counters of the Monte Carlo vertices.
-  KFMCCounter<int> reco; ///< Counters of the reconstructed vertices.
+  KFMCCounter<int> mc;    ///< Counters of the Monte Carlo vertices.
+  KFMCCounter<int> reco;  ///< Counters of the reconstructed vertices.
 
-  KFMCCounter<double> ratio_ghost; ///< Ratio of the ghost candidates to the
-                                   ///< total number of candidates.
-  KFMCCounter<double> ratio_bg; ///< Ratio of the physics background candidates
-                                ///< to the total number of candidates.
-  KFMCCounter<double>
-      ratio_clone; ///< Ratio of double reconstructed vertices to the total
-                   ///< number of signal candidates.
+  KFMCCounter<double> ratio_ghost;  ///< Ratio of the ghost candidates to the
+                                    ///< total number of candidates.
+  KFMCCounter<double> ratio_bg;     ///< Ratio of the physics background candidates
+                                    ///< to the total number of candidates.
+  KFMCCounter<double> ratio_clone;  ///< Ratio of double reconstructed vertices to the total
+                                    ///< number of signal candidates.
 
-  KFMCCounter<int> ghost; ///< Counters of the ghost candidates.
-  KFMCCounter<int> bg;    ///< Counters of the physics background candidates.
-  KFMCCounter<int> clone; ///< Counters of the double reconstructed vertices.
+  KFMCCounter<int> ghost;  ///< Counters of the ghost candidates.
+  KFMCCounter<int> bg;     ///< Counters of the physics background candidates.
+  KFMCCounter<int> clone;  ///< Counters of the double reconstructed vertices.
 };
 
 #endif

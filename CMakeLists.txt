@@ -1,6 +1,14 @@
-cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
 project(KFParticleLibrary)
+
+add_definitions(-DKFP_SIMD_SSE)
+
+add_compile_options(-O3 -Wall -Wextra -Wsign-promo -Wctor-dtor-privacy -Wreorder -Wno-deprecated -Wno-parentheses)
+# add_compile_options(-Weffc++ -Wnon-virtual-dtor -Woverloaded-virtual -Wold-style-cast) # for the future
+If(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wno-pmf-conversions -Wstrict-null-sentinel -Wno-non-template-friend -Wmissing-field-initializers)
+EndIf()
 
 # add at the top of your KFParticle CMakeLists.txt
 if(NOT CMAKE_CXX_FLAGS MATCHES "-msse4.1")
@@ -16,13 +24,13 @@ macro(add_target_property _target _prop _value)
   endif(NOT _oldprop)
 endmacro(add_target_property)
 
-if (CMAKE_VERSION VERSION_LESS "3.1")
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT ${CMAKE_CXX_FLAGS} MATCHES "-std=")
-  set (CMAKE_CXX_FLAGS "--std=gnu++11 ${CMAKE_CXX_FLAGS}")
+if (CMAKE_VERSION VERSION_LESS "3.8")
+if (NOT CMAKE_CXX_FLAGS MATCHES "-std=")
+  set (CMAKE_CXX_FLAGS "-std=c++17 ${CMAKE_CXX_FLAGS}")
 endif ()
 else ()
   if (NOT DEFINED CMAKE_CXX_STANDARD AND NOT ${CMAKE_CXX_FLAGS} MATCHES "-std=")
-    set (CMAKE_CXX_STANDARD 11)
+    set (CMAKE_CXX_STANDARD 17)
   endif()
 endif ()
 

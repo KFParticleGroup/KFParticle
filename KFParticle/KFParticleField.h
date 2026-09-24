@@ -40,14 +40,15 @@
  **/
 
 class KFParticleFieldValue {
-public:
-  KFParticleFieldValue() : x(0.f), y(0.f), z(0.f){};
+ public:
+  KFParticleFieldValue() : x(0.f), y(0.f), z(0.f) {};
 
-  float32_v x; ///< Bx component of the magnetic field
-  float32_v y; ///< By component of the magnetic field
-  float32_v z; ///< Bz component of the magnetic field
+  float32_v x;  ///< Bx component of the magnetic field
+  float32_v y;  ///< By component of the magnetic field
+  float32_v z;  ///< Bz component of the magnetic field
 
-  void Combine(KFParticleFieldValue &B, float32_v w) {
+  void Combine(KFParticleFieldValue& B, float32_v w)
+  {
     /** Function allows to combine the current magntic field measurement with
      *another measurement
      ** weighted by "w"
@@ -64,9 +65,8 @@ public:
    ** \param[in] out - output stream where the values will be printed
    ** \param[in] B - field vecrot to be printed
    **/
-  friend std::ostream &operator<<(std::ostream &out, KFParticleFieldValue &B) {
-    return out << B.x[0] << " | " << B.y[0] << " | " << B.z[0];
-  };
+  friend std::ostream& operator<<(std::ostream& out, KFParticleFieldValue& B)
+  { return out << B.x[0] << " | " << B.y[0] << " | " << B.z[0]; };
 };
 
 /** @class KFParticleFieldRegion
@@ -85,25 +85,26 @@ public:
  **/
 
 class KFParticleFieldRegion {
-public:
-  KFParticleFieldRegion(){};
-  KFParticleFieldRegion(const float field[10]) {
+ public:
+  KFParticleFieldRegion() {};
+  KFParticleFieldRegion(const float field[10])
+  {
     /** Sets current vectorised representation of the magnetic field
      *approximation from the scalar input  array.
      ** \param[in] field[10] - the scalar input array with the magnetic field
      *approximation
      **/
-    for (int i = 0; i < 10; i++)
-      fField[i] = field[i];
+    for (int i = 0; i < 10; i++) { fField[i] = field[i]; }
   }
 
-  KFParticleFieldValue Get(const float32_v z) {
+  KFParticleFieldValue Get(const float32_v z)
+  {
     /** Returns a magnetic field vector calculated using current parametrisation
      *at the given Z coordinate.
      ** \param[in] z - value of the Z coordinate, where magnetic field should be
      *calculated.
      **/
-    float32_v dz = (z - fField[9]);
+    float32_v dz  = (z - fField[9]);
     float32_v dz2 = dz * dz;
     KFParticleFieldValue B;
     B.x = fField[0] + fField[1] * dz + fField[2] * dz2;
@@ -112,9 +113,9 @@ public:
     return B;
   }
 
-  void Set(const KFParticleFieldValue &B0, const float32_v B0z,
-           const KFParticleFieldValue &B1, const float32_v B1z,
-           const KFParticleFieldValue &B2, const float32_v B2z) {
+  void Set(const KFParticleFieldValue& B0, const float32_v B0z, const KFParticleFieldValue& B1, const float32_v B1z,
+           const KFParticleFieldValue& B2, const float32_v B2z)
+  {
     /** Approximates the magnetic field with the parabolas using three points
      *along the particle trajectory.
      ** \param[in] B0 - magnetic field vector at the first point
@@ -124,7 +125,7 @@ public:
      ** \param[in] B2 - magnetic field vector at the third point
      ** \param[in] B2z - Z position of the third point
      **/
-    fField[9] = B0z;
+    fField[9]     = B0z;
     float32_v dz1 = B1z - B0z, dz2 = B2z - B0z;
     float32_v det = 1.f / (float32_v(dz1 * dz2 * (dz2 - dz1)));
     float32_v w21 = -dz2 * det;
@@ -134,25 +135,25 @@ public:
 
     float32_v dB1 = B1.x - B0.x;
     float32_v dB2 = B2.x - B0.x;
-    fField[0] = B0.x;
-    fField[1] = dB1 * w11 + dB2 * w12;
-    fField[2] = dB1 * w21 + dB2 * w22;
+    fField[0]     = B0.x;
+    fField[1]     = dB1 * w11 + dB2 * w12;
+    fField[2]     = dB1 * w21 + dB2 * w22;
 
-    dB1 = B1.y - B0.y;
-    dB2 = B2.y - B0.y;
+    dB1       = B1.y - B0.y;
+    dB2       = B2.y - B0.y;
     fField[3] = B0.y;
     fField[4] = dB1 * w11 + dB2 * w12;
     fField[5] = dB1 * w21 + dB2 * w22;
 
-    dB1 = B1.z - B0.z;
-    dB2 = B2.z - B0.z;
+    dB1       = B1.z - B0.z;
+    dB2       = B2.z - B0.z;
     fField[6] = B0.z;
     fField[7] = dB1 * w11 + dB2 * w12;
     fField[8] = dB1 * w21 + dB2 * w22;
   }
 
-  void Set(const KFParticleFieldValue &B0, const float32_v B0z,
-           const KFParticleFieldValue &B1, const float32_v B1z) {
+  void Set(const KFParticleFieldValue& B0, const float32_v B0z, const KFParticleFieldValue& B1, const float32_v B1z)
+  {
     /** Approximates the magnetic field with the strainght line using two
      *points.
      ** \param[in] B0 - magnetic field vector at the first point
@@ -160,30 +161,30 @@ public:
      ** \param[in] B1 - magnetic field vector at the second point
      ** \param[in] B1z - Z position of the second point
      **/
-    fField[9] = B0z;
+    fField[9]     = B0z;
     float32_v dzi = 1.f / (float32_v(B1z - B0z));
-    fField[0] = B0.x;
-    fField[3] = B0.y;
-    fField[6] = B0.z;
-    fField[1] = (B1.x - B0.x) * dzi;
-    fField[4] = (B1.y - B0.y) * dzi;
-    fField[7] = (B1.z - B0.z) * dzi;
+    fField[0]     = B0.x;
+    fField[3]     = B0.y;
+    fField[6]     = B0.z;
+    fField[1]     = (B1.x - B0.x) * dzi;
+    fField[4]     = (B1.y - B0.y) * dzi;
+    fField[7]     = (B1.z - B0.z) * dzi;
     fField[2] = fField[5] = fField[8] = 0.f;
   }
 
-  void SetOneEntry(const float *field, int iEntry = 0) {
+  void SetOneEntry(const float* field, int iEntry = 0)
+  {
     /** Sets one element of the SIMD vector with index iEntry.
      ** \param[in] field - a scalar input array with the approximation of the
      *magnetic field
      ** \param[in] iEntry - entry number of the current SIMD vectors to be set
      *with the input approximation
      **/
-    for (int i = 0; i < 10; i++)
-      fField[i][iEntry] = field[i];
+    for (int i = 0; i < 10; i++) { fField[i][iEntry] = field[i]; }
   }
 
-  void SetOneEntry(const int i0, const KFParticleFieldRegion &f1,
-                   const int i1) {
+  void SetOneEntry(const int i0, const KFParticleFieldRegion& f1, const int i1)
+  {
     /** Copies the field approximation from the vector f1 with index i1 to the
      *SIMD vector elemets of the current object with index i0.
      ** \param[in] i0 - index of the SIMD vector elements of the current field
@@ -192,8 +193,7 @@ public:
      ** \param[in] i1 - index of the SIMD vector elements of the input
      *approximation to be copied to the current object
      **/
-    for (int i = 0; i < 10; i++)
-      fField[i][i0] = f1.fField[i][i1];
+    for (int i = 0; i < 10; i++) { fField[i][i0] = f1.fField[i][i1]; }
   }
 
   /** The coefficients of the field approximation: \n

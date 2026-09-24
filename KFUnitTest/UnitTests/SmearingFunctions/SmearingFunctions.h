@@ -1,16 +1,18 @@
 #pragma once
 
-#include <Riostream.h>
 #include <TMath.h>
 #include <TMatrixD.h>
 #include <TMatrixDSymEigen.h>
 #include <TRandom.h>
 #include <TVectorD.h>
 
+#include <Riostream.h>
+
 //#include "../ConfigConstants.h"
 
-template <typename T>
-bool SmearParameters(size_t num_of_params, T parameters[], T covMatArr[]) {
+template<typename T>
+bool SmearParameters(size_t num_of_params, T parameters[], T covMatArr[])
+{
 
   Int_t ret = 0;
 
@@ -23,31 +25,28 @@ bool SmearParameters(size_t num_of_params, T parameters[], T covMatArr[]) {
   }
 
   TMatrixDSymEigen e(A);
-  TVectorD D = e.GetEigenValues();
-  TMatrixD V = e.GetEigenVectors();
+  TVectorD D  = e.GetEigenValues();
+  TMatrixD V  = e.GetEigenVectors();
   TMatrixD Vt = V;
   Vt.Transpose(V);
 
   TVectorD X(num_of_params);
-  for (Int_t i = 0; i < num_of_params; i++)
-    X(i) = parameters[i];
+  for (Int_t i = 0; i < num_of_params; i++) { X(i) = parameters[i]; }
 
-  X = Vt * X;
+  X           = Vt * X;
   TVectorD X0 = X;
   for (Int_t i = 0; i < num_of_params; i++) {
-    if (D(i) < 0)
-      ret = 1;
-    D(i) = TMath::Abs(D(i)); // correction of the covariance matrix
+    if (D(i) < 0) { ret = 1; }
+    D(i)           = TMath::Abs(D(i));  // correction of the covariance matrix
     Double_t sigma = TMath::Sqrt(D(i));
     X(i) += gRandom->Gaus(0, sigma);
   }
-  X = V * X;
+  X  = V * X;
   X0 = V * X0;
 
   TMatrixD DD(num_of_params, num_of_params);
   for (Int_t i = 0; i < num_of_params; i++) {
-    for (Int_t j = 0; j < num_of_params; j++)
-      DD(i, j) = 0;
+    for (Int_t j = 0; j < num_of_params; j++) { DD(i, j) = 0; }
     DD(i, i) = D(i);
   }
   TMatrixD AA = V * DD * Vt;
@@ -63,25 +62,24 @@ bool SmearParameters(size_t num_of_params, T parameters[], T covMatArr[]) {
   return true;
 }
 
-bool SmearParticle(KFParticle &part) {
+bool SmearParticle(KFParticle& part)
+{
   size_t num_of_params = 6;
-  size_t covmat_size = num_of_params * (num_of_params + 1) / 2;
+  size_t covmat_size   = num_of_params * (num_of_params + 1) / 2;
 
   float params[num_of_params];
-  for (int i = 0; i < num_of_params; i++)
-    params[i] = part.GetParameter(i);
+  for (int i = 0; i < num_of_params; i++) { params[i] = part.GetParameter(i); }
 
   float covmat[covmat_size];
-  for (int i = 0; i < covmat_size; i++)
-    covmat[i] = part.GetCovariance(i);
+  for (int i = 0; i < covmat_size; i++) { covmat[i] = part.GetCovariance(i); }
 
   bool res = SmearParameters(num_of_params, params, covmat);
 
   float mass, masserr;
   part.GetMass(mass, masserr);
-  float chi2 = part.GetChi2();
-  float charge = (int)part.GetQ();
-  int ndf = part.GetNDF();
+  float chi2   = part.GetChi2();
+  float charge = (int) part.GetQ();
+  int ndf      = part.GetNDF();
 
 #ifdef TESTSUITE
   part.Initialize(params, covmat, charge, chi2, ndf, mass);
@@ -92,9 +90,10 @@ bool SmearParticle(KFParticle &part) {
   return res;
 }
 
-bool SmearVertex(KFPVertex &vert) {
+bool SmearVertex(KFPVertex& vert)
+{
   size_t num_of_params = 3;
-  size_t covmat_size = num_of_params * (num_of_params + 1) / 2;
+  size_t covmat_size   = num_of_params * (num_of_params + 1) / 2;
 
   float params[num_of_params];
   vert.GetXYZ(params);
