@@ -20,39 +20,36 @@
  */
 
 #include "KFPEmcCluster.h"
+
 #include <iostream>
 
 void KFPEmcCluster::SetParameter(const float32_v& value, int iP, int iTr)
-{ 
+{
   /** Copies the SIMD vector "value" to the parameter vector KFPEmcCluster::fP[iP]
    ** starting at the position "iTr".
    ** \param[in] value - SIMD vector with the values to be stored
    ** \param[in] iP - number of the parameter vector
    ** \param[in] iTr - starting position in the parameter vector where the values should be stored
    **/
-  if( (iTr+SimdLen) < Size())
-    reinterpret_cast<float32_v&>(fP[iP][iTr]) = value;
-  else
-  {
+  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float32_v&>(fP[iP][iTr]) = value; }
+  else {
     int32_v index = int32_v::indicesSequence();
-    index = select(index<(Size() - iTr), index, 0);
+    index         = select(index < (Size() - iTr), index, 0);
     (reinterpret_cast<float32_v&>(fP[iP][iTr])).gather(reinterpret_cast<const float*>(&value), index);
   }
 }
-void KFPEmcCluster::SetCovariance(const float32_v& value, int iC, int iTr) 
-{ 
+void KFPEmcCluster::SetCovariance(const float32_v& value, int iC, int iTr)
+{
   /** Copies the SIMD vector "value" to the element of the covariance matrix vector KFPEmcCluster::fC[iC]
    ** starting at the position "iTr".
    ** \param[in] value - SIMD vector with the values to be stored
    ** \param[in] iC - number of the element of the covariance matrix
    ** \param[in] iTr - starting position in the parameter vector where the values should be stored
    **/
-  if( (iTr+SimdLen) < Size())
-    reinterpret_cast<float32_v&>(fC[iC][iTr]) = value;
-  else
-  {
+  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float32_v&>(fC[iC][iTr]) = value; }
+  else {
     int32_v index = int32_v::indicesSequence();
-    index = select(index<(Size() - iTr), index, 0);
+    index         = select(index < (Size() - iTr), index, 0);
     (reinterpret_cast<float32_v&>(fC[iC][iTr])).gather(reinterpret_cast<const float*>(&value), index);
   }
 }
@@ -62,10 +59,8 @@ void KFPEmcCluster::Resize(const int n)
   /** Resizes all vectors in the class to a given value.
    ** \param[in] n - new size of the vector
    **/
-  for(int i=0; i<4; i++)
-    fP[i].resize(n);
-  for(int i=0; i<10; i++)
-    fC[i].resize(n);
+  for (int i = 0; i < 4; i++) { fP[i].resize(n); }
+  for (int i = 0; i < 10; i++) { fC[i].resize(n); }
   fId.resize(n);
 }
 
@@ -77,13 +72,10 @@ void KFPEmcCluster::Set(KFPEmcCluster& v, int vSize, int offset)
    ** \param[in] vSize - number of clusters to be copied from "v"
    ** \param[in] offset - offset position in the current object, starting from which input clusters will be stored
    **/
-  for(int iV=0; iV<vSize; iV++)
-  {
-    for(int i=0; i<4; i++)
-      fP[i][offset+iV] = v.fP[i][iV];
-    for(int i=0; i<10; i++)
-      fC[i][offset+iV] = v.fC[i][iV];
-    fId[offset+iV] = v.fId[iV];
+  for (int iV = 0; iV < vSize; iV++) {
+    for (int i = 0; i < 4; i++) { fP[i][offset + iV] = v.fP[i][iV]; }
+    for (int i = 0; i < 10; i++) { fC[i][offset + iV] = v.fC[i][iV]; }
+    fId[offset + iV] = v.fId[iV];
   }
 }
 
@@ -95,49 +87,44 @@ void KFPEmcCluster::SetTracks(const KFPEmcCluster& track, const kfvector_int& tr
    ** \param[in] nIndexes - number of clusters to be copied, defines the new size of the current object
    **/
 
-  if(nIndexes == 0) return;
-  
+  if (nIndexes == 0) { return; }
+
   Resize(nIndexes);
 
-  for(int iP=0; iP<4; iP++)
-  {
+  for (int iP = 0; iP < 4; iP++) {
     int iElement = 0;
-    for(iElement=0; iElement<nIndexes-SimdLen; iElement += SimdLen)
-    {
+    for (iElement = 0; iElement < nIndexes - SimdLen; iElement += SimdLen) {
       const int32_v& index = reinterpret_cast<const int32_v&>(trackIndex[iElement]);
-      float32_v& vec = reinterpret_cast<float32_v&>(fP[iP][iElement]);
+      float32_v& vec       = reinterpret_cast<float32_v&>(fP[iP][iElement]);
       vec.gather(&(track.fP[iP][0]), index);
     }
-    const int32_v& index = reinterpret_cast<const int32_v&>(trackIndex[iElement]);
-    float32_v& vec = reinterpret_cast<float32_v&>(fP[iP][iElement]);
-    const int32_v correctedIndices = select(int32_v::indicesSequence(iElement)<nIndexes, index, 0);
+    const int32_v& index           = reinterpret_cast<const int32_v&>(trackIndex[iElement]);
+    float32_v& vec                 = reinterpret_cast<float32_v&>(fP[iP][iElement]);
+    const int32_v correctedIndices = select(int32_v::indicesSequence(iElement) < nIndexes, index, 0);
     vec.gather(&(track.fP[iP][0]), correctedIndices);
   }
-  for(int iC=0; iC<10; iC++)
-  {
-    int iElement=0;
-    for(iElement=0; iElement<nIndexes-SimdLen; iElement += SimdLen)
-    {
+  for (int iC = 0; iC < 10; iC++) {
+    int iElement = 0;
+    for (iElement = 0; iElement < nIndexes - SimdLen; iElement += SimdLen) {
       const int32_v& index = reinterpret_cast<const int32_v&>(trackIndex[iElement]);
-      float32_v& vec = reinterpret_cast<float32_v&>(fC[iC][iElement]);
+      float32_v& vec       = reinterpret_cast<float32_v&>(fC[iC][iElement]);
       vec.gather(&(track.fC[iC][0]), index);
     }
-    const int32_v& index = reinterpret_cast<const int32_v&>(trackIndex[iElement]);
-    float32_v& vec = reinterpret_cast<float32_v&>(fC[iC][iElement]);
-    const int32_v correctedIndices = select(int32_v::indicesSequence(iElement)<nIndexes, index, 0);
+    const int32_v& index           = reinterpret_cast<const int32_v&>(trackIndex[iElement]);
+    float32_v& vec                 = reinterpret_cast<float32_v&>(fC[iC][iElement]);
+    const int32_v correctedIndices = select(int32_v::indicesSequence(iElement) < nIndexes, index, 0);
     vec.gather(&(track.fC[iC][0]), correctedIndices);
   }
   {
-    int iElement=0;
-    for(iElement=0; iElement<nIndexes-SimdLen; iElement += SimdLen)
-    {
+    int iElement = 0;
+    for (iElement = 0; iElement < nIndexes - SimdLen; iElement += SimdLen) {
       const int32_v& index = reinterpret_cast<const int32_v&>(trackIndex[iElement]);
-      int32_v& vec = reinterpret_cast<int32_v&>(fId[iElement]);
+      int32_v& vec         = reinterpret_cast<int32_v&>(fId[iElement]);
       vec.gather(&(track.fId[0]), index);
     }
-    const int32_v& index = reinterpret_cast<const int32_v&>(trackIndex[iElement]);
-    int32_v& vec = reinterpret_cast<int32_v&>(fId[iElement]);
-    const int32_v correctedIndices = select(int32_v::indicesSequence(iElement)<nIndexes, index, 0);
+    const int32_v& index           = reinterpret_cast<const int32_v&>(trackIndex[iElement]);
+    int32_v& vec                   = reinterpret_cast<int32_v&>(fId[iElement]);
+    const int32_v correctedIndices = select(int32_v::indicesSequence(iElement) < nIndexes, index, 0);
     vec.gather(&(track.fId[0]), correctedIndices);
   }
 }
@@ -147,44 +134,36 @@ void KFPEmcCluster::PrintTrack(int n)
   /** Prints parameters of the cluster with index "n".
    ** \param[in] n - index of cluster to be printed
    **/
-  for(int i=0; i<4; i++)
-    std::cout << fP[i][n] << " ";
+  for (int i = 0; i < 4; i++) { std::cout << fP[i][n] << " "; }
   std::cout << std::endl;
-  for(int i=0; i<10; i++)
-    std::cout << fC[i][n] << " ";
+  for (int i = 0; i < 10; i++) { std::cout << fC[i][n] << " "; }
   std::cout << std::endl;
-  
+
   std::cout << fId[n] << std::endl;
 }
 
 void KFPEmcCluster::PrintTracks()
 {
   /** Prints all field of the current object. **/
-    
+
   std::cout << "NTracks " << Size() << std::endl;
-  if( Size()==0 ) return;
-  
+  if (Size() == 0) { return; }
+
   std::cout << "Parameters: " << std::endl;
-  for(int iP=0; iP<4; iP++)
-  {
+  for (int iP = 0; iP < 4; iP++) {
     std::cout << "  iP " << iP << ": ";
-    for(int iTr=0; iTr<Size(); iTr++)
-      std::cout << Parameter(iP)[iTr]<< " ";
+    for (int iTr = 0; iTr < Size(); iTr++) { std::cout << Parameter(iP)[iTr] << " "; }
     std::cout << std::endl;
   }
 
   std::cout << "Cov matrix: " << std::endl;
-  for(int iC=0; iC<10; iC++)
-  {
+  for (int iC = 0; iC < 10; iC++) {
     std::cout << "  iC " << iC << ": ";
-    for(int iTr=0; iTr<Size(); iTr++)
-      std::cout << Covariance(iC)[iTr]<< " ";
+    for (int iTr = 0; iTr < Size(); iTr++) { std::cout << Covariance(iC)[iTr] << " "; }
     std::cout << std::endl;
   }
-  
+
   std::cout << "Id: " << std::endl;
-  for(int iTr=0; iTr<Size(); iTr++)
-    std::cout <<  Id()[iTr] << " ";
+  for (int iTr = 0; iTr < Size(); iTr++) { std::cout << Id()[iTr] << " "; }
   std::cout << std::endl;
 }
-  

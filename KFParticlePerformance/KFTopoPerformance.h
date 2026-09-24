@@ -22,15 +22,14 @@
 #ifndef KFTOPOPERFORMANCE_H
 #define KFTOPOPERFORMANCE_H
 
-#include "KFParticlePerformanceBase.h"
-
+#include "KFMCParticle.h"
 #include "KFMCTrack.h"
 #include "KFMCVertex.h"
+#include "KFPartMatch.h"
+#include "KFParticlePerformanceBase.h"
+
 #include <cstdio>
 #include <map>
-
-#include "KFMCParticle.h"
-#include "KFPartMatch.h"
 
 class AliHLTTPCCAGBTracker;
 
@@ -60,91 +59,71 @@ class TFile;
  **/
 
 class KFTopoPerformance : public KFParticlePerformanceBase {
-public:
+ public:
   KFTopoPerformance();
   ~KFTopoPerformance();
 #ifdef KFPWITHTRACKER
-  void
-  SetNewEvent(const AliHLTTPCCAGBTracker *const Tracker,
-              AliHLTResizableArray<AliHLTTPCCAHitLabel> *hitLabels,
-              AliHLTResizableArray<AliHLTTPCCAMCTrack> *mcTracks,
-              AliHLTResizableArray<AliHLTTPCCALocalMCPoint> *localMCPoints);
+  void SetNewEvent(const AliHLTTPCCAGBTracker* const Tracker, AliHLTResizableArray<AliHLTTPCCAHitLabel>* hitLabels,
+                   AliHLTResizableArray<AliHLTTPCCAMCTrack>* mcTracks,
+                   AliHLTResizableArray<AliHLTTPCCALocalMCPoint>* localMCPoints);
 #endif
-  void SetTopoReconstructor(
-      const KFParticleTopoReconstructor *const TopoReconstructor);
-  const KFParticleTopoReconstructor *GetTopoReconstructor() const {
-    return fTopoReconstructor;
-  } ///< Returns pointer to the KFParticleTopoReconstructor object.
+  void SetTopoReconstructor(const KFParticleTopoReconstructor* const TopoReconstructor);
+  const KFParticleTopoReconstructor* GetTopoReconstructor() const
+  { return fTopoReconstructor; }  ///< Returns pointer to the KFParticleTopoReconstructor object.
 
   // Check if MC track is reconstructable. Calculate set of MC track. Etc.
-  void CheckMCTracks(); // fill mcData.
-                        // Find reco-MCTracks correspondence
-  void MatchTracks();   // fill recoData.
-                        // Calculate efficiencies
+  void CheckMCTracks();  // fill mcData.
+                         // Find reco-MCTracks correspondence
+  void MatchTracks();    // fill recoData.
+                         // Calculate efficiencies
 
   /// Histograms
   void FillHistos();
-  void FillHistos(const KFPHistogram *histograms);
+  void FillHistos(const KFPHistogram* histograms);
   void FillMCHistos();
 
   void AddV0Histos();
 
-  void SetTrackMatch(const std::vector<int> &trackMatch) {
-    fTrackMatch = trackMatch;
-  } ///< Fill matching between Monte Carlo and reconstructed tracks.
-  void SetMCTracks(const std::vector<KFMCTrack> &mcTracks) {
-    vMCTracks = mcTracks;
-  } ///< Fill Monte Carlo tracks.
+  void SetTrackMatch(const std::vector<int>& trackMatch)
+  { fTrackMatch = trackMatch; }  ///< Fill matching between Monte Carlo and reconstructed tracks.
+  void SetMCTracks(const std::vector<KFMCTrack>& mcTracks) { vMCTracks = mcTracks; }  ///< Fill Monte Carlo tracks.
 
-  const KFPartEfficiencies GetEfficiency() const {
-    return fParteff;
-  } ///< Returns KFPartEfficiencies object with calculated efficiency.
-  void SetPrintEffFrequency(int n) {
-    fPrintEffFrequency = n;
-  } ///< Sets frequency in events for efficiency table to be printed on the
-    ///< screen.
+  const KFPartEfficiencies GetEfficiency() const
+  { return fParteff; }  ///< Returns KFPartEfficiencies object with calculated efficiency.
+  void SetPrintEffFrequency(int n)
+  { fPrintEffFrequency = n; }  ///< Sets frequency in events for efficiency table to be printed on the
+  ///< screen.
 
-  const std::vector<KFMCVertex> GetPrimVertices() {
-    return fPrimVertices;
-  } ///< Returns Monte Carlo primary vertices in the current event.
-  const std::vector<KFMCParticle> &MCParticles() {
-    return vMCParticles;
-  } ///< Returns Monte Carlo particles in the current event.
-  const std::vector<KFPartMatch> &ParticlesMatch() {
-    return RtoMCParticleId;
-  } ///< Returns matching between reconstructed and Monte Carlo particles.
-  const std::vector<KFPartMatch> &GetMCtoRPVId() {
-    return MCtoRPVId;
-  } ///< Returns matching between Monte Carlo and reconstructed primary
-    ///< vertices.
-  const std::vector<KFPartMatch> &GetRtoMCPVId() {
-    return RtoMCPVId;
-  } ///< Returns matching between reconstructed and Monte Carlo primary
-    ///< vertices.
-  const KFMCTrack &GetMCTrack(const int iRecoTrack) {
+  const std::vector<KFMCVertex> GetPrimVertices()
+  { return fPrimVertices; }  ///< Returns Monte Carlo primary vertices in the current event.
+  const std::vector<KFMCParticle>& MCParticles()
+  { return vMCParticles; }  ///< Returns Monte Carlo particles in the current event.
+  const std::vector<KFPartMatch>& ParticlesMatch()
+  { return RtoMCParticleId; }  ///< Returns matching between reconstructed and Monte Carlo particles.
+  const std::vector<KFPartMatch>& GetMCtoRPVId()
+  { return MCtoRPVId; }  ///< Returns matching between Monte Carlo and reconstructed primary
+  ///< vertices.
+  const std::vector<KFPartMatch>& GetRtoMCPVId()
+  { return RtoMCPVId; }  ///< Returns matching between reconstructed and Monte Carlo primary
+  ///< vertices.
+  const KFMCTrack& GetMCTrack(const int iRecoTrack)
+  {
     /** Returns Monte Carlo track matched with the reconstructed track with
      * index "iRecoTrack". */
     int iMCTrack = 0;
-    if (RtoMCParticleId[iRecoTrack].IsMatched())
-      iMCTrack = RtoMCParticleId[iRecoTrack].GetBestMatch();
+    if (RtoMCParticleId[iRecoTrack].IsMatched()) { iMCTrack = RtoMCParticleId[iRecoTrack].GetBestMatch(); }
     return vMCTracks[iMCTrack];
   }
 
-  void SetCentralityBin(const int iBin) {
-    fCentralityBin = iBin;
-  } ///< Sets centrality bin of the current event.
-  void SetCentralityWeight(const float weight) {
-    fCentralityWeight = weight;
-  } ///< Sets weight of the centrality bin of the current event.
+  void SetCentralityBin(const int iBin) { fCentralityBin = iBin; }  ///< Sets centrality bin of the current event.
+  void SetCentralityWeight(const float weight)
+  { fCentralityWeight = weight; }  ///< Sets weight of the centrality bin of the current event.
 
   void Set3DEfficiency(TString fileName);
 
-private:
-  const KFTopoPerformance &
-  operator=(const KFTopoPerformance
-                &); ///< Copying of objects of this class is forbidden.
-  KFTopoPerformance(const KFTopoPerformance
-                        &); ///< Copying of objects of this class is forbidden.
+ private:
+  const KFTopoPerformance& operator=(const KFTopoPerformance&);  ///< Copying of objects of this class is forbidden.
+  KFTopoPerformance(const KFTopoPerformance&);                   ///< Copying of objects of this class is forbidden.
 
   void GetMCParticles();
   void MatchParticles();
@@ -152,47 +131,39 @@ private:
   void CalculateEfficiency();
   void CalculatePVEfficiency();
   void FindReconstructableMCParticles();
-  void CheckMCParticleIsReconstructable(KFMCParticle &part);
+  void CheckMCParticleIsReconstructable(KFMCParticle& part);
   void FindReconstructableMCVertices();
-  void FillParticleParameters(
-      KFParticle &TempPart, int iParticle, int iP, int iPV,
-      TH1F *histoParameters[4][KFPartEfficiencies::nParticles][nHistoPartParam],
-      TH2F *histoParameters2D[4][KFPartEfficiencies::nParticles]
-                             [nHistoPartParam2D],
-      TH3F *histoParameters3D[1][KFPartEfficiencies::nParticles]
-                             [nHistoPartParam3D],
-      TH1F *histoFit[KFPartEfficiencies::nParticles][nFitQA] = 0,
-      TH1F *histoFitDaughtersQA[KFPartEfficiencies::nParticles][nFitQA] = 0,
-      TH1F *histoDSToParticleQA[KFPartEfficiencies::nParticles]
-                               [nDSToParticleQA] = 0,
-      std::vector<int> *multiplicities = 0);
-  float GetAcceptanceWeight(const double *point, const int iParticle);
-  float GetCutsEffWeight(const double *point, const int iParticle);
+  void FillParticleParameters(KFParticle& TempPart, int iParticle, int iP, int iPV,
+                              TH1F* histoParameters[4][KFPartEfficiencies::nParticles][nHistoPartParam],
+                              TH2F* histoParameters2D[4][KFPartEfficiencies::nParticles][nHistoPartParam2D],
+                              TH3F* histoParameters3D[1][KFPartEfficiencies::nParticles][nHistoPartParam3D],
+                              TH1F* histoFit[KFPartEfficiencies::nParticles][nFitQA]                     = 0,
+                              TH1F* histoFitDaughtersQA[KFPartEfficiencies::nParticles][nFitQA]          = 0,
+                              TH1F* histoDSToParticleQA[KFPartEfficiencies::nParticles][nDSToParticleQA] = 0,
+                              std::vector<int>* multiplicities                                           = 0);
+  float GetAcceptanceWeight(const double* point, const int iParticle);
+  float GetCutsEffWeight(const double* point, const int iParticle);
 
-  const KFParticleTopoReconstructor *
-      fTopoReconstructor; ///< Pointer to the KFParticleTopoReconstructor object
-                          ///< with particles and vertices to be analysed.
+  const KFParticleTopoReconstructor* fTopoReconstructor;  ///< Pointer to the KFParticleTopoReconstructor object
+                                                          ///< with particles and vertices to be analysed.
 
-  std::vector<KFMCVertex> fPrimVertices; ///< Monte Carlo primary vertices.
-  std::vector<int> fMCTrackToMCPVMatch;  ///< Matching of Monte Carlo tracks and
-                                         ///< corresponding primary vertex
-  std::vector<double> fPVPurity;         ///< Purity of the primary vertices.
-  std::vector<double>
-      fPVTracksRate[4]; ///< Ratio in the primary vertices of: 0 - ghost tracks,
-                        ///< 1 - from trigger PV, 2 - from pileup, 3 - from
-                        ///< physics background.
-  std::vector<int>
-      fNCorrectPVTracks; ///< Number of correctly attached tracks in the
-                         ///< corresponding reconstructed primary vertex.
+  std::vector<KFMCVertex> fPrimVertices;  ///< Monte Carlo primary vertices.
+  std::vector<int> fMCTrackToMCPVMatch;   ///< Matching of Monte Carlo tracks and
+                                          ///< corresponding primary vertex
+  std::vector<double> fPVPurity;          ///< Purity of the primary vertices.
+  std::vector<double> fPVTracksRate[4];   ///< Ratio in the primary vertices of: 0 - ghost tracks,
+                                          ///< 1 - from trigger PV, 2 - from pileup, 3 - from
+                                          ///< physics background.
+  std::vector<int> fNCorrectPVTracks;     ///< Number of correctly attached tracks in the
+                                          ///< corresponding reconstructed primary vertex.
 
-  std::vector<int> fTrackMatch; ///< Matching between reconstructed tracks and
-  std::vector<KFMCTrack>
-      vMCTracks; ///< Monte Carlo tracks (parameters of the particle
-                 ///< trajectories at the production point).
-  std::vector<KFMCParticle> vMCParticles; ///< Monte Carlo particles.
-  std::vector<int> fNeutralIndex; ///< Index of the created neutral daughters
-                                  ///< for missing mass method in vMCTracks for
-                                  ///< the Monte Carlo track with given index.
+  std::vector<int> fTrackMatch;            ///< Matching between reconstructed tracks and
+  std::vector<KFMCTrack> vMCTracks;        ///< Monte Carlo tracks (parameters of the particle
+                                           ///< trajectories at the production point).
+  std::vector<KFMCParticle> vMCParticles;  ///< Monte Carlo particles.
+  std::vector<int> fNeutralIndex;          ///< Index of the created neutral daughters
+                                           ///< for missing mass method in vMCTracks for
+                                           ///< the Monte Carlo track with given index.
 
   /** Matching between Monte Carlo and reconstructed particles.
    *MCtoRParticleId[i] provides index of the reconstructed particle in the
@@ -216,17 +187,17 @@ private:
    *fTopoReconstructor->GetPrimVertex(). **/
   std::vector<KFPartMatch> RtoMCPVId;
 
-  int fPrintEffFrequency; ///< Frequency in events with which efficiency table
-                          ///< is printed on the screen.
+  int fPrintEffFrequency;  ///< Frequency in events with which efficiency table
+                           ///< is printed on the screen.
 
-  int fCentralityBin;      ///< Centrality bin for the current event.
-  float fCentralityWeight; ///< Centrality weight for the current event.
+  int fCentralityBin;       ///< Centrality bin for the current event.
+  float fCentralityWeight;  ///< Centrality weight for the current event.
 
-  TFile *fEfficiencyMapFile;
-  std::vector<THnSparseF *> fAcceptanceMapReco;
-  std::vector<THnSparseF *> fAcceptanceMapMC;
-  std::vector<THnSparseF *> fCutsEfficiencyMapReco;
-  std::vector<THnSparseF *> fCutsEfficiencyMapMC;
+  TFile* fEfficiencyMapFile;
+  std::vector<THnSparseF*> fAcceptanceMapReco;
+  std::vector<THnSparseF*> fAcceptanceMapMC;
+  std::vector<THnSparseF*> fCutsEfficiencyMapReco;
+  std::vector<THnSparseF*> fCutsEfficiencyMapMC;
 };
 
 #endif

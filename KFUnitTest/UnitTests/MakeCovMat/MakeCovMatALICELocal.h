@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cmath>
-#include <vector>
-
 #include "../ParticleStructures/MCParticleStructure.h"
 #include "ALICETrackParamConverter.h"
+
+#include <cmath>
+#include <vector>
 
 // This function is just an example, but not
 // a real analysis template. Please, do not
@@ -31,7 +31,8 @@
 // pxpx, pypy, ... - in GeV^2
 // xpx, ypy, zpz, ... - in cm*GeV
 
-std::vector<float> MakeCovMatrix(const MCParticleStruct &part) {
+std::vector<float> MakeCovMatrix(const MCParticleStruct& part)
+{
   // 6x6 matrix has 21 indep. elements. Lets define all of them.
   double glob_covmat[21];
   double xyz[3];
@@ -40,15 +41,16 @@ std::vector<float> MakeCovMatrix(const MCParticleStruct &part) {
   double qOverPt;
 
   if (part.isMother) {
-    xyz[0] = part.finalX;
-    xyz[1] = part.finalY;
-    xyz[2] = part.finalZ;
+    xyz[0]  = part.finalX;
+    xyz[1]  = part.finalY;
+    xyz[2]  = part.finalZ;
     qOverPt = part.charge / part.finalPT();
-  } else {
+  }
+  else {
     pxpypz[0] = part.finalPX;
     pxpypz[1] = part.finalPY;
     pxpypz[2] = part.finalPZ;
-    qOverPt = part.charge / part.initialPT();
+    qOverPt   = part.charge / part.initialPT();
   }
 
   ALICETrackParamsConverter glob_loc_track(xyz, pxpypz, glob_covmat, sign);
@@ -60,24 +62,23 @@ std::vector<float> MakeCovMatrix(const MCParticleStruct &part) {
   double loc_params[5];
   glob_loc_track.GetLocalParams(loc_params);
   double loc_covmat[15];
-  loc_covmat[0] = ....;
-  loc_covmat[1] = 0;
-  loc_covmat[2] = ....;
-  loc_covmat[3] = ....;
-  loc_covmat[4] = 0;
-  loc_covmat[5] = ....;
-  loc_covmat[6] = 0;
-  loc_covmat[7] = ....;
-  loc_covmat[8] = 0;
-  loc_covmat[9] = ....;
+  loc_covmat[0]  = ....;
+  loc_covmat[1]  = 0;
+  loc_covmat[2]  = ....;
+  loc_covmat[3]  = ....;
+  loc_covmat[4]  = 0;
+  loc_covmat[5]  = ....;
+  loc_covmat[6]  = 0;
+  loc_covmat[7]  = ....;
+  loc_covmat[8]  = 0;
+  loc_covmat[9]  = ....;
   loc_covmat[10] = ....;
   loc_covmat[11] = 0;
   loc_covmat[12] = ....;
   loc_covmat[13] = 0;
   loc_covmat[14] = ....;
 
-  ALICETrackParamsConverter loc_glob_track(loc_params, loc_covmat, loc_x,
-                                           loc_alpha, sign);
+  ALICETrackParamsConverter loc_glob_track(loc_params, loc_covmat, loc_x, loc_alpha, sign);
 
   loc_glob_track.GetGlobalCovMat(glob_covmat);
 

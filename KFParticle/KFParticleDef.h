@@ -26,29 +26,29 @@
 #define KFP_SIMD_SSE
 #endif
 
-#include <vector>
 #include <cstring>
+#include <vector>
 
 #if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
 #include "RootTypesDef.h"
 #include "simd.h"
 #else
-#include "TObject.h"
 #include "KFPSimd/simd.h"
+#include "TObject.h"
 #endif
 
 #define NInputSets 8
 
 using float32_v = KFP::SIMD::simd_float;
-using int32_v = KFP::SIMD::simd_int;
-using mask32_v = KFP::SIMD::simd_mask;
+using int32_v   = KFP::SIMD::simd_int;
+using mask32_v  = KFP::SIMD::simd_mask;
 using KFP::SIMD::SimdLen;
 using KFP::SIMD::SimdSize;
 
 using float_v = KFP::SIMD::simd_float;
-using int_v = KFP::SIMD::simd_int;
-using mask_v = KFP::SIMD::simd_mask;
-using uint_v = KFP::SIMD::simd_int;
+using int_v   = KFP::SIMD::simd_int;
+using mask_v  = KFP::SIMD::simd_mask;
+using uint_v  = KFP::SIMD::simd_int;
 
 // using ::Vc::float32_v;
 // using ::Vc::double_v;
@@ -66,15 +66,15 @@ using uint_v = KFP::SIMD::simd_int;
 
 #ifdef VC_VERSION_NUMBER
 #if VC_VERSION_NUMBER < VC_VERSION_CHECK(1, 0, 0)
-template <typename To, typename From> To simd_cast(From &&x) {
-  return static_cast<To>(x);
-}
+template<typename To, typename From>
+To simd_cast(From&& x)
+{ return static_cast<To>(x); }
 #endif
 #elif defined(Vc_VERSION_NUMBER)
 #if Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1, 0, 0)
-template <typename To, typename From> To simd_cast(From &&x) {
-  return static_cast<To>(x);
-}
+template<typename To, typename From>
+To simd_cast(From&& x)
+{ return static_cast<To>(x); }
 #endif
 #endif
 

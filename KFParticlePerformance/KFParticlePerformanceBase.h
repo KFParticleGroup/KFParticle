@@ -23,20 +23,17 @@
 #define KFParticlePERFORMANCEBASE_H
 
 #ifdef KFPWITHTRACKER
-#include "AliHLTTPCCounters.h"
-
-#include "AliHLTTPCPerformanceBase.h"
-
 #include "AliHLTArray.h"
 #include "AliHLTTPCCADef.h"
 #include "AliHLTTPCCAMCPoint.h"
 #include "AliHLTTPCCAMCTrack.h"
+#include "AliHLTTPCCounters.h"
+#include "AliHLTTPCPerformanceBase.h"
 #endif
-
-#include "THnSparse.h"
 
 #include "KFPVEfficiencies.h"
 #include "KFPartEfficiencies.h"
+#include "THnSparse.h"
 
 #include <map>
 #include <string>
@@ -73,19 +70,19 @@ class KFParticle;
  **/
 class KFParticlePerformanceBase
 #ifdef KFPWITHTRACKER
-    : public AliHLTTPCPerformanceBase
+  :
+  public AliHLTTPCPerformanceBase
 #endif
 {
-public:
+ public:
   KFParticlePerformanceBase();
   ~KFParticlePerformanceBase() {}
 
   /// Histograms
-  void CreateHistos(std::string histoDir = "", TDirectory *outFile = 0,
+  void CreateHistos(std::string histoDir = "", TDirectory* outFile = 0,
                     std::map<int, bool> decays = std::map<int, bool>());
-  TDirectory *GetHistosDirectory() {
-    return fHistoDir;
-  } ///< Returns pointer to the ROOT directory with created histograms.
+  TDirectory* GetHistosDirectory()
+  { return fHistoDir; }  ///< Returns pointer to the ROOT directory with created histograms.
 
   /** Switch off collection of histograms requiring Monte Carlo information. Not
    *to allocate memory should be called
@@ -105,74 +102,61 @@ public:
 
   /** Returns residual histogram with "iParameter" parameter for decay with
    * "iDecay" number. */
-  const TH1F *GetDecayResidual(const int iDecay, const int iParameter) const {
-    return hFitQA[iDecay][iParameter];
-  }
+  const TH1F* GetDecayResidual(const int iDecay, const int iParameter) const { return hFitQA[iDecay][iParameter]; }
   /** Returns pull histogram with "iParameter" parameter for decay with "iDecay"
    * number. */
-  const TH1F *GetDecayPull(const int iDecay, const int iParameter) const {
-    return hFitQA[iDecay][iParameter + nFitQA / 2];
-  }
+  const TH1F* GetDecayPull(const int iDecay, const int iParameter) const
+  { return hFitQA[iDecay][iParameter + nFitQA / 2]; }
 
   // efficiencies
-  KFPartEfficiencies fParteff; ///< Object with reconstruction efficiency of
-                               ///< short-lived particles.
-  KFPVEfficiencies fPVeff; ///< Object with reconstruction efficiency of primary
-                           ///< vertices defined by the reconstructed tracks.
-  KFPVEfficiencies
-      fPVeffMCReconstructable; ///< Object with reconstruction efficiency of
-                               ///< primary vertices defined by the Monte Carlo
-                               ///< tracks.
+  KFPartEfficiencies fParteff;               ///< Object with reconstruction efficiency of
+                                             ///< short-lived particles.
+  KFPVEfficiencies fPVeff;                   ///< Object with reconstruction efficiency of primary
+                                             ///< vertices defined by the reconstructed tracks.
+  KFPVEfficiencies fPVeffMCReconstructable;  ///< Object with reconstruction efficiency of
+                                             ///< primary vertices defined by the Monte Carlo
+                                             ///< tracks.
 
-protected:
-  TString outfileName;  ///< Name of the output file, where histograms will be
-                        ///< stored.
-  TDirectory *histodir; ///< Pointer to the ROOT directory, where histograms are
-                        ///< created.
+ protected:
+  TString outfileName;   ///< Name of the output file, where histograms will be
+                         ///< stored.
+  TDirectory* histodir;  ///< Pointer to the ROOT directory, where histograms are
+                         ///< created.
 
-  int fNEvents;            ///< Number of processed events.
-  bool fStoreMCHistograms; ///< Flag showing if histograms requiring Monte Carlo
-                           ///< information should be created and collected.
-                           ///< "True" by default.
-  bool fStorePrimSecHistograms; ///< Flag showing if histograms for primary and
-                                ///< secondary candidates should be created and
-                                ///< collected. "True" by default.
-  bool fStoreZRHistograms; ///< Flag showing if Z-R histograms should be created
-                           ///< and collected. "True" by default.
-  bool fStore3DEfficiency; ///< Flag showing if 3D efficiency histograms should
-                           ///< be created and collected. "False" by default.
+  int fNEvents;                  ///< Number of processed events.
+  bool fStoreMCHistograms;       ///< Flag showing if histograms requiring Monte Carlo
+                                 ///< information should be created and collected.
+                                 ///< "True" by default.
+  bool fStorePrimSecHistograms;  ///< Flag showing if histograms for primary and
+                                 ///< secondary candidates should be created and
+                                 ///< collected. "True" by default.
+  bool fStoreZRHistograms;       ///< Flag showing if Z-R histograms should be created
+                                 ///< and collected. "True" by default.
+  bool fStore3DEfficiency;       ///< Flag showing if 3D efficiency histograms should
+                                 ///< be created and collected. "False" by default.
 
   // histos
-  static const int nFitQA = 16; ///< Number of fit QA histograms: residuals and
-                                ///< pulls in X, Y, Z, Px, Py, Pz, E, M.
-  TH1F *hFitDaughtersQA[KFPartEfficiencies::nParticles]
-                       [nFitQA]; ///< Residuals and pulls of daughter particles
-                                 ///< at production point.
-  TH1F *
-      hFitQA[KFPartEfficiencies::nParticles]
-            [nFitQA]; ///< Residuals and pulls of the reconstructed particle: X,
-                      ///< Y, Z at decay point, P, E, M - at production point
-  TH1F *hFitQANoConstraint[KFPartEfficiencies::nParticles]
-                          [nFitQA]; ///< Residuals and pulls of the particle
-                                    ///< with no constraints set.
-  TH1F *hFitQAMassConstraint[KFPartEfficiencies::nParticles]
-                            [nFitQA]; ///< Residuals and pulls of the particle
-                                      ///< with the mass constraint.
-  TH1F *hFitQATopoConstraint[KFPartEfficiencies::nParticles]
-                            [nFitQA]; ///< Residuals and pulls of the particle
-                                      ///< with the production point constraint.
-  TH1F *hFitQATopoMassConstraint[KFPartEfficiencies::nParticles]
-                                [nFitQA]; ///< Residuals and pulls of the
-                                          ///< particle with the mass and
-                                          ///< production point constraints.
+  static const int nFitQA = 16;                                   ///< Number of fit QA histograms: residuals and
+                                                                  ///< pulls in X, Y, Z, Px, Py, Pz, E, M.
+  TH1F* hFitDaughtersQA[KFPartEfficiencies::nParticles][nFitQA];  ///< Residuals and pulls of daughter particles
+                                                                  ///< at production point.
+  TH1F* hFitQA[KFPartEfficiencies::nParticles][nFitQA];  ///< Residuals and pulls of the reconstructed particle: X,
+                                                         ///< Y, Z at decay point, P, E, M - at production point
+  TH1F* hFitQANoConstraint[KFPartEfficiencies::nParticles][nFitQA];        ///< Residuals and pulls of the particle
+                                                                           ///< with no constraints set.
+  TH1F* hFitQAMassConstraint[KFPartEfficiencies::nParticles][nFitQA];      ///< Residuals and pulls of the particle
+                                                                           ///< with the mass constraint.
+  TH1F* hFitQATopoConstraint[KFPartEfficiencies::nParticles][nFitQA];      ///< Residuals and pulls of the particle
+                                                                           ///< with the production point constraint.
+  TH1F* hFitQATopoMassConstraint[KFPartEfficiencies::nParticles][nFitQA];  ///< Residuals and pulls of the
+                                                                           ///< particle with the mass and
+                                                                           ///< production point constraints.
 
-  static const int nDSToParticleQA =
-      7; ///< Number of histograms to evaluate GetDStoParticle function:
-         ///< residuals and pulls in X, Y, Z; distance between DCA points.
-  TH1F *hDSToParticleQA[KFPartEfficiencies::nParticles]
-                       [nDSToParticleQA]; ///< Histograms to evaluate
-                                          ///< KFParticleSIMD::GetDStoParticle()
-                                          ///< function
+  static const int nDSToParticleQA = 7;  ///< Number of histograms to evaluate GetDStoParticle function:
+                                         ///< residuals and pulls in X, Y, Z; distance between DCA points.
+  TH1F* hDSToParticleQA[KFPartEfficiencies::nParticles][nDSToParticleQA];  ///< Histograms to evaluate
+                                                                           ///< KFParticleSIMD::GetDStoParticle()
+                                                                           ///< function
 
 /** \brief Number of histograms with parameter distributions: mass, p, pt,
  *rapidity, decay length, c*tau,
@@ -189,165 +173,130 @@ protected:
    ** background (ghost), 4 - reconstructed signal for side bands method, 5-
    *reconstructed background for side bands method, 6 - MC signal. **/
   static const int nParametersSet = 7;
-  TH1F *hPartParam[nParametersSet][KFPartEfficiencies::nParticles]
-                  [nHistoPartParam]; ///< Parameters of all candidates.
-  TH1F *
-      hPartParamPrimary[nParametersSet][KFPartEfficiencies::nParticles]
-                       [nHistoPartParam]; ///< Parameters of primary candidates.
-  TH1F *hPartParamPrimaryMass[nParametersSet][KFPartEfficiencies::nParticles]
-                             [nHistoPartParam]; ///< Parameters of primary
-                                                ///< candidates with mass
-                                                ///< constraint.
-  TH1F *hPartParamPrimaryTopo[nParametersSet][KFPartEfficiencies::nParticles]
-                             [nHistoPartParam]; ///< Parameters of primary
-                                                ///< candidates with vertex
-                                                ///< constraint.
-  TH1F
-      *hPartParamPrimaryTopoMass[nParametersSet][KFPartEfficiencies::nParticles]
-                                [nHistoPartParam]; ///< Parameters of primary
-                                                   ///< candidates with mass and
-                                                   ///< vertex constraint.
-  TH1F *hPartParamSecondary[nParametersSet][KFPartEfficiencies::nParticles]
-                           [nHistoPartParam]; ///< Parameters of secondary
-                                              ///< candidates.
-  TH1F *hPartParamSecondaryMass[nParametersSet][KFPartEfficiencies::nParticles]
-                               [nHistoPartParam]; ///< Parameters of secondary
-                                                  ///< candidates with mass
-                                                  ///< constraint.
+  TH1F* hPartParam[nParametersSet][KFPartEfficiencies::nParticles][nHistoPartParam];  ///< Parameters of all candidates.
+  TH1F* hPartParamPrimary[nParametersSet][KFPartEfficiencies::nParticles]
+                         [nHistoPartParam];  ///< Parameters of primary candidates.
+  TH1F* hPartParamPrimaryMass[nParametersSet][KFPartEfficiencies::nParticles]
+                             [nHistoPartParam];  ///< Parameters of primary
+                                                 ///< candidates with mass
+                                                 ///< constraint.
+  TH1F* hPartParamPrimaryTopo[nParametersSet][KFPartEfficiencies::nParticles]
+                             [nHistoPartParam];  ///< Parameters of primary
+                                                 ///< candidates with vertex
+                                                 ///< constraint.
+  TH1F* hPartParamPrimaryTopoMass[nParametersSet][KFPartEfficiencies::nParticles]
+                                 [nHistoPartParam];  ///< Parameters of primary
+                                                     ///< candidates with mass and
+                                                     ///< vertex constraint.
+  TH1F* hPartParamSecondary[nParametersSet][KFPartEfficiencies::nParticles]
+                           [nHistoPartParam];  ///< Parameters of secondary
+                                               ///< candidates.
+  TH1F* hPartParamSecondaryMass[nParametersSet][KFPartEfficiencies::nParticles]
+                               [nHistoPartParam];  ///< Parameters of secondary
+                                                   ///< candidates with mass
+                                                   ///< constraint.
 
-  TH2F *hPartDaughterPTheta[KFPartEfficiencies::nParticles][2];
-  TH1F *hPartDaughterPhi[KFPartEfficiencies::nParticles][2];
+  TH2F* hPartDaughterPTheta[KFPartEfficiencies::nParticles][2];
+  TH1F* hPartDaughterPhi[KFPartEfficiencies::nParticles][2];
 
-  static const int nHistoPartParam2D =
-      7; ///< Number of 2D histograms: 0 - y-pt, 1 - z-r, 2 - armenteros, 3-
-         ///< y-mt, 4-6 dalitz
-  TH2F *hPartParam2D[nParametersSet][KFPartEfficiencies::nParticles]
-                    [nHistoPartParam2D]; ///< 2D histograms for all candidates.
-  TH2F *hPartParam2DPrimary[nParametersSet][KFPartEfficiencies::nParticles]
-                           [nHistoPartParam2D]; ///< 2D for primary candidates.
-  TH2F *
-      hPartParam2DPrimaryMass[nParametersSet][KFPartEfficiencies::nParticles]
-                             [nHistoPartParam2D]; ///< 2D for primary candidates
-                                                  ///< with mass constraint.
-  TH2F *
-      hPartParam2DPrimaryTopo[nParametersSet][KFPartEfficiencies::nParticles]
-                             [nHistoPartParam2D]; ///< 2D for primary candidates
-                                                  ///< with vertex constraint.
-  TH2F *hPartParam2DPrimaryTopoMass[nParametersSet]
-                                   [KFPartEfficiencies::nParticles]
-                                   [nHistoPartParam2D]; ///< 2D with mass and
-                                                        ///< vertex constraints.
-  TH2F *hPartParam2DSecondary[nParametersSet][KFPartEfficiencies::nParticles]
-                             [nHistoPartParam2D]; ///< 2D for secondary
-                                                  ///< candidates.
-  TH2F
-      *hPartParam2DSecondaryMass[nParametersSet][KFPartEfficiencies::nParticles]
-                                [nHistoPartParam2D]; ///< 2D for secondary
-                                                     ///< candidates with mass
-                                                     ///< constraint.
+  static const int nHistoPartParam2D = 7;  ///< Number of 2D histograms: 0 - y-pt, 1 - z-r, 2 - armenteros, 3-
+                                           ///< y-mt, 4-6 dalitz
+  TH2F* hPartParam2D[nParametersSet][KFPartEfficiencies::nParticles]
+                    [nHistoPartParam2D];  ///< 2D histograms for all candidates.
+  TH2F* hPartParam2DPrimary[nParametersSet][KFPartEfficiencies::nParticles]
+                           [nHistoPartParam2D];  ///< 2D for primary candidates.
+  TH2F* hPartParam2DPrimaryMass[nParametersSet][KFPartEfficiencies::nParticles]
+                               [nHistoPartParam2D];  ///< 2D for primary candidates
+                                                     ///< with mass constraint.
+  TH2F* hPartParam2DPrimaryTopo[nParametersSet][KFPartEfficiencies::nParticles]
+                               [nHistoPartParam2D];  ///< 2D for primary candidates
+                                                     ///< with vertex constraint.
+  TH2F* hPartParam2DPrimaryTopoMass[nParametersSet][KFPartEfficiencies::nParticles]
+                                   [nHistoPartParam2D];  ///< 2D with mass and
+                                                         ///< vertex constraints.
+  TH2F* hPartParam2DSecondary[nParametersSet][KFPartEfficiencies::nParticles][nHistoPartParam2D];  ///< 2D for secondary
+                                                                                                   ///< candidates.
+  TH2F* hPartParam2DSecondaryMass[nParametersSet][KFPartEfficiencies::nParticles]
+                                 [nHistoPartParam2D];  ///< 2D for secondary
+                                                       ///< candidates with mass
+                                                       ///< constraint.
 
-  static const int nHistoPartParam3D =
-      12; ///< Number of 3D histograms: y-pt-M, y-mt-M, b-pt-M, b-y-M, b-mt-M,
-          ///< ct-pt-M, dalitz1-4
-  TH3F *hPartParam3D[1][KFPartEfficiencies::nParticles]
-                    [nHistoPartParam3D]; ///< 3D histograms.
+  static const int nHistoPartParam3D = 12;  ///< Number of 3D histograms: y-pt-M, y-mt-M, b-pt-M, b-y-M, b-mt-M,
+                                            ///< ct-pt-M, dalitz1-4
+  TH3F* hPartParam3D[1][KFPartEfficiencies::nParticles][nHistoPartParam3D];  ///< 3D histograms.
 
-  static const int nPartEfficiency =
-      9; ///< Number of efficiency plots for each decay: vs p, pt, y, z, c*tau,
-         ///< decay length, l, r, Mt.
-  TProfile *hPartEfficiency[KFPartEfficiencies::nParticles][3]
-                           [nPartEfficiency]; ///< Efficiency plots.
-  static const int nPartEfficiency2D =
-      5; ///< Number of 2D efficiency plots for each decay: y-pt, y-mt, 3 dalitz
-  TProfile2D *hPartEfficiency2D[KFPartEfficiencies::nParticles][3]
-                               [nPartEfficiency2D]; ///< 2D efficiency plots.
-  THnSparseF
-      *hPartEfficiencyMulti[KFPartEfficiencies::nParticles]
-                           [4]; ///< Multidimensional efficiency:
-                                ///< phi-theta-p-ctau-z, 0 - N reco, 1 - N mc
-                                ///< pt-y-p-ctau, 2 - N reco, 3 - N mc
+  static const int nPartEfficiency = 9;  ///< Number of efficiency plots for each decay: vs p, pt, y, z, c*tau,
+                                         ///< decay length, l, r, Mt.
+  TProfile* hPartEfficiency[KFPartEfficiencies::nParticles][3][nPartEfficiency];  ///< Efficiency plots.
+  static const int nPartEfficiency2D = 5;  ///< Number of 2D efficiency plots for each decay: y-pt, y-mt, 3 dalitz
+  TProfile2D* hPartEfficiency2D[KFPartEfficiencies::nParticles][3][nPartEfficiency2D];  ///< 2D efficiency plots.
+  THnSparseF* hPartEfficiencyMulti[KFPartEfficiencies::nParticles][4];  ///< Multidimensional efficiency:
+                                                                        ///< phi-theta-p-ctau-z, 0 - N reco, 1 - N mc
+                                                                        ///< pt-y-p-ctau, 2 - N reco, 3 - N mc
 
-  static const int nHistosPV =
-      7; ///< Number of QA histograms for primary vertices: residuals, pulls,
-         ///< number of lost tracks.
-  TH1F *hPVFitQa[2][nHistosPV]; ///< Fit QA of primary vertices, 1D histograms.
-  TH2F *hPVFitQa2D[2][2][nHistosPV -
-                         1]; ///< Fit QA of primary vertices, 2D histograms.
+  static const int nHistosPV = 7;         ///< Number of QA histograms for primary vertices: residuals, pulls,
+                                          ///< number of lost tracks.
+  TH1F* hPVFitQa[2][nHistosPV];           ///< Fit QA of primary vertices, 1D histograms.
+  TH2F* hPVFitQa2D[2][2][nHistosPV - 1];  ///< Fit QA of primary vertices, 2D histograms.
 
   /** Number of histograms with parameter distributions: x, y, z, r, Ntracks,
    *Chi2, NDF, Chi2/NDF, prob, purity, part of ghost tracks,
    ** part of tracks from the current vertex, number of tracks from merged
    *vertices, number of background tracks from decays, distance in Z between
    *clones. **/
-  static const int nHistosPVParam = 15; ///<
-  TH1F *hPVParam[nHistosPVParam]; ///< Histograms for all vertex candidates.
-  TH1F *hPVParamGhost[nHistosPVParam];  ///< Histograms for ghost (combinatorial
-                                        ///< background) vertex candidates.
-  TH1F *hPVParamSignal[nHistosPVParam]; ///< Histograms for signal vertex
-                                        ///< candidates.
-  TH1F *hPVParamPileup[nHistosPVParam]; ///< Histograms for pileup vertex
-                                        ///< candidates.
-  TH1F *hPVParamBG[nHistosPVParam];     ///< Histograms for physics background
-                                        ///< (decays, secondary vertices) vertex
-                                        ///< candidates.
-  static const int nHistosPVParam2D =
-      1; ///< Number of 2D histograms for primary vertex.
-  TH2F *hPVParam2D[nHistosPVParam2D]; ///< x-y histogram.
+  static const int nHistosPVParam = 15;   ///<
+  TH1F* hPVParam[nHistosPVParam];         ///< Histograms for all vertex candidates.
+  TH1F* hPVParamGhost[nHistosPVParam];    ///< Histograms for ghost (combinatorial
+                                          ///< background) vertex candidates.
+  TH1F* hPVParamSignal[nHistosPVParam];   ///< Histograms for signal vertex
+                                          ///< candidates.
+  TH1F* hPVParamPileup[nHistosPVParam];   ///< Histograms for pileup vertex
+                                          ///< candidates.
+  TH1F* hPVParamBG[nHistosPVParam];       ///< Histograms for physics background
+                                          ///< (decays, secondary vertices) vertex
+                                          ///< candidates.
+  static const int nHistosPVParam2D = 1;  ///< Number of 2D histograms for primary vertex.
+  TH2F* hPVParam2D[nHistosPVParam2D];     ///< x-y histogram.
 
-  static const int nFitPVTracksQA =
-      12; ///< Number of fit QA histograms for primary tracks: residuals and
-          ///< pulls in X, Y, Z, Px, Py, Pz.
-  TH1F *
-      hFitPVTracksQA[nFitPVTracksQA]; ///< Residuals and pulls of primary tracks
-                                      ///< at the primary vertex position.
+  static const int nFitPVTracksQA = 12;  ///< Number of fit QA histograms for primary tracks: residuals and
+                                         ///< pulls in X, Y, Z, Px, Py, Pz.
+  TH1F* hFitPVTracksQA[nFitPVTracksQA];  ///< Residuals and pulls of primary tracks
+                                         ///< at the primary vertex position.
 
-  static const int nHistosTP = KFPartEfficiencies::nParticles +
-                               8; ///< Number of histograms with chi2 primary
-                                  ///< distributions for daughter tracks.
+  static const int nHistosTP = KFPartEfficiencies::nParticles + 8;  ///< Number of histograms with chi2 primary
+                                                                    ///< distributions for daughter tracks.
   /** Histograms with chi2 primary distributions for daughter tracks of each
    *decays plus 4 distributions of chi2 and 4 prob for primary, secondary,
    ** ghost and all particles. **/
-  TH1F *hTrackParameters[nHistosTP];
+  TH1F* hTrackParameters[nHistosTP];
 
-  static const int nPVefficiency =
-      6; ///< Number of Efficiency plots for primary vertices for each category.
-  TProfile *hPVefficiency[4][nPVefficiency]; ///< Efficiency plots for primary
-                                             ///< vertices.
+  static const int nPVefficiency = 6;         ///< Number of Efficiency plots for primary vertices for each category.
+  TProfile* hPVefficiency[4][nPVefficiency];  ///< Efficiency plots for primary
+                                              ///< vertices.
 
-  TDirectory *fHistoDir; ///< ROOT directory with histograms.
+  TDirectory* fHistoDir;  ///< ROOT directory with histograms.
 
   bool IsCollectZRHistogram(int iParticle) const;
   bool IsCollect3DHistogram(int iParticle) const;
   bool IsCollectArmenteros(int iParticle) const;
   bool IsCollectDalitz(int iParticle) const;
 
-private:
-  const KFParticlePerformanceBase &
-  operator=(const KFParticlePerformanceBase
-                &); ///< Copying of objects of this class is forbidden.
-  KFParticlePerformanceBase(
-      const KFParticlePerformanceBase
-          &); ///< Copying of objects of this class is forbidden.
+ private:
+  const KFParticlePerformanceBase&
+  operator=(const KFParticlePerformanceBase&);                  ///< Copying of objects of this class is forbidden.
+  KFParticlePerformanceBase(const KFParticlePerformanceBase&);  ///< Copying of objects of this class is forbidden.
 
-  void CreateFitHistograms(TH1F *histo[nFitQA], int iPart);
-  void CreateEfficiencyHistograms(TProfile *histo[3][nPartEfficiency],
-                                  TProfile2D *histo2[3][nPartEfficiency2D],
-                                  THnSparseF *histoN[4], int iPart);
-  void CreateParameterHistograms(
-      TH1F *histoParameters[KFPartEfficiencies::nParticles][nHistoPartParam],
-      TH2F
-          *histoParameters2D[KFPartEfficiencies::nParticles][nHistoPartParam2D],
-      TH3F
-          *histoParameters3D[KFPartEfficiencies::nParticles][nHistoPartParam3D],
-      int iPart, bool drawZR = 0);
+  void CreateFitHistograms(TH1F* histo[nFitQA], int iPart);
+  void CreateEfficiencyHistograms(TProfile* histo[3][nPartEfficiency], TProfile2D* histo2[3][nPartEfficiency2D],
+                                  THnSparseF* histoN[4], int iPart);
+  void CreateParameterHistograms(TH1F* histoParameters[KFPartEfficiencies::nParticles][nHistoPartParam],
+                                 TH2F* histoParameters2D[KFPartEfficiencies::nParticles][nHistoPartParam2D],
+                                 TH3F* histoParameters3D[KFPartEfficiencies::nParticles][nHistoPartParam3D], int iPart,
+                                 bool drawZR = 0);
   void CreateParameterSubfolder(
-      TString folderName,
-      TH1F *histoParameters[nParametersSet][KFPartEfficiencies::nParticles]
-                           [nHistoPartParam],
-      TH2F *histoParameters2D[nParametersSet][KFPartEfficiencies::nParticles]
-                             [nHistoPartParam2D],
-      TH1F *histoFit[KFPartEfficiencies::nParticles][nFitQA], int iPart,
-      bool withWrongPVHypothesis = 0);
+    TString folderName, TH1F* histoParameters[nParametersSet][KFPartEfficiencies::nParticles][nHistoPartParam],
+    TH2F* histoParameters2D[nParametersSet][KFPartEfficiencies::nParticles][nHistoPartParam2D],
+    TH1F* histoFit[KFPartEfficiencies::nParticles][nFitQA], int iPart, bool withWrongPVHypothesis = 0);
 
   TString GetDirectoryPath();
 };
