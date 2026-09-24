@@ -145,9 +145,9 @@ class KFParticlePVReconstructor {
   struct KFParticleCluster {
     KFParticleCluster() : fTracks(0) {};
     std::vector<int> fTracks;  ///< List of tracks in a cluster.
-    float fP[3];               ///< Estimation of the vertex position based on the current
+    float fP[3] = {0.f};       ///< Estimation of the vertex position based on the current
                                ///< cluster: {X, Y, Z}.
-    float fC[6];               ///< Estimated errors of the position approximation.
+    float fC[6] = {0.f};       ///< Estimated errors of the position approximation.
   };
 
   std::vector<KFParticleCluster> fClusters;  ///< Vector with clusters to be used

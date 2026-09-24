@@ -690,7 +690,7 @@ void KFParticlePerformanceBase::CreateFitHistograms(TH1F* histo[nFitQA], int iPa
       histo[iH]->GetXaxis()->SetTitle(AxisNameResidual[iH].Data());
       histo[iH + 8] =
         new TH1F((pull + parName[iH]).Data(), (GetDirectoryPath() + pull + parName[iH]).Data(), nBins, -6, 6);
-      histo[iH + 8]->GetXaxis()->SetTitle(AxisNamePull[iH + 8].Data());
+      histo[iH + 8]->GetXaxis()->SetTitle(AxisNamePull[iH].Data());
     }
   }
   gDirectory->cd("..");
@@ -1438,7 +1438,7 @@ bool KFParticlePerformanceBase::IsCollectZRHistogram(int iParticle) const
          && fStoreMCHistograms && fStoreZRHistograms && (!fStore3DEfficiency);
 }
 
-bool KFParticlePerformanceBase::IsCollect3DHistogram(int iParticle) const
+bool KFParticlePerformanceBase::IsCollect3DHistogram(int /*iParticle*/) const
 {
   /** Checks if 3D histograms for decay "iParticle" should be created. */
   return 0;  //TODO
@@ -1468,7 +1468,7 @@ bool KFParticlePerformanceBase::IsCollect3DHistogram(int iParticle) const
   // #endif
 }
 
-bool KFParticlePerformanceBase::IsCollectArmenteros(int iParticle) const
+bool KFParticlePerformanceBase::IsCollectArmenteros(int /*iParticle*/) const
 {
   /** Checks if Armenteros-Podoliansky plot for decay "iParticle" should be created. */
   return 0;  //TODO
@@ -1501,7 +1501,7 @@ bool KFParticlePerformanceBase::IsCollectArmenteros(int iParticle) const
   // #endif
 }
 
-bool KFParticlePerformanceBase::IsCollectDalitz(int iParticle) const
+bool KFParticlePerformanceBase::IsCollectDalitz(int /*iParticle*/) const
 {
   /** Checks if Armenteros-Podoliansky plot for decay "iParticle" should be created. */
   return 0;  // TODO

@@ -282,13 +282,13 @@ class KFParticleFinder {
   // Functionality to change cuts, all cuts have default values set in the
   // constructor
   void SetMaxDistanceBetweenParticlesCut(float cut)
-  { fDistanceCut = cut; }  ///< Sets cut on the distance between secondary tracks at the DCA point.
+  { fDistanceCut = cut; }                   ///< Sets cut on the distance between secondary tracks at the DCA point.
   void SetLCut(float cut) { fLCut = cut; }  ///< Sets cut on the distance to the primary vertex from the decay vertex.
 
   void SetChiPrimaryCut2D(float cut)
   { fCuts2D[0] = cut; }  ///< Sets cut on \f$\chi^2_{prim}\f$ of each track for 2-daughter decays.
   void SetChi2Cut2D(float cut) { fCuts2D[1] = cut; }  ///< Sets cut on \f$\chi^2_{geo}\f$ for 2-daughter decays.
-  void SetLdLCut2D(float cut) { fCuts2D[2] = cut; }  ///< Sets cut on \f$l/\Delta l\f$ for 2-daughter decays.
+  void SetLdLCut2D(float cut) { fCuts2D[2] = cut; }   ///< Sets cut on \f$l/\Delta l\f$ for 2-daughter decays.
 
   /** \brief Sets cuts on selection of secondary and primary candidates:
    * \f$\sigma_{M}\f$, \f$\chi^2_{topo}\f$, \f$l/\Delta l\f$. */
@@ -307,7 +307,7 @@ class KFParticleFinder {
   { fCutsTrackV0[0][2] = cut; }  ///< Sets \f$\chi^2_{geo}\f$ cut for \f$\Xi\f$ and \f$\Omega\f$.
 
   void SetChi2TopoCutResonances(float cut)
-  { fCutsTrackV0[2][1] = cut; }  ///< Sets \f$\chi^2_{topo}\f$ cut for resonances.
+  { fCutsTrackV0[2][1] = cut; }                                       ///< Sets \f$\chi^2_{topo}\f$ cut for resonances.
   void SetChi2CutResonances(float cut) { fCutsTrackV0[2][2] = cut; }  ///< Sets \f$\chi^2_{geo}\f$ cut for resonances.
 
   void SetPtCutLMVM(float cut)
@@ -364,66 +364,72 @@ class KFParticleFinder {
   }
 
   // Functionality to check the cuts
-  const float GetMaxDistanceBetweenParticlesCut() const
+  float GetMaxDistanceBetweenParticlesCut() const
   { return fDistanceCut; }  ///< Returns cut on the distance between secondary tracks at the DCA point.
-  const float GetLCut() const { return fLCut; }  ///< Returns cut on the distance to the primary vertex from the decay
-  ///< vertex.
 
-  const float GetChiPrimaryCut2D() const
+  float GetLCut() const { return fLCut; }  ///< Returns cut on the distance to the primary vertex from the decay vertex.
+
+  float GetChiPrimaryCut2D() const
   { return fCuts2D[0]; }  ///< Returns cut on \f$\chi^2_{prim}\f$ of each track for 2-daughter decays.
-  const float GetChi2Cut2D() const { return fCuts2D[1]; }  ///< Returns cut on \f$\chi^2_{geo}\f$ for 2-daughter decays.
-  const float GetLdLCut2D() const { return fCuts2D[2]; }  ///< Returns cut on \f$l/\Delta l\f$ for 2-daughter decays.
 
-  const float GetSecondarySigmaMassCut() const
-  { return fSecCuts[0]; }  ///< Returns \f$\sigma_{M}\f$ cut for selection of primary and secondary
-  ///< candidates.
-  const float GetSecondaryChi2TopoCut() const
-  { return fSecCuts[1]; }  ///< Returns \f$\chi^2_{topo}\f$ cut for selection of primary and secondary
-  ///< candidates.
-  const float GetSecondaryLdLCut() const
-  { return fSecCuts[2]; }  ///< Returns \f$l/\Delta l\f$ cut for selection of primary and secondary
-  ///< candidates.
+  float GetChi2Cut2D() const { return fCuts2D[1]; }  ///< Returns cut on \f$\chi^2_{geo}\f$ for 2-daughter decays.
 
-  const float GetLdLCutXiOmega() const
+  float GetLdLCut2D() const { return fCuts2D[2]; }  ///< Returns cut on \f$l/\Delta l\f$ for 2-daughter decays.
+
+  float GetSecondarySigmaMassCut() const
+  { return fSecCuts[0]; }  ///< Returns \f$\sigma_{M}\f$ cut for selection of primary and secondary candidates.
+
+  float GetSecondaryChi2TopoCut() const
+  { return fSecCuts[1]; }  ///< Returns \f$\chi^2_{topo}\f$ cut for selection of primary and secondary candidates.
+
+  float GetSecondaryLdLCut() const
+  { return fSecCuts[2]; }  ///< Returns \f$l/\Delta l\f$ cut for selection of primary and secondary candidates.
+
+  float GetLdLCutXiOmega() const
   { return fCutsTrackV0[0][0]; }  ///< Returns \f$l/\Delta l\f$ cut for \f$\Xi\f$ and \f$\Omega\f$.
-  const float GetChi2TopoCutXiOmega() const
+
+  float GetChi2TopoCutXiOmega() const
   { return fCutsTrackV0[0][1]; }  ///< Returns \f$\chi^2_{topo}\f$ cut for \f$\Xi\f$ and \f$\Omega\f$.
-  const float GetChi2CutXiOmega() const
+
+  float GetChi2CutXiOmega() const
   { return fCutsTrackV0[0][2]; }  ///< Returns \f$\chi^2_{geo}\f$ cut for \f$\Xi\f$ and \f$\Omega\f$.
 
-  const float GetChi2TopoCutResonances() const
+  float GetChi2TopoCutResonances() const
   { return fCutsTrackV0[2][1]; }  ///< Returns \f$\chi^2_{topo}\f$ cut for resonances.
-  const float GetChi2CutResonances() const
-  { return fCutsTrackV0[2][2]; }  ///< Returns \f$\chi^2_{geo}\f$ cut for resonances.
 
-  const float GetPtCutLMVM() const
-  { return fCutLVMPt; }  ///< Returns cut on transverse momentum of each daughter track of low mass
-  ///< vector mesons.
-  const float GetPCutLMVM() const
-  { return fCutLVMP; }  ///< Returns cut on momentum of each daughter track of low mass vector
-  ///< mesons in dimuon channel.
-  const float GetPtCutJPsi() const
-  { return fCutJPsiPt; }  ///< Returns cut on transverse momentum of each daughter track of
-  ///< \f$J/\psi\f$.
+  float GetChi2CutResonances() const { return fCutsTrackV0[2][2]; }  ///< Returns \f$\chi^2_{geo}\f$ cut for resonances.
 
-  const float GetPtCutCharm() const
-  { return fCutCharmPt; }  ///< Returns the cut on transverse momentum of each daughter track of open
-  ///< charm particles.
-  const float GetChiPrimaryCutCharm() const
-  { return fCutCharmChiPrim; }  ///< Returns cut on \f$\chi^2_{prim}\f$ of each track for open charm
-  ///< particles.
-  const float GetLdLCutCharmManybodyDecays() const
+  float GetPtCutLMVM() const
+  { return fCutLVMPt; }  ///< Returns cut on transverse momentum of each daughter track of low mass vector mesons.
+
+  float GetPCutLMVM() const
+  { return fCutLVMP; }  ///< Returns cut on momentum of each daughter track of low mass vector mesons in dimuon channel.
+
+  float GetPtCutJPsi() const
+  { return fCutJPsiPt; }  ///< Returns cut on transverse momentum of each daughter track of \f$J/\psi\f$.
+
+  float GetPtCutCharm() const
+  { return fCutCharmPt; }  ///< Returns the cut on transverse momentum of each daughter track of open charm particles.
+
+  float GetChiPrimaryCutCharm() const
+  { return fCutCharmChiPrim; }  ///< Returns cut on \f$\chi^2_{prim}\f$ of each track for open charm particles.
+
+  float GetLdLCutCharmManybodyDecays() const
   { return fCutsTrackV0[1][0]; }  ///< Returns \f$l/\Delta l\f$ cut for open charm with >=3 daughters.
-  const float GetChi2TopoCutCharmManybodyDecays() const
+
+  float GetChi2TopoCutCharmManybodyDecays() const
   { return fCutsTrackV0[1][1]; }  ///< Returns \f$\chi^2_{topo}\f$ cut for open charm with >=3 daughters.
-  const float GetChi2CutCharmManybodyDecays() const
+
+  float GetChi2CutCharmManybodyDecays() const
   { return fCutsTrackV0[1][2]; }  ///< Returns \f$\chi^2_{geo}\f$ cut for open charm with >=3 daughters.
 
-  const float GetLdLCutCharm2D() const
+  float GetLdLCutCharm2D() const
   { return fCutsCharm[1]; }  ///< Returns \f$l/\Delta l\f$ cut for open charm with 2 daughters.
-  const float GetChi2TopoCutCharm2D() const
+
+  float GetChi2TopoCutCharm2D() const
   { return fCutsCharm[2]; }  ///< Returns \f$\chi^2_{topo}\f$ cut for open charm with 2 daughters.
-  const float GetChi2CutCharm2D() const
+
+  float GetChi2CutCharm2D() const
   { return fCutsCharm[0]; }  ///< Returns \f$\chi^2_{geo}\f$ cut for open charm with 2 daughters.
 
   /** Add decay to the reconstruction list. If at least one is added - only
@@ -432,7 +438,7 @@ class KFParticleFinder {
    ** \param[in] pdg - PDG code of the decay which should be reconstructed
    **/
   void AddDecayToReconstructionList(int pdg) { fDecayReconstructionList[pdg] = true; }
-  const std::map<int, bool> GetReconstructionList() const
+  std::map<int, bool> GetReconstructionList() const
   {
     //  std::cout << "KFParticleFinder::GetReconstructionList() :
     //  fDecayReconstructionList.size() = " << fDecayReconstructionList.size()
@@ -453,16 +459,19 @@ class KFParticleFinder {
                        ///< vertex. Is applied to \f$K^0_s\f$, \f$\Lambda\f$, \f$\Xi\f$,
                        ///< \f$\Omega\f$, hypernuclei and dibaryons.
 
-  float fCuts2D[3];   ///< Cuts on 2-daughter decays: \f$\chi^2_{prim}\f$,
-                      ///< \f$\chi^2_{geo}\f$, \f$l/\Delta l\f$
+  float fCuts2D[3];  ///< Cuts on 2-daughter decays: \f$\chi^2_{prim}\f$,
+  ///< \f$\chi^2_{geo}\f$, \f$l/\Delta l\f$
+
   float fSecCuts[3];  ///< Cuts to select secondary and primary particle
                       ///< candidates: \f$\sigma_{M}\f$, \f$\chi^2_{topo}\f$,
                       ///< \f$l/\Delta l\f$
+
   /** \brief Cuts on the combination of track and short-lived particle
    *candidate: \f$l/\Delta l\f$, \f$\chi^2_{topo}\f$, \f$\chi^2_{geo}\f$.
    ** Three sets of cuts are defined: 1) for \f$\Xi\f$ and \f$\Omega\f$, 2) for
    *hypernuclei and open charm, 3) for resonances. **/
   float fCutsTrackV0[3][3];
+
   /** \brief Cuts on the combination of two short-lived particle candidates:
    *\f$l/\Delta l\f$, \f$\chi^2_{topo}\f$, \f$\chi^2_{geo}\f$.
    ** Two sets are defined: 1) for particles that fly away from the primary
@@ -470,24 +479,23 @@ class KFParticleFinder {
   float fCutsPartPart[2][3];
 
   // cuts on open charm particles with 2 daughters
-  float fCutCharmPt;       ///< Cut on transverse momentum of the track for open charm
-                           ///< reconstruction.
-  float fCutCharmChiPrim;  ///< Cut on the \f$\chi^2_{prim}\f$ deviation of the
-                           ///< track from the primary vertex for open charm
-                           ///< reconstruction.
-  float fCutsCharm[3];     ///< Cuts on reconstructed 2-daughter charm candidates:
-                           ///< \f$\chi^2_{geo}\f$, \f$l/\Delta l\f$,
-                           ///< \f$\chi^2_{topo}\f$.
+
+  float fCutCharmPt;  ///< Cut on transverse momentum of the track for open charm reconstruction.
+
+  float
+    fCutCharmChiPrim;  ///< Cut on the \f$\chi^2_{prim}\f$ deviation of the track from the primary vertex for open charm reconstruction.
+
+  float fCutsCharm
+    [3];  ///< Cuts on reconstructed 2-daughter charm candidates: \f$\chi^2_{geo}\f$, \f$l/\Delta l\f$,\f$\chi^2_{topo}\f$.
 
   // cuts on LVM
-  float fCutLVMPt;  ///< Cut on transverse momentum of daughter tracks for low
-                    ///< mass vector mesons.
-  float fCutLVMP;   ///< Cut on momentum of low mass vector mesons in dimuon
-                    ///< channel.
+
+  float fCutLVMPt;  ///< Cut on transverse momentum of daughter tracks for low  mass vector mesons.
+
+  float fCutLVMP;  ///< Cut on momentum of low mass vector mesons in dimuon channel.
 
   // cuts on J/Psi
-  float fCutJPsiPt;  ///< Cut on transverse momentum of daughter tracks for
-                     ///< \f$J/\psi\f$.
+  float fCutJPsiPt;  ///< Cut on transverse momentum of daughter tracks for \f$J/\psi\f$.
 
   // vectors with temporary particles for charm reconstruction
   std::vector<KFParticle> fD0;           ///< Vector with temporary D0->K-pi+ candidates.
@@ -530,12 +538,16 @@ class KFParticleFinder {
   std::vector<KFParticle> fPPpiBar;   ///< p-p-pi+ combinations
 
   // vectors of candidates with the mass constraint
+
   static const int fNSecCandidatesSets = 5;  ///< Number of sets of secondary particle candidates.
+
   /** \brief Array of vectors with secondary candidates: 0) \f$K_s^0\f$, 1)
    * \f$\Lambda\f$, 2) \f$\overline{\Lambda}\f$, 3) \f$\gamma\f$, 4)
    * \f$\pi^0\f$. */
   std::vector<KFParticle> fSecCandidates[fNSecCandidatesSets];
+
   static const int fNPrimCandidatesSets = 13;  ///< Number of sets of primary particle candidates.
+
   /** \brief Array of vectors with primary candidates for each primary vertex:
    ** 0) \f$K_s^0\f$, 1) \f$\Lambda\f$, 2) \f$\overline{\Lambda}\f$, 3)
    *\f$\gamma\f$, 4) \f$\pi^0\f$,
@@ -543,8 +555,10 @@ class KFParticleFinder {
    *\f$\overline{\Omega}^+\f$, 9) \f$\Xi^{0*}\f$, 10) \f$\overline{\Xi}^{0*}\f$,
    ** 11) \f$K^+\f$, 12) \f$K^-\f$. */
   std::vector<std::vector<KFParticle>> fPrimCandidates[fNPrimCandidatesSets];  //
+
   static const int fNPrimCandidatesTopoSets = 9;  ///< Number of sets of primary particle candidates with topological
                                                   ///< constraint.
+
   /** \brief Array of vectors with primary candidates for each primary vertex
    *with a topological constraint set:
    ** 0) \f$K_s^0\f$, 1) \f$\Lambda\f$, 2) \f$\overline{\Lambda}\f$, 3)
@@ -552,6 +566,7 @@ class KFParticleFinder {
    ** 5) \f$\Xi^-\f$, 6) \f$\overline{\Xi}^+\f$, 7) \f$\Omega^-\f$, 8)
    *\f$\overline{\Omega}^+\f$. */
   std::vector<std::vector<KFParticle>> fPrimCandidatesTopo[fNPrimCandidatesTopoSets];
+
   /** \brief Array of vectors with primary candidates for each primary vertex
    *with a topological and mass constraints set:
    ** 0) \f$K_s^0\f$, 1) \f$\Lambda\f$, 2) \f$\overline{\Lambda}\f$, 3)

@@ -26,10 +26,6 @@
 #ifndef KFPARTICLE_H
 #define KFPARTICLE_H
 
-//#ifdef __ROOT__ // for the STAR experiment
-//#define HomogeneousField
-#define CBM
-//#endif
 
 #if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
 #include "RootTypesDef.h"
@@ -112,18 +108,18 @@ class KFParticle
 
   //* Simple accessors
 
-  float GetX() const { return fP[0]; }  ///< Retruns X coordinate of the particle, fP[0].
-  float GetY() const { return fP[1]; }  ///< Retruns Y coordinate of the particle, fP[1].
-  float GetZ() const { return fP[2]; }  ///< Retruns Z coordinate of the particle, fP[2].
+  float GetX() const { return fP[0]; }   ///< Retruns X coordinate of the particle, fP[0].
+  float GetY() const { return fP[1]; }   ///< Retruns Y coordinate of the particle, fP[1].
+  float GetZ() const { return fP[2]; }   ///< Retruns Z coordinate of the particle, fP[2].
   float GetPx() const { return fP[3]; }  ///< Retruns X component of the momentum, fP[3].
   float GetPy() const { return fP[4]; }  ///< Retruns Y component of the momentum, fP[4].
   float GetPz() const { return fP[5]; }  ///< Retruns Z component of the momentum, fP[5].
-  float GetE() const { return fP[6]; }  ///< Returns energy of the particle, fP[6].
-  float GetS() const { return fP[7]; }  ///< Returns dS=l/p, l - decay length, fP[7], defined if production vertex
+  float GetE() const { return fP[6]; }   ///< Returns energy of the particle, fP[6].
+  float GetS() const { return fP[7]; }   ///< Returns dS=l/p, l - decay length, fP[7], defined if production vertex
   ///< is set.
   char GetQ() const { return fQ; }         ///< Returns charge of the particle.
   float GetChi2() const { return fChi2; }  ///< Returns Chi2 of the fit.
-  Int_t GetNDF() const { return fNDF; }  ///< Returns number of decrease of freedom.
+  Int_t GetNDF() const { return fNDF; }    ///< Returns number of decrease of freedom.
 
 #ifdef NonhomogeneousField
   const float* GetFieldCoeff() const
@@ -131,18 +127,18 @@ class KFParticle
   void SetFieldCoeff(float c, int i) { fieldRegion[i] = c; }  ///< Sets the field coefficient with index i.
 #endif
 
-  const float& X() const { return fP[0]; }  ///< Retruns X coordinate of the particle, fP[0].
-  const float& Y() const { return fP[1]; }  ///< Retruns Y coordinate of the particle, fP[1].
-  const float& Z() const { return fP[2]; }  ///< Retruns Z coordinate of the particle, fP[2].
+  const float& X() const { return fP[0]; }   ///< Retruns X coordinate of the particle, fP[0].
+  const float& Y() const { return fP[1]; }   ///< Retruns Y coordinate of the particle, fP[1].
+  const float& Z() const { return fP[2]; }   ///< Retruns Z coordinate of the particle, fP[2].
   const float& Px() const { return fP[3]; }  ///< Retruns X component of the momentum, fP[3].
   const float& Py() const { return fP[4]; }  ///< Retruns Y component of the momentum, fP[4].
   const float& Pz() const { return fP[5]; }  ///< Retruns Z component of the momentum, fP[5].
-  const float& E() const { return fP[6]; }  ///< Returns energy of the particle, fP[6].
-  const float& S() const { return fP[7]; }  ///< Returns dS=l/p, l - decay length, fP[7], defined if production vertex
+  const float& E() const { return fP[6]; }   ///< Returns energy of the particle, fP[6].
+  const float& S() const { return fP[7]; }   ///< Returns dS=l/p, l - decay length, fP[7], defined if production vertex
   ///< is set.
   const char& Q() const { return fQ; }         ///< Returns charge of the particle.
   const float& Chi2() const { return fChi2; }  ///< Returns Chi2 of the fit.
-  const Int_t& NDF() const { return fNDF; }  ///< Returns number of decrease of freedom.
+  const Int_t& NDF() const { return fNDF; }    ///< Returns number of decrease of freedom.
 
   float GetParameter(int i) const { return fP[i]; }  ///< Returns P[i] parameter.
   float GetCovariance(int i) const
@@ -208,25 +204,25 @@ class KFParticle
   //*  MODIFIERS
   //*
 
-  float& X() { return fP[0]; }  ///< Modifier of X coordinate of the particle, fP[0].
-  float& Y() { return fP[1]; }  ///< Modifier of Y coordinate of the particle, fP[1].
-  float& Z() { return fP[2]; }  ///< Modifier of Z coordinate of the particle, fP[2].
+  float& X() { return fP[0]; }   ///< Modifier of X coordinate of the particle, fP[0].
+  float& Y() { return fP[1]; }   ///< Modifier of Y coordinate of the particle, fP[1].
+  float& Z() { return fP[2]; }   ///< Modifier of Z coordinate of the particle, fP[2].
   float& Px() { return fP[3]; }  ///< Modifier of X component of the momentum, fP[3].
   float& Py() { return fP[4]; }  ///< Modifier of Y component of the momentum, fP[4].
   float& Pz() { return fP[5]; }  ///< Modifier of Z component of the momentum, fP[5].
-  float& E() { return fP[6]; }  ///< Modifier of energy of the particle, fP[6].
-  float& S() { return fP[7]; }  ///< Modifier of dS=l/p, l - decay length, fP[7], defined if production
+  float& E() { return fP[6]; }   ///< Modifier of energy of the particle, fP[6].
+  float& S() { return fP[7]; }   ///< Modifier of dS=l/p, l - decay length, fP[7], defined if production
   ///< vertex is set.
   char& Q() { return fQ; }         ///< Modifier of charge of the particle.
   float& Chi2() { return fChi2; }  ///< Modifier of Chi2 of the fit.
   Int_t& NDF() { return fNDF; }    ///< Modifier of number of decrease of freedom.
 
-  float& Parameter(int i) { return fP[i]; };  ///< Modifier of P[i] parameter.
+  float& Parameter(int i) { return fP[i]; };   ///< Modifier of P[i] parameter.
   float& Covariance(int i) { return fC[i]; };  ///< Modifier of C[i] element of the covariance matrix in the lower
   ///< triangular form.
   float& Covariance(int i, int j) { return fC[IJ(i, j)]; };  ///< Modifier of C[i,j] element of the covariance matrix.
 
-  const float* Parameters() const { return fP; }  ///< Returns pointer to the parameters fP
+  const float* Parameters() const { return fP; }        ///< Returns pointer to the parameters fP
   const float* CovarianceMatrix() const { return fC; }  ///< Returns pointer to the covariance matrix fC
 
   void SetConstructMethod(Int_t m)
@@ -235,7 +231,7 @@ class KFParticle
   void SetMassHypo(float m)
   { fMassHypo = m; }  ///< Sets the mass hypothesis to the particle, is used when fConstructMethod
   ///< = 2.
-  const float& GetMassHypo() const { return fMassHypo; }  ///< Returns the mass hypothesis.
+  const float& GetMassHypo() const { return fMassHypo; }               ///< Returns the mass hypothesis.
   const float& GetSumDaughterMass() const { return SumDaughterMass; }  ///< Returns the sum of masses of the daughters.
 
   //*
@@ -390,10 +386,10 @@ class KFParticle
   void RotateXY(float angle, float Vtx[3]);
   void Rotate(float angle, const KFParticle& axis);
 
-  int Id() const { return fId; }  ///< Returns Id of the particle.
+  int Id() const { return fId; }                           ///< Returns Id of the particle.
   int NDaughters() const { return fDaughtersIds.size(); }  ///< Returns number of daughter particles.
   const std::vector<int>& DaughterIds() const
-  { return fDaughtersIds; }  ///< Returns the vector with the indices of daughter particles.
+  { return fDaughtersIds; }                           ///< Returns the vector with the indices of daughter particles.
   void CleanDaughtersId() { fDaughtersIds.clear(); }  ///< Cleans the vector with the indices of daughter particles.
 
   void SetId(int id) { fId = id; }  ///< Sets the Id of the particle. After the construction of a particle

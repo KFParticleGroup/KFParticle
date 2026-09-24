@@ -56,12 +56,12 @@ class KFPHistogram1D {
   ~KFPHistogram1D() {}
 
   int* GetHistogram() const { return fHistogram; }  ///< Returns a pointer to the histogram data.
-  std::string Name() const { return fName; }  ///< Returns name of the histogram.
-  float MinBin() const { return fMinBin; }    ///< returns minimum of the X axis.
-  float MaxBin() const { return fMaxBin; }    ///< Returns maximum of the X axis.
-  int NBins() const { return (fSize - 2); }   ///< Returns number of bins.
-  int DataSize() const { return fSize; }  ///< Returns number of bins plus underflow and overflow bins.
-  int Size() const { return fSize; }  ///< Returns number of bins plus underflow and overflow bins.
+  std::string Name() const { return fName; }        ///< Returns name of the histogram.
+  float MinBin() const { return fMinBin; }          ///< returns minimum of the X axis.
+  float MaxBin() const { return fMaxBin; }          ///< Returns maximum of the X axis.
+  int NBins() const { return (fSize - 2); }         ///< Returns number of bins.
+  int DataSize() const { return fSize; }            ///< Returns number of bins plus underflow and overflow bins.
+  int Size() const { return fSize; }                ///< Returns number of bins plus underflow and overflow bins.
 
   inline void SetBinContent(int iBin, int value) { fHistogram[iBin] = value; }  ///< Sets the value of the bin "iBin".
   inline void SetHistogramMemory(int* pointer)
@@ -71,12 +71,14 @@ class KFPHistogram1D {
    * one there. */
   void Fill(float value)
   {
-    int iBin = floor(float(value - fMinBin) / float(fMaxBin - fMinBin) * float(fSize - 2)) + 1;
+    double dBin = floor(float(value - fMinBin) / float(fMaxBin - fMinBin) * float(fSize - 2)) + 1;
+
+    if (!(std::isfinite(dBin))) { dBin = 0; }
+
+    int iBin = static_cast<int>(dBin);
 
     if (iBin > fSize - 1) { iBin = fSize - 1; }
     if (iBin < 1) { iBin = 0; }
-
-    if (!(iBin == iBin) || !(std::isfinite(iBin))) { iBin = 0; }
 
     fHistogram[iBin]++;
   }

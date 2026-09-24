@@ -1530,14 +1530,16 @@ void KFTopoPerformance::FillParticleParameters(
 
   float parameters[17] = {M,   P, Pt, Rapidity, dL, cT,   chi2 / ndf,   prob, Theta,
                           Phi, X, Y,  Z,        R,  l[0], l[0] / dl[0], M_t};
-  float errors[8]      = {TempPart.GetErrX(),
-                          TempPart.GetErrY(),
-                          TempPart.GetErrZ(),
-                          TempPart.GetErrPx() / fabsf(TempPart.GetPx()),
-                          TempPart.GetErrPy() / fabsf(TempPart.GetPy()),
-                          TempPart.GetErrPz() / fabsf(TempPart.GetPz()),
-                          TempPart.GetErrE() / TempPart.GetE(),
-                          ErrM};
+  /*
+  float errors[8] = {TempPart.GetErrX(),
+                     TempPart.GetErrY(),
+                     TempPart.GetErrZ(),
+                     TempPart.GetErrPx() / fabsf(TempPart.GetPx()),
+                     TempPart.GetErrPy() / fabsf(TempPart.GetPy()),
+                     TempPart.GetErrPz() / fabsf(TempPart.GetPz()),
+                     TempPart.GetErrE() / TempPart.GetE(),
+                     ErrM};
+  */
 
   //for all particle-candidates
   for (int iParam = 0; iParam < 17; iParam++) { histoParameters[0][iParticle][iParam]->Fill(parameters[iParam], 1); }

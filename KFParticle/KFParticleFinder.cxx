@@ -3131,7 +3131,7 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
 
 void KFParticleFinder::FindLL(const int motherPDG, const int correctTrackPDG, const vector<KFParticle>& vParticles,
                               const KFPTrackVector& vTracks, const int firstTrack, const int lastTrack,
-                              const KFParticleSIMD& PrimVtx, vector<KFParticle>& Particles)
+                              const KFParticleSIMD& /*PrimVtx*/, vector<KFParticle>& Particles)
 {
   if ((vParticles.size() < 1) || ((lastTrack - firstTrack) < 1)) { return; }
 
@@ -3500,7 +3500,7 @@ void KFParticleFinder::CombinePartPart(vector<KFParticle>& particles1, vector<KF
 }
 
 void KFParticleFinder::MatchKaons(KFPTrackVector* vTracks,
-                                  std::vector<KFParticleSIMD, KFPSimdAllocator<KFParticleSIMD>>& PrimVtx,
+                                  std::vector<KFParticleSIMD, KFPSimdAllocator<KFParticleSIMD>>& /*PrimVtx*/,
                                   std::vector<KFParticle>& Particles)
 {
   constexpr const int nKaonSets = 2;
@@ -3578,7 +3578,7 @@ void KFParticleFinder::MatchKaons(KFPTrackVector* vTracks,
 
 #if 0  //old method
 void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFParticle>& Particles,
-                                            std::vector<KFParticleSIMD, KFPSimdAllocator<KFParticleSIMD> >& PrimVtx)
+                                            std::vector<KFParticleSIMD, KFPSimdAllocator<KFParticleSIMD> >& /*PrimVtx*/)
 {
   /** Reconstructs particles by the missing mass method.
    ** \param[in] vRTracks - pointer to the array with vectors of tracks:\n
