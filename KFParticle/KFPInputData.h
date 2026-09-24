@@ -275,8 +275,8 @@ class KFPInputData {
     std::cout << "Field: " << fBz << std::endl;
   }
 
-  KFPTrackVector* GetTracks() { return fTracks; }  ///< Returns pointer to the array with track vectors.
-  float GetBz() const { return fBz; }  ///< Returns value of the constant field Bz.
+  KFPTrackVector* GetTracks() { return fTracks; }               ///< Returns pointer to the array with track vectors.
+  float GetBz() const { return fBz; }                           ///< Returns value of the constant field Bz.
   const std::vector<KFParticle>& GetPV() const { return fPV; }  ///< Returns vector with primary vertices.
 
   const KFPInputData& operator=(const KFPInputData& data)

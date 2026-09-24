@@ -130,9 +130,9 @@ class KFPTrack
     position[2] = fP[5];
   }
 
-  float GetX() const { return fP[0]; }  ///< Returns X coordinate of the track.
-  float GetY() const { return fP[1]; }  ///< Returns Y coordinate of the track.
-  float GetZ() const { return fP[2]; }  ///< Returns Z coordinate of the track.
+  float GetX() const { return fP[0]; }   ///< Returns X coordinate of the track.
+  float GetY() const { return fP[1]; }   ///< Returns Y coordinate of the track.
+  float GetZ() const { return fP[2]; }   ///< Returns Z coordinate of the track.
   float GetPx() const { return fP[3]; }  ///< Returns Px component of the momentum of the track.
   float GetPy() const { return fP[4]; }  ///< Returns Py component of the momentum of the track.
   float GetPz() const { return fP[5]; }  ///< Returns Pz component of the momentum of the track.
@@ -159,9 +159,9 @@ class KFPTrack
 
   int Charge() const { return fQ; }  ///< Returns charge of the track.
   float GetChi2perNDF() const
-  { return fChi2 / fNDF; }  ///< Returns Chi2/NDF of the track, NDF is a number of degrees of freedom.
+  { return fChi2 / fNDF; }                 ///< Returns Chi2/NDF of the track, NDF is a number of degrees of freedom.
   float GetChi2() const { return fChi2; }  ///< Returns Chi2 of the track.
-  int GetNDF() const { return fNDF; }  ///< Returns number of degrees of freedom of the track.
+  int GetNDF() const { return fNDF; }      ///< Returns number of degrees of freedom of the track.
 
   const float* GetTrack() const { return fP; }  ///< Returns a pointer to the array of track parameters.
   const float* GetCovMatrix() const
@@ -225,15 +225,15 @@ class KFPTrack
   }
   void SetID(int id) { fId = id; }  ///< Sets Id of the track.
 
-  void SetX(float x) { fP[0] = x; }  ///< Sets X coordinate of the track.
-  void SetY(float y) { fP[1] = y; }  ///< Sets Y coordinate of the track.
-  void SetZ(float z) { fP[2] = z; }  ///< Sets Z coordinate of the track.
-  void SetPx(float px) { fP[3] = px; }  ///< Sets Px component of the track momentum.
-  void SetPy(float py) { fP[4] = py; }  ///< Sets Py component of the track momentum.
-  void SetPz(float pz) { fP[5] = pz; }  ///< Sets Pz component of the track momentum.
+  void SetX(float x) { fP[0] = x; }         ///< Sets X coordinate of the track.
+  void SetY(float y) { fP[1] = y; }         ///< Sets Y coordinate of the track.
+  void SetZ(float z) { fP[2] = z; }         ///< Sets Z coordinate of the track.
+  void SetPx(float px) { fP[3] = px; }      ///< Sets Px component of the track momentum.
+  void SetPy(float py) { fP[4] = py; }      ///< Sets Py component of the track momentum.
+  void SetPz(float pz) { fP[5] = pz; }      ///< Sets Pz component of the track momentum.
   void SetCharge(int q) { fQ = q; }         ///< Sets charge of the track.
   void SetChi2(float chi) { fChi2 = chi; }  ///< Sets a value of the track Chi2.
-  void SetNDF(int ndf) { fNDF = ndf; }  ///< Sets a value of the number of degrees of freedom.
+  void SetNDF(int ndf) { fNDF = ndf; }      ///< Sets a value of the number of degrees of freedom.
 
   void SetCovarianceMatrix(const float* C)
   {

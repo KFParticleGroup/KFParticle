@@ -161,14 +161,14 @@ class KFPTrackVector {
   { fField[iP][iTr] = value; }  ///< Sets the "value" of the field coefficient "iP" of the track with index
   ///< "iTr".
 #endif
-  void SetId(int value, int iTr) { fId[iTr] = value; }  ///< Sets Id of the track with index "iTr".
+  void SetId(int value, int iTr) { fId[iTr] = value; }    ///< Sets Id of the track with index "iTr".
   void SetPDG(int value, int iTr) { fPDG[iTr] = value; }  ///< Sets PDG hypothesis of the track with index "iTr".
-  void SetQ(int value, int iTr) { fQ[iTr] = value; }  ///< Sets charge of the track with index "iTr".
+  void SetQ(int value, int iTr) { fQ[iTr] = value; }      ///< Sets charge of the track with index "iTr".
   void SetPVIndex(int value, int iTr)
   { fPVIndex[iTr] = value; }  ///< Sets index of the corresponding primary vertex of the track with index
   ///< "iTr".
   void SetNPixelHits(int value, int iTr)
-  { fNPixelHits[iTr] = value; }  ///< Sets number of precise measurement of the track with index "iTr".
+  { fNPixelHits[iTr] = value; }              ///< Sets number of precise measurement of the track with index "iTr".
   void SetLastElectron(int n) { fNE = n; }   ///< Sets index of the last electron.
   void SetLastMuon(int n) { fNMu = n; }      ///< Sets index of the last muon.
   void SetLastPion(int n) { fNPi = n; }      ///< Sets index of the last pion.
@@ -239,81 +239,81 @@ class KFPTrackVector {
     fNSigma += fNBe7;
   }
 
-  int FirstElectron() { return 0; }  ///< Returns index of the first electron.
+  int FirstElectron() { return 0; }                ///< Returns index of the first electron.
   const int& LastElectron() const { return fNE; }  ///< Returns index of the last electron.
-  int NElectrons() { return fNE; }  ///< Returns number of electrons.
+  int NElectrons() { return fNE; }                 ///< Returns number of electrons.
   int FirstMuon()
   { return int(fNE / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< muon.
   const int& LastMuon() const { return fNMu; }  ///< Returns index of the last muon.
-  int NMuons() { return fNMu - fNE; }  ///< Returns number of muons.
+  int NMuons() { return fNMu - fNE; }           ///< Returns number of muons.
   int FirstPion()
   { return int(fNMu / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< pion.
   const int& LastPion() const { return fNPi; }  ///< Returns index of the last pion.
-  int NPions() { return fNPi - fNMu; }  ///< Returns number of pions.
+  int NPions() { return fNPi - fNMu; }          ///< Returns number of pions.
   int FirstKaon()
   { return int(fNPi / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< kaon.
   const int& LastKaon() const { return fNK; }  ///< Returns index of the last kaon.
-  int NKaons() { return fNK - fNPi; }  ///< Returns number of kaons.
+  int NKaons() { return fNK - fNPi; }          ///< Returns number of kaons.
   int FirstProton()
   { return int(fNK / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< proton.
   const int& LastProton() const { return fNP; }  ///< Returns index of the last proton.
-  int NProtons() { return fNP - fNK; }  ///< Returns number of protons.
+  int NProtons() { return fNP - fNK; }           ///< Returns number of protons.
   int FirstDeuteron()
   { return int(fNP / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< deuteron.
   const int& LastDeuteron() const { return fND; }  ///< Returns index of the last deuteron.
-  int NDeuterons() { return fND - fNP; }  ///< Returns number of deuterons.
+  int NDeuterons() { return fND - fNP; }           ///< Returns number of deuterons.
   int FirstTritium()
   { return int(fND / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< triton.
   const int& LastTritium() const { return fNT; }  ///< Returns index of the last triton.
-  int NTritiums() { return fNT - fND; }  ///< Returns number of tritons.
+  int NTritiums() { return fNT - fND; }           ///< Returns number of tritons.
   int FirstHe3()
   { return int(fNT / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< He3.
   const int& LastHe3() const { return fNHe3; }  ///< Returns index of the last He3.
-  int NHe3s() { return fNHe3 - fNT; }  ///< Returns number of He3 tracks.
+  int NHe3s() { return fNHe3 - fNT; }           ///< Returns number of He3 tracks.
   int FirstHe4()
   { return int(fNHe3 / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< He4.
   const int& LastHe4() const { return fNHe4; }  ///< Returns index of the last He4.
-  int NHe4s() { return fNHe4 - fNHe3; }  ///< Returns number of He4 tracks.
+  int NHe4s() { return fNHe4 - fNHe3; }         ///< Returns number of He4 tracks.
   int FirstHe6()
   { return int(fNHe4 / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< He6.
   const int& LastHe6() const { return fNHe6; }  ///< Returns index of the last He6.
-  int NHe6s() { return fNHe6 - fNHe4; }  ///< Returns number of He6 tracks.
+  int NHe6s() { return fNHe6 - fNHe4; }         ///< Returns number of He6 tracks.
   int FirstLi6()
   { return int(fNHe6 / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< Li6.
   const int& LastLi6() const { return fNLi6; }  ///< Returns index of the last Li6.
-  int NLi6s() { return fNLi6 - fNHe6; }  ///< Returns number of Li6 tracks.
+  int NLi6s() { return fNLi6 - fNHe6; }         ///< Returns number of Li6 tracks.
   int FirstLi7()
   { return int(fNLi6 / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< Li7.
   const int& LastLi7() const { return fNLi7; }  ///< Returns index of the last Li7.
-  int NLi7s() { return fNLi7 - fNLi6; }  ///< Returns number of Li7 tracks.
+  int NLi7s() { return fNLi7 - fNLi6; }         ///< Returns number of Li7 tracks.
   int FirstBe7()
   { return int(fNLi7 / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< Be7.
   const int& LastBe7() const { return fNBe7; }  ///< Returns index of the last Be7.
-  int NBe7s() { return fNBe7 - fNLi7; }  ///< Returns number of Be7 tracks.
+  int NBe7s() { return fNBe7 - fNLi7; }         ///< Returns number of Be7 tracks.
   int FirstSigma()
   { return int(fNBe7 / SimdLen) * SimdLen; }  ///< Returns index of the first element of the SIMD vector with the first
   ///< Sigma.
   const int& LastSigma() const { return fNSigma; }  ///< Returns index of the last Sigma.
-  int NSigmas() { return fNSigma - fNBe7; }  ///< Returns number of Sigma tracks.
+  int NSigmas() { return fNSigma - fNBe7; }         ///< Returns number of Sigma tracks.
 
-  void AddElectron() { fNE++; }  ///< Increases by one index of the last electron.
-  void AddMuon() { fNMu++; }   ///< Increases by one index of the last muon.
-  void AddPion() { fNPi++; }   ///< Increases by one index of the last pion.
-  void AddKaon() { fNK++; }    ///< Increases by one index of the last kaon.
-  void AddProton() { fNP++; }  ///< Increases by one index of the last proton.
-  void AddDeuteron() { fND++; }  ///< Increases by one index of the last deuteron.
+  void AddElectron() { fNE++; }   ///< Increases by one index of the last electron.
+  void AddMuon() { fNMu++; }      ///< Increases by one index of the last muon.
+  void AddPion() { fNPi++; }      ///< Increases by one index of the last pion.
+  void AddKaon() { fNK++; }       ///< Increases by one index of the last kaon.
+  void AddProton() { fNP++; }     ///< Increases by one index of the last proton.
+  void AddDeuteron() { fND++; }   ///< Increases by one index of the last deuteron.
   void AddTririum() { fNT++; }    ///< Increases by one index of the last triton.
   void AddHe3() { fNHe3++; }      ///< Increases by one index of the last He3.
   void AddHe4() { fNHe4++; }      ///< Increases by one index of the last He4.

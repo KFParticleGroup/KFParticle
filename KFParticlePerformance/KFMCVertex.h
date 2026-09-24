@@ -106,7 +106,7 @@ class KFMCVertex {
   ///< vertex.
 
   bool IsTriggerPV() const { return fIsTriggerPV; }  ///< Returns flag showing if the vertex is considerred as tigger.
-  void SetTriggerPV() { fIsTriggerPV = 1; }  ///< Defines the current vertex as the trigger primary vertex.
+  void SetTriggerPV() { fIsTriggerPV = 1; }          ///< Defines the current vertex as the trigger primary vertex.
 
   friend std::ostream& operator<<(std::ostream& out, const KFMCVertex& a);
   friend std::istream& operator>>(std::istream& in, KFMCVertex& a);

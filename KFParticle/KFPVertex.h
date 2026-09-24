@@ -83,9 +83,9 @@ class KFPVertex {
   }
 
   float GetChi2perNDF() const
-  { return fChi2 / fNDF; }  ///< Returns Chi2/NDF of the vertex, NDF is a number of degrees of freedom.
+  { return fChi2 / fNDF; }                 ///< Returns Chi2/NDF of the vertex, NDF is a number of degrees of freedom.
   float GetChi2() const { return fChi2; }  ///< Returns Chi2 of the vertex fit.
-  int GetNDF() const { return fNDF; }  ///< Returns number of degrees of freedom of the vertex.
+  int GetNDF() const { return fNDF; }      ///< Returns number of degrees of freedom of the vertex.
   int GetNContributors() const
   { return fNContributors; }  ///< Returns number of tracks which were used for construction of the vertex
 
@@ -120,7 +120,7 @@ class KFPVertex {
   void SetY(float y) { fP[1] = y; }         ///< Sets Y coordinate of the vertex
   void SetZ(float z) { fP[2] = z; }         ///< Sets Z coordinate of the vertex
   void SetChi2(float chi) { fChi2 = chi; }  ///< Sets Chi2 of the vertex
-  void SetNDF(int ndf) { fNDF = ndf; }  ///< Sets number of degrees of freedom of the vertex
+  void SetNDF(int ndf) { fNDF = ndf; }      ///< Sets number of degrees of freedom of the vertex
   void SetNContributors(int nc)
   { fNContributors = nc; }  ///< Sets number of tracks which were used for construction of the vertex
 

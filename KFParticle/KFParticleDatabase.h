@@ -169,11 +169,11 @@ class KFParticleDatabase {
     massMotherPDGSigma = fMassSecPDGSigma[pdgIndex];
   }
 
-  const float& GetPi0Mass() const { return fMassPi0PDG; }  ///< Returns the table PDG pi0 mass.
-  const float& GetPi0MassSigma() const { return fMassPi0PDGSigma; }  ///< Returns expected width of the pi0 peak.
-  const float& GetD0Mass() const { return fMassD0PDG; }  ///< Returns the table PDG D0 mass.
-  const float& GetD0MassSigma() const { return fMassD0PDGSigma; }  ///< Returns expected width of the D0 peak.
-  const float& GetDPlusMass() const { return fMassDPlusPDG; }  ///< Returns the table PDG D+ mass.
+  const float& GetPi0Mass() const { return fMassPi0PDG; }                ///< Returns the table PDG pi0 mass.
+  const float& GetPi0MassSigma() const { return fMassPi0PDGSigma; }      ///< Returns expected width of the pi0 peak.
+  const float& GetD0Mass() const { return fMassD0PDG; }                  ///< Returns the table PDG D0 mass.
+  const float& GetD0MassSigma() const { return fMassD0PDGSigma; }        ///< Returns expected width of the D0 peak.
+  const float& GetDPlusMass() const { return fMassDPlusPDG; }            ///< Returns the table PDG D+ mass.
   const float& GetDPlusMassSigma() const { return fMassDPlusPDGSigma; }  ///< Returns expected width of the D+ peak.
 
   static const KFParticleDatabase* Instance() { return fDatabase; }  ///< Returns a pointer to the singleton object.

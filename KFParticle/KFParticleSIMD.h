@@ -159,31 +159,31 @@ class KFParticleSIMD {
 
   //* Simple accessors
 
-  float32_v GetX() const { return fP[0]; }  ///< Returns the sum of masses of the daughters
-  float32_v GetY() const { return fP[1]; }  ///< Returns the sum of masses of the daughters
-  float32_v GetZ() const { return fP[2]; }  ///< Returns the sum of masses of the daughters
-  float32_v GetPx() const { return fP[3]; }  ///< Returns the sum of masses of the daughters
-  float32_v GetPy() const { return fP[4]; }  ///< Returns the sum of masses of the daughters
-  float32_v GetPz() const { return fP[5]; }  ///< Returns the sum of masses of the daughters
-  float32_v GetE() const { return fP[6]; }  ///< Returns the sum of masses of the daughters
-  float32_v GetS() const { return fP[7]; }  ///< Returns the sum of masses of the daughters
-  int32_v GetQ() const { return fQ; }  ///< Returns the sum of masses of the daughters
+  float32_v GetX() const { return fP[0]; }     ///< Returns the sum of masses of the daughters
+  float32_v GetY() const { return fP[1]; }     ///< Returns the sum of masses of the daughters
+  float32_v GetZ() const { return fP[2]; }     ///< Returns the sum of masses of the daughters
+  float32_v GetPx() const { return fP[3]; }    ///< Returns the sum of masses of the daughters
+  float32_v GetPy() const { return fP[4]; }    ///< Returns the sum of masses of the daughters
+  float32_v GetPz() const { return fP[5]; }    ///< Returns the sum of masses of the daughters
+  float32_v GetE() const { return fP[6]; }     ///< Returns the sum of masses of the daughters
+  float32_v GetS() const { return fP[7]; }     ///< Returns the sum of masses of the daughters
+  int32_v GetQ() const { return fQ; }          ///< Returns the sum of masses of the daughters
   float32_v GetChi2() const { return fChi2; }  ///< Returns the sum of masses of the daughters
-  int32_v GetNDF() const { return fNDF; }  ///< Returns the sum of masses of the daughters
+  int32_v GetNDF() const { return fNDF; }      ///< Returns the sum of masses of the daughters
 
-  const float32_v& X() const { return fP[0]; }  ///< Retruns X coordinate of the particle, fP[0].
-  const float32_v& Y() const { return fP[1]; }  ///< Retruns Y coordinate of the particle, fP[1].
-  const float32_v& Z() const { return fP[2]; }  ///< Retruns Z coordinate of the particle, fP[2].
+  const float32_v& X() const { return fP[0]; }   ///< Retruns X coordinate of the particle, fP[0].
+  const float32_v& Y() const { return fP[1]; }   ///< Retruns Y coordinate of the particle, fP[1].
+  const float32_v& Z() const { return fP[2]; }   ///< Retruns Z coordinate of the particle, fP[2].
   const float32_v& Px() const { return fP[3]; }  ///< Retruns X component of the momentum, fP[3].
   const float32_v& Py() const { return fP[4]; }  ///< Retruns Y component of the momentum, fP[4].
   const float32_v& Pz() const { return fP[5]; }  ///< Retruns Z component of the momentum, fP[5].
-  const float32_v& E() const { return fP[6]; }  ///< Returns energy of the particle, fP[6].
+  const float32_v& E() const { return fP[6]; }   ///< Returns energy of the particle, fP[6].
   const float32_v& S() const
   { return fP[7]; }  ///< Returns dS=l/p, l - decay length, fP[7], defined if production vertex
   ///< is set.
   const int32_v& Q() const { return fQ; }          ///< Returns charge of the particle.
   const float32_v& Chi2() const { return fChi2; }  ///< Returns Chi2 of the fit.
-  const int32_v& NDF() const { return fNDF; }  ///< Returns number of decrease of freedom.
+  const int32_v& NDF() const { return fNDF; }      ///< Returns number of decrease of freedom.
 
   float32_v GetParameter(int i) const { return fP[i]; }  ///< Returns P[i] parameter.
   float32_v GetCovariance(int i) const
@@ -251,26 +251,26 @@ class KFParticleSIMD {
   //*  MODIFIERS
   //*
 
-  float32_v& X() { return fP[0]; }  ///< Modifier of X coordinate of the particle, fP[0].
-  float32_v& Y() { return fP[1]; }  ///< Modifier of Y coordinate of the particle, fP[1].
-  float32_v& Z() { return fP[2]; }  ///< Modifier of Z coordinate of the particle, fP[2].
+  float32_v& X() { return fP[0]; }   ///< Modifier of X coordinate of the particle, fP[0].
+  float32_v& Y() { return fP[1]; }   ///< Modifier of Y coordinate of the particle, fP[1].
+  float32_v& Z() { return fP[2]; }   ///< Modifier of Z coordinate of the particle, fP[2].
   float32_v& Px() { return fP[3]; }  ///< Modifier of X component of the momentum, fP[3].
   float32_v& Py() { return fP[4]; }  ///< Modifier of Y component of the momentum, fP[4].
   float32_v& Pz() { return fP[5]; }  ///< Modifier of Z component of the momentum, fP[5].
-  float32_v& E() { return fP[6]; }  ///< Modifier of energy of the particle, fP[6].
-  float32_v& S() { return fP[7]; }  ///< Modifier of dS=l/p, l - decay length, fP[7], defined if production
+  float32_v& E() { return fP[6]; }   ///< Modifier of energy of the particle, fP[6].
+  float32_v& S() { return fP[7]; }   ///< Modifier of dS=l/p, l - decay length, fP[7], defined if production
   ///< vertex is set.
   int32_v& Q() { return fQ; }          ///< Modifier of charge of the particle.
   float32_v& Chi2() { return fChi2; }  ///< Modifier of Chi2 of the fit.
-  int32_v& NDF() { return fNDF; }  ///< Modifier of number of decrease of freedom.
+  int32_v& NDF() { return fNDF; }      ///< Modifier of number of decrease of freedom.
 
-  float32_v& Parameter(int i) { return fP[i]; }  ///< Modifier of P[i] parameter.
+  float32_v& Parameter(int i) { return fP[i]; }   ///< Modifier of P[i] parameter.
   float32_v& Covariance(int i) { return fC[i]; }  ///< Modifier of C[i] element of the covariance matrix in the lower
   ///< triangular form.
   float32_v& Covariance(int i, int j)
   { return fC[IJ(i, j)]; }  ///< Modifier of C[i,j] element of the covariance matrix.
 
-  const float32_v* Parameters() const { return fP; }  ///< Returns pointer to the parameters fP
+  const float32_v* Parameters() const { return fP; }        ///< Returns pointer to the parameters fP
   const float32_v* CovarianceMatrix() const { return fC; }  ///< Returns pointer to the covariance matrix fC
 
   void SetConstructMethod(int m)
@@ -283,7 +283,7 @@ class KFParticleSIMD {
   const float32_v& GetSumDaughterMass() const
   { return SumDaughterMass; }  ///< Returns the sum of masses of the daughters.
 
-  int32_v Id() const { return fId; }  ///< Returns Id of the particle.
+  int32_v Id() const { return fId; }                      ///< Returns Id of the particle.
   int NDaughters() const { return fDaughterIds.size(); }  ///< Returns number of daughter particles.
   std::vector<int32_v>& DaughterIds()
   { return fDaughterIds; }  ///< Returns the vector with the indices of daughter particles.
@@ -299,7 +299,7 @@ class KFParticleSIMD {
   void SetPDG(const int32_v pdg)
   { fPDG = pdg; }  ///< Sets the PDG hypothesis individual for each entry of the SIMD vector.
   const int32_v& GetPDG() const { return fPDG; }  ///< Returns the PDG hypothesis.
-  const int32_v& PDG() const { return fPDG; }  ///< Returns the PDG hypothesis.
+  const int32_v& PDG() const { return fPDG; }     ///< Returns the PDG hypothesis.
 
   void GetKFParticle(KFParticle& Part, int iPart = 0);
   void GetKFParticle(KFParticle* Part, int nPart = 0);

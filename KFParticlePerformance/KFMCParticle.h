@@ -57,22 +57,22 @@ class KFMCParticle : public TObject {
   KFMCParticle();
   virtual ~KFMCParticle();
 
-  void AddDaughter(int i);  ///< Adds an Id of the new particle to the list with
-                            ///< Ids of daughter particles.
+  void AddDaughter(int i);                                ///< Adds an Id of the new particle to the list with
+                                                          ///< Ids of daughter particles.
   int NDaughters() const { return fDaughterIds.size(); }  ///< Returns number of daughter particles.
   const std::vector<int>& GetDaughterIds() const
   { return fDaughterIds; }  ///< Returns a reference to the vector with Id of daughter particle
   ///< KFMCParticle::fDaughterIds.
   void CleanDaughters() { fDaughterIds.resize(0); }  ///< Remove Ids of all daughter particles from the current object.
 
-  void SetPDG(int pdg) { fPDG = pdg; }  ///< Set the PDG code of the current particle KFMCParticle::fPDG.
+  void SetPDG(int pdg) { fPDG = pdg; }            ///< Set the PDG code of the current particle KFMCParticle::fPDG.
   void SetMCTrackID(int id) { fMCTrackID = id; }  ///< Sets the Id of the corresponding Monte Carlo track
   ///< KFMCParticle::fMCTrackID.
   void SetMotherId(int id) { fMotherId = id; }  ///< Sets the Id of the mother particle or primary vertex
   ///< KFMCParticle::fMotherId.
 
   int GetMCTrackID() const
-  { return fMCTrackID; }  ///< Returns Id of the corresponding MC track KFMCParticle::fMCTrackID.
+  { return fMCTrackID; }                         ///< Returns Id of the corresponding MC track KFMCParticle::fMCTrackID.
   int GetMotherId() const { return fMotherId; }  ///< Returns Id of the mother particle or primary vertex
   ///< KFMCParticle::fMotherId.
   int GetPDG() const { return fPDG; }  ///< Returns PDG code of the current particle KFMCParticle::fPDG.
@@ -95,7 +95,7 @@ class KFMCParticle : public TObject {
   ///< was copied.
   int InitialParticleId() const
   { return fInitialParticleId; }  ///< Returns the Id of the Monte Carlo particle, from which the current
-  ///< particle was copied.
+                                  ///< particle was copied.
  private:                         // data
   std::vector<int> fDaughterIds;  ///< A vector with Ids of the daughter Monte
                                   ///< Carlo particles.

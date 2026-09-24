@@ -69,14 +69,14 @@ class KFEfficiencyParticleInfo {
   ~KFEfficiencyParticleInfo() {};
 
   // accessors
-  std::string Name() const { return fName; }  ///< Returns name of the decay in the file with histograms.
+  std::string Name() const { return fName; }    ///< Returns name of the decay in the file with histograms.
   std::string Title() const { return fTitle; }  ///< Returns name of the decay in the output table with efficiency.
-  int PDG() const { return fPDG; }  ///< Returns the assigned PDG code.
+  int PDG() const { return fPDG; }              ///< Returns the assigned PDG code.
   float HistoMin() const { return fHistoMin; }  ///< Returns lower boundary in the mass histogram for the current decay.
   float HistoMax() const { return fHistoMax; }  ///< Returns upper boundary in the mass histogram for the current decay.
-  float Mass() const { return fMass; }  ///< Returns table mass of the particle.
+  float Mass() const { return fMass; }          ///< Returns table mass of the particle.
   float LifeTime() const { return fLifeTime; }  ///< Returns lifetime of the particle.
-  int Charge() const { return fCharge; }  ///< Returns charge of the particle in units of the elementary charge.
+  int Charge() const { return fCharge; }        ///< Returns charge of the particle in units of the elementary charge.
   float MassSigma() const
   { return fMassSigma; }  ///< Returns expected width of the mass peak, used in the side bands method.
 
