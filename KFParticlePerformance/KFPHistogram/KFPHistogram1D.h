@@ -73,12 +73,11 @@ class KFPHistogram1D {
   {
     double dBin = floor(float(value - fMinBin) / float(fMaxBin - fMinBin) * float(fSize - 2)) + 1;
 
-    if (!(std::isfinite(dBin))) { dBin = 0; }
+    if (std::isnan(dBin)) { dBin = 0; }
+    if (dBin > fSize - 1) { dBin = fSize - 1; }
+    if (dBin < 1) { dBin = 0; }
 
     int iBin = static_cast<int>(dBin);
-
-    if (iBin > fSize - 1) { iBin = fSize - 1; }
-    if (iBin < 1) { iBin = 0; }
 
     fHistogram[iBin]++;
   }
