@@ -55,7 +55,7 @@ Emails: mithran@fias.uni-frankfurt.de
 #define KFP_SIMD_SSE_4p1 1
 #endif
 
-#if defined(KFP_SIMD_SSE_4p1)
+#if defined(KFP_SIMD_SSE_4p1) && !defined(KFP_SIMD_SSE)
 #define KFP_SIMD_SSE 1
 #endif
 
