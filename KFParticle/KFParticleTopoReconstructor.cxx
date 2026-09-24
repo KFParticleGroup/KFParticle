@@ -1010,8 +1010,8 @@ void KFParticleTopoReconstructor::ReconstructParticles()
 
   fKFParticleFinder->FindParticles(fTracks, fChiToPrimVtx, fParticles, fPV, fPV.size());
   // #pragma omp critical
-  std::cout << "NPart " << fParticles.size() << " " << fTracks[0].Size() << " " << fTracks[1].Size() << " "
-            << fTracks[2].Size() << " " << fTracks[3].Size() << std::endl;
+  // std::cout << "NPart " << fParticles.size() << " " << fTracks[0].Size() << " " << fTracks[1].Size() << " "
+  //           << fTracks[2].Size() << " " << fTracks[3].Size() << std::endl;
 
   // for(unsigned int iParticle=0; iParticle<fParticles.size(); iParticle++)
   //   if(ParticleHasRepeatingDaughters(fParticles[iParticle]))
