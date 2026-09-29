@@ -25,10 +25,6 @@
 #include <cstring>
 #include <vector>
 
-#ifndef KFP_SIMD_SSE
-#define KFP_SIMD_SSE
-#endif
-
 #if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
 #include "RootTypesDef.h"
 #include "simd.h"

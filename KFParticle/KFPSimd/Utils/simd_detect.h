@@ -9,6 +9,8 @@ Emails: mithran@fias.uni-frankfurt.de
 #ifndef SIMD_DETECT_H
 #define SIMD_DETECT_H
 
+#if defined(__x86_64__) 
+
 #include <x86intrin.h>
 
 #ifndef KFP_SIMD_LEVEL
@@ -27,6 +29,7 @@ Emails: mithran@fias.uni-frankfurt.de
     #endif
 #endif
 
+
 #else // KFP_SIMD_LEVEL
 
 #if KFP_SIMD_LEVEL > 3 // AVX2 supersedes SSE
@@ -40,8 +43,14 @@ Emails: mithran@fias.uni-frankfurt.de
 #else
 #define KFP_SIMD_Scalar 1
 #endif
-#undef KFP_SIMD_LEVEL
+
+// #undef KFP_SIMD_LEVEL
+
 #endif // KFP_SIMD_LEVEL
+
+#else // __x86_64__
+    #define KFP_SIMD_Scalar 1
+#endif // __x86_64__
 
 #if defined(KFP_SIMD_AVX2)
 #define KFP_SIMD_AVX 1
