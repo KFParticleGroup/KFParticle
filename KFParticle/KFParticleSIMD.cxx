@@ -1939,8 +1939,8 @@ void KFParticleSIMD::SetNonlinearMassConstraint(float_v mass)
 
   float_v mJ[7][7];
 
-  float_m trueMask(KFP::SIMD::UninitializeTag{});
-  trueMask.setTrue();
+  float_m trueMask(true);
+
   SetMassConstraint(fP, fC, mJ, mass, trueMask);
   fMassHypo       = mass;
   SumDaughterMass = mass;

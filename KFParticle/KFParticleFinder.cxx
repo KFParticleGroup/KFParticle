@@ -2603,10 +2603,10 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
     ((abs(V0PDG) == 421) || (abs(V0PDG) == 411) || (abs(V0PDG) == 429) || (abs(V0PDG) == 420) || (abs(V0PDG) == 419))
     && (v0PVIndex < 0);
 
-  float_m isPvIndexNeg, isPvIndexPos;
-  if (v0PVIndex >= 0) { isPvIndexPos.setTrue(); }
+  float_m isPvIndexNeg(false), isPvIndexPos(false);
+  if (v0PVIndex >= 0) { isPvIndexPos = true; }
   else {
-    isPvIndexNeg.setTrue();
+    isPvIndexNeg = true;
   }
 
   for (unsigned int iV0 = 0; iV0 < vV0.size(); iV0++) {
@@ -3312,13 +3312,12 @@ void KFParticleFinder::CombinePartPart(vector<KFParticle>& particles1, vector<KF
   KFParticle* tmpPart2[SimdLen];
   int nPart2 = particles2.size();
 
-  float_m isPrimary;
-  if (iPV >= 0) { isPrimary.setTrue(); }
+  float_m isPrimary = (iPV >= 0);
 
   bool isCharm = (MotherPDG == 425) || (MotherPDG == 427) || (abs(MotherPDG) == 200411) || (abs(MotherPDG) == 404122)
                  || (abs(MotherPDG) == 4132) || (abs(MotherPDG) == 300431) || (abs(MotherPDG) == 204122);
-  float_m isCharmMask;
-  if (isCharm) { isCharmMask.setTrue(); }
+
+  float_m isCharmMask = isCharm;
 
   for (unsigned int iP1 = 0; iP1 < particles1.size(); iP1++) {
     KFParticleSIMD vDaughters[2] = {KFParticleSIMD(particles1[iP1]), KFParticleSIMD()};

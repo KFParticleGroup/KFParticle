@@ -58,15 +58,12 @@ namespace KFP
       Mask32_128() : m_data(_mm_setzero_si128()) {}
       Mask32_128(UninitializeTag) {}
       // Constructor to broadcast the same value into all elements:
+      Mask32_128(bool value) : m_data(value ? _mm_set1_epi32(-1) : _mm_setzero_si128()) {}
+
       Mask32_128(const Mask32_128& class_simd) = default;
 
       Mask32_128& operator=(const Mask32_128& class_simd) = default;
 
-      // ------------------------------------------------------
-      // Setter
-      // ------------------------------------------------------
-
-      void setTrue() { m_data = _mm_set1_epi32(-1); }
 
       // ------------------------------------------------------
       // Data member accessors
