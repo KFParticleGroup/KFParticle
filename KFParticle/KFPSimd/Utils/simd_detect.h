@@ -9,11 +9,11 @@ Emails: mithran@fias.uni-frankfurt.de
 #ifndef SIMD_DETECT_H
 #define SIMD_DETECT_H
 
-#if defined(__x86_64__) 
+#if defined(__x86_64__)
 
 #include <x86intrin.h>
 
-#ifndef KFP_SIMD_LEVEL
+#if !defined(KFP_SIMD_LEVEL) // detect SIMD level automatically if not defined
 
 #if defined(__AVX2__)
 #define KFP_SIMD_AVX2 1
@@ -30,7 +30,7 @@ Emails: mithran@fias.uni-frankfurt.de
 #endif
 
 
-#else // KFP_SIMD_LEVEL
+#else // KFP_SIMD_LEVEL is defined
 
 #if KFP_SIMD_LEVEL > 3 // AVX2 supersedes SSE
 #define KFP_SIMD_AVX2 1
@@ -44,13 +44,13 @@ Emails: mithran@fias.uni-frankfurt.de
 #define KFP_SIMD_Scalar 1
 #endif
 
-// #undef KFP_SIMD_LEVEL
-
 #endif // KFP_SIMD_LEVEL
 
-#else // __x86_64__
-    #define KFP_SIMD_Scalar 1
+#else // not __x86_64__
+  #define KFP_SIMD_Scalar 1
 #endif // __x86_64__
+
+// Define lower SIMD levels based on higher ones
 
 #if defined(KFP_SIMD_AVX2)
 #define KFP_SIMD_AVX 1
@@ -68,6 +68,7 @@ Emails: mithran@fias.uni-frankfurt.de
 #define KFP_SIMD_SSE 1
 #endif
 
+// Ensure that at least one SIMD level is defined
 #if !defined(KFP_SIMD_Scalar) && !defined(KFP_SIMD_SSE)
 #error \
     "[Error] (simd_detect.hpp): Invalid KFParticle SIMD implementation value was selected."

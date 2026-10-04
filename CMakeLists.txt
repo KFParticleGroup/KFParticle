@@ -10,9 +10,11 @@ If(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wno-pmf-conversions -Wstrict-null-sentinel -Wno-non-template-friend -Wmissing-field-initializers)
 EndIf()
 
-# add at the top of your KFParticle CMakeLists.txt
-if(NOT CMAKE_CXX_FLAGS MATCHES "-msse4.1")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  message(STATUS "===== KFParticle project is built standalone ======")
+  add_compile_options(-msse4.1)
+else()
+  message(STATUS "===== KFParticle project is embedded, use SIMD flags from the host ======")
 endif()
 
 macro(add_target_property _target _prop _value)
