@@ -2304,7 +2304,7 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
 
   const float_v LocalSmall = 1.e-8f;
   float_m mask             = (abs(bq) < LocalSmall);
-  if (!((!mask).isFull())) {
+  if (any_of(mask)) {
     dS = select(mask && float_m(p2 > 1.e-4f), (a + dz * pz) / p2, 0.f);
 
     dsdr[0] = select(mask && float_m(p2 > 1.e-4f), -px / p2, dsdr[0]);
@@ -2314,7 +2314,7 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
     dsdr[4] = select(mask && float_m(p2 > 1.e-4f), (dy * p2 - 2.f * py * (a + dz * pz)) / (p2 * p2), dsdr[4]);
     dsdr[5] = select(mask && float_m(p2 > 1.e-4f), (dz * p2 - 2.f * pz * (a + dz * pz)) / (p2 * p2), dsdr[5]);
 
-    if (mask.isFull()) { return dS; }
+    if (all_of(mask)) { return dS; }
   }
 
   dS = select(mask, dS, KFPMath::ATan2(abq, pt2 + bq * (dy * px - dx * py)) / bq);
@@ -2537,13 +2537,13 @@ void KFParticleSIMD::GetDStoCylinderBz(const float_v B, const float_v R, float_v
   d1         = sqrt(d1);
 
   // find two points of closest approach in XY plane
-  if (!((!isStraight).isEmpty())) {
+  if (any_of(!isStraight)) {
     dS[0] = select(!isStraight,
                    KFPMath::ATan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS[0]);
     dS[1] = select(!isStraight,
                    KFPMath::ATan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS[1]);
   }
-  if (!(isStraight.isEmpty())) {
+  if (any_of(isStraight)) {
     dS[0] = select(isStraight && (pt12 > 0.f), (k11 * c1 + k21 * d1) / (-k21 * c1), dS[0]);
     dS[1] = select(isStraight && (pt12 > 0.f), (k11 * c1 - k21 * d1) / (-k21 * c1), dS[1]);
   }
@@ -2592,7 +2592,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
-  if (isStraight1.isFull() && isStraight2.isFull()) {
+  if (all_of(isStraight1) && all_of(isStraight2)) {
     GetDStoParticleLine(p, dS, dsdr);
     return;
   }
@@ -2717,7 +2717,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   }
 
   // find two points of closest approach in XY plane
-  if (!((!isStraight1).isEmpty())) {
+  if (any_of(!isStraight1)) {
     dS1[0] = select(!isStraight1,
                     KFPMath::ATan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[0]);
     dS1[1] =
@@ -2748,7 +2748,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
       dS1dR2[1][iP] = select(!isStraight1, 1 / bq1 * 1 / (b * b + a * a) * (dadr2 * b - dbdr2 * a), dS1dR2[1][iP]);
     }
   }
-  if (!((!isStraight2).isEmpty())) {
+  if (any_of(!isStraight2)) {
     dS2[0] = select(!isStraight2,
                     KFPMath::ATan2((bq2 * k12 * c2 + k22 * d2 * bq2), (bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[0]);
     dS2[1] =
@@ -2779,7 +2779,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
       dS2dR2[1][iP] = select(!isStraight2, 1 / bq2 * 1 / (b * b + a * a) * (dadr2 * b - dbdr2 * a), dS2dR2[1][iP]);
     }
   }
-  if (!(isStraight1.isEmpty())) {
+  if (any_of(isStraight1)) {
     dS1[0] = select(isStraight1 && (pt12 > 0.f), (k11 * c1 + k21 * d1) / (-k21 * c1), dS1[0]);
     dS1[1] = select(isStraight1 && (pt12 > 0.f), (k11 * c1 - k21 * d1) / (-k21 * c1), dS1[1]);
 
@@ -2807,7 +2807,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
       dS1dR2[1][iP] = select(isStraight1 && (pt12 > 0.f), dadr2 / b - dbdr2 * a / (b * b), dS1dR2[1][iP]);
     }
   }
-  if (!(isStraight2.isEmpty())) {
+  if (any_of(isStraight2)) {
     dS2[0] = select(isStraight2 && (pt22 > 0.f), (k12 * c2 + k22 * d2) / (-k22 * c2), dS2[0]);
     dS2[1] = select(isStraight2 && (pt22 > 0.f), (k12 * c2 - k22 * d2) / (-k22 * c2), dS2[1]);
 
@@ -3300,7 +3300,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
-  if (isStraight1.isFull() && isStraight2.isFull()) {
+  if (all_of(isStraight1) && all_of(isStraight2)) {
     GetDStoParticleLine(p, dS);
     return;
   }
@@ -3354,25 +3354,25 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   d2         = sqrt(d2);
 
   // find two points of closest approach in XY plane
-  if (!((!isStraight1).isEmpty())) {
+  if (any_of(!isStraight1)) {
     dS1[0] = select(!isStraight1,
                     KFPMath::ATan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[0]);
     dS1[1] =
       select(!isStraight1, KFPMath::ATan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1,
              dS1[1]);
   }
-  if (!((!isStraight2).isEmpty())) {
+  if (any_of(!isStraight2)) {
     dS2[0] = select(!isStraight2,
                     KFPMath::ATan2((bq2 * k12 * c2 + k22 * d2 * bq2), (bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[0]);
     dS2[1] =
       select(!isStraight2, KFPMath::ATan2((bq2 * k12 * c2 - k22 * d2 * bq2), (-bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2,
              dS2[1]);
   }
-  if (!(isStraight1.isEmpty())) {
+  if (any_of(isStraight1)) {
     dS1[0] = select(isStraight1 && (pt12 > 0.f), (k11 * c1 + k21 * d1) / (-k21 * c1), dS1[0]);
     dS1[1] = select(isStraight1 && (pt12 > 0.f), (k11 * c1 - k21 * d1) / (-k21 * c1), dS1[1]);
   }
-  if (!(isStraight2.isEmpty())) {
+  if (any_of(isStraight2)) {
     dS2[0] = select(isStraight2 && (pt22 > 0.f), (k12 * c2 + k22 * d2) / (-k22 * c2), dS2[0]);
     dS2[1] = select(isStraight2 && (pt22 > 0.f), (k12 * c2 - k22 * d2) / (-k22 * c2), dS2[1]);
   }
@@ -3846,7 +3846,7 @@ void KFParticleSIMD::GetDStoParticleCBM(const KFParticleSIMD& p, float_v dS[2], 
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
-  if (isStraight1.isFull() && isStraight2.isFull()) { GetDStoParticleLine(p, dS, dsdr); }
+  if (all_of(isStraight1) && all_of(isStraight2)) { GetDStoParticleLine(p, dS, dsdr); }
   else {
     GetDStoParticleBy(fld[1], p, dS, dsdr);
   }
@@ -3875,7 +3875,7 @@ void KFParticleSIMD::GetDStoParticleCBM(const KFParticleSIMD& p, float_v dS[2]) 
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
-  if (isStraight1.isFull() && isStraight2.isFull()) { GetDStoParticleLine(p, dS); }
+  if (all_of(isStraight1) && all_of(isStraight2)) { GetDStoParticleLine(p, dS); }
   else {
     GetDStoParticleBy(fld[1], p, dS);
   }
@@ -4315,7 +4315,7 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
    ** with the state vector r1, to which the current particle is being transported, F1 = d(fP new)/d(r1)
    **/
 
-  if ((fQ == int_v(0)).isFull()) {
+  if (all_of(fQ == int_v(0))) {
     TransportLine(dS, dsdr, P, C, dsdr1, F, F1);
     return;
   }
@@ -4552,7 +4552,7 @@ void KFParticleSIMD::TransportCBM(float_v dS, float_v P[]) const
    ** \param[in] dS - transport parameter which defines the distance to which particle should be transported
    ** \param[out] P[8] - array, where transported parameters should be stored
    **/
-  if ((fQ == int_v(0)).isFull()) {
+  if (all_of(fQ == int_v(0))) {
     TransportLine(dS, P);
     return;
   }

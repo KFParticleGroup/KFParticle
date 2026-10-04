@@ -87,8 +87,10 @@ namespace KFP
       // ------------------------------------------------------
       // Basic Arithmetic
       // ------------------------------------------------------
-      KFP_SIMD_INLINE bool isFull() const { return _mm_testc_si128(m_data, _mm_set1_epi32(-1)); }
-      KFP_SIMD_INLINE bool isEmpty() const { return _mm_testz_si128(m_data, m_data); }
+
+      friend bool all_of(const Mask32_128& a) { return a.isFull(); }
+      friend bool any_of(const Mask32_128& a) { return !a.isEmpty(); }
+      friend bool none_of(const Mask32_128& a) { return a.isEmpty(); }
 
       friend Mask32_128 operator!(const Mask32_128& a)
       {
@@ -134,6 +136,9 @@ namespace KFP
       }
 
      private:
+      KFP_SIMD_INLINE bool isFull() const { return _mm_testc_si128(m_data, _mm_set1_epi32(-1)); }
+      KFP_SIMD_INLINE bool isEmpty() const { return _mm_testz_si128(m_data, m_data); }
+
       alignas(SimdSize) __m128i m_data;
     };
 
