@@ -678,71 +678,71 @@ inline float_v KFParticleSIMD::GetErrS() const { return sqrt(abs(GetCovariance(7
 inline float_v KFParticleSIMD::GetErrP() const
 {
   float_v par, err;
-  float_m mask = GetMomentum(par, err);
-  return select(mask, 1.e10f, err);
+  GetMomentum(par, err);
+  return err;
 }
 
 inline float_v KFParticleSIMD::GetErrPt() const
 {
   float_v par, err;
-  float_m mask = GetPt(par, err);
-  return select(mask, 1.e10f, err);
+  GetPt(par, err);
+  return err;
 }
 
 inline float_v KFParticleSIMD::GetErrEta() const
 {
   float_v par, err;
-  float_m mask = GetEta(par, err);
-  return select(mask, 1.e10f, err);
+  GetEta(par, err);
+  return err;
 }
 
 inline float_v KFParticleSIMD::GetErrPhi() const
 {
   float_v par, err;
-  float_m mask = GetPhi(par, err);
-  return select(mask, 1.e10f, err);
+  GetPhi(par, err);
+  return err;
 }
 
 inline float_v KFParticleSIMD::GetErrMomentum() const
 {
   float_v par, err;
-  float_m mask = GetMomentum(par, err);
-  return select(mask, 1.e10f, err);
+  GetMomentum(par, err);
+  return err;
 }
 
 inline float_v KFParticleSIMD::GetErrMass() const
 {
   float_v par, err;
-  float_m mask = KFParticleSIMD::GetMass(par, err);
-  return select(mask, 1.e10f, err);
+  KFParticleSIMD::GetMass(par, err);
+  return err;
 }
 
 inline float_v KFParticleSIMD::GetErrDecayLength() const
 {
   float_v par, err;
-  float_m mask = KFParticleSIMD::GetDecayLength(par, err);
-  return select(mask, 1.e10f, err);
+  KFParticleSIMD::GetDecayLength(par, err);
+  return err;
 }
 
 inline float_v KFParticleSIMD::GetErrDecayLengthXY() const
 {
   float_v par, err;
-  float_m mask = KFParticleSIMD::GetDecayLengthXY(par, err);
-  return select(mask, 1.e10f, err);
+  KFParticleSIMD::GetDecayLengthXY(par, err);
+  return err;
 }
 
 inline float_v KFParticleSIMD::GetErrLifeTime() const
 {
   float_v par, err;
-  float_m mask = KFParticleSIMD::GetLifeTime(par, err);
-  return select(mask, 1.e10f, err);
+  KFParticleSIMD::GetLifeTime(par, err);
+  return err;
 }
 
 inline float_v KFParticleSIMD::GetErrR() const
 {
   float_v par, err;
-  float_m mask = KFParticleSIMD::GetR(par, err);
-  return select(mask, 1.e10f, err);
+  KFParticleSIMD::GetR(par, err);
+  return err;
 }
 
 inline float_m KFParticleSIMD::GetP(float_v& P, float_v& SigmaP) const
