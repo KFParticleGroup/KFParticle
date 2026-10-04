@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14.0 FATAL_ERROR)
 
 project(KFParticleLibrary)
 
@@ -26,15 +26,8 @@ macro(add_target_property _target _prop _value)
   endif(NOT _oldprop)
 endmacro(add_target_property)
 
-if (CMAKE_VERSION VERSION_LESS "3.8")
-if (NOT CMAKE_CXX_FLAGS MATCHES "-std=")
-  set (CMAKE_CXX_FLAGS "-std=c++17 ${CMAKE_CXX_FLAGS}")
-endif ()
-else ()
-  if (NOT DEFINED CMAKE_CXX_STANDARD AND NOT ${CMAKE_CXX_FLAGS} MATCHES "-std=")
-    set (CMAKE_CXX_STANDARD 17)
-  endif()
-endif ()
+set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS} ${ROOTSYS})
 
