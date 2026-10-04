@@ -58,15 +58,12 @@ namespace KFP
       Mask32_128() : m_data(_mm_setzero_si128()) {}
       Mask32_128(UninitializeTag) {}
       // Constructor to broadcast the same value into all elements:
+      Mask32_128(bool value) : m_data(value ? _mm_set1_epi32(-1) : _mm_setzero_si128()) {}
+
       Mask32_128(const Mask32_128& class_simd) = default;
 
       Mask32_128& operator=(const Mask32_128& class_simd) = default;
 
-      // ------------------------------------------------------
-      // Setter
-      // ------------------------------------------------------
-
-      void setTrue() { m_data = _mm_set1_epi32(-1); }
 
       // ------------------------------------------------------
       // Data member accessors
@@ -90,8 +87,10 @@ namespace KFP
       // ------------------------------------------------------
       // Basic Arithmetic
       // ------------------------------------------------------
-      KFP_SIMD_INLINE bool isFull() const { return _mm_testc_si128(m_data, _mm_set1_epi32(-1)); }
-      KFP_SIMD_INLINE bool isEmpty() const { return _mm_testz_si128(m_data, m_data); }
+
+      friend bool all_of(const Mask32_128& a) { return a.isFull(); }
+      friend bool any_of(const Mask32_128& a) { return !a.isEmpty(); }
+      friend bool none_of(const Mask32_128& a) { return a.isEmpty(); }
 
       friend Mask32_128 operator!(const Mask32_128& a)
       {
@@ -137,6 +136,9 @@ namespace KFP
       }
 
      private:
+      KFP_SIMD_INLINE bool isFull() const { return _mm_testc_si128(m_data, _mm_set1_epi32(-1)); }
+      KFP_SIMD_INLINE bool isEmpty() const { return _mm_testz_si128(m_data, m_data); }
+
       alignas(SimdSize) __m128i m_data;
     };
 

@@ -148,12 +148,12 @@ KFParticleSIMD::KFParticleSIMD(KFPTrack& Track, const Int_t* pdg)
   Double_t C[21];
 
   Track.XvYvZv(r);
-  for (Int_t i = 0; i < 3; i++) { fP[i] = r[i]; }
+  for (Int_t i = 0; i < 3; i++) { fP[i] = (float_v::value_type) r[i]; }
   Track.PxPyPz(r);
-  for (Int_t i = 0; i < 3; i++) { fP[i + 3] = r[i]; }
+  for (Int_t i = 0; i < 3; i++) { fP[i + 3] = (float_v::value_type) r[i]; }
   fQ = Track.Charge();
   Track.GetCovarianceXYZPxPyPz(C);
-  for (Int_t i = 0; i < 21; i++) { fC[i] = C[i]; }
+  for (Int_t i = 0; i < 21; i++) { fC[i] = (float_v::value_type) C[i]; }
 
   float_v mass = KFParticleDatabase::Instance()->GetMass(*pdg);
   Create(fP, fC, fQ, mass);
@@ -535,9 +535,9 @@ KFParticleSIMD::KFParticleSIMD(const KFPVertex& vertex)
   Double_t C[21];
 
   vertex.GetXYZ(r);
-  for (Int_t i = 0; i < 3; i++) { fP[i] = r[i]; }
+  for (Int_t i = 0; i < 3; i++) { fP[i] = (float_v::value_type) r[i]; }
   vertex.GetCovarianceMatrix(C);
-  for (Int_t i = 0; i < 21; i++) { fC[i] = C[i]; }
+  for (Int_t i = 0; i < 21; i++) { fC[i] = (float_v::value_type) C[i]; }
   fChi2 = vertex.GetChi2();
   fNDF  = 2 * vertex.GetNContributors() - 3;
   fQ    = int_v(0);
@@ -1883,9 +1883,9 @@ void KFParticleSIMD::SetMassConstraint(float_v* mP, float_v* mC, float_v mJ[7][7
   for (Int_t i = 0; i < 7; i++) {
     for (Int_t j = 0; j < 7; j++) { mJ[i][j] = 0; }
   }
-  mJ[0][0] = 1.;
-  mJ[1][1] = 1.;
-  mJ[2][2] = 1.;
+  mJ[0][0] = 1.f;
+  mJ[1][1] = 1.f;
+  mJ[2][2] = 1.f;
 
   for (Int_t i = 3; i < 7; i++) {
     for (Int_t j = 3; j < 7; j++) { mJ[i][j] = dlx[j - 3] * dxx[i - 3]; }
@@ -1939,8 +1939,8 @@ void KFParticleSIMD::SetNonlinearMassConstraint(float_v mass)
 
   float_v mJ[7][7];
 
-  float_m trueMask(KFP::SIMD::UninitializeTag{});
-  trueMask.setTrue();
+  float_m trueMask(true);
+
   SetMassConstraint(fP, fC, mJ, mass, trueMask);
   fMassHypo       = mass;
   SumDaughterMass = mass;
@@ -2017,11 +2017,11 @@ void KFParticleSIMD::Construct(const KFParticleSIMD* vDaughters[], Int_t nDaught
 
     SumDaughterMass = float_v(0.f);
 
-    for (Int_t i = 0; i < 36; ++i) { fC[i] = 0.; }
-    fC[35] = 1.;
+    for (Int_t i = 0; i < 36; ++i) { fC[i] = 0.f; }
+    fC[35] = 1.f;
 
     fNDF  = -3;
-    fChi2 = 0.;
+    fChi2 = 0.f;
     fQ    = 0;
 
     for (Int_t itr = 0; itr < nDaughters; itr++) { AddDaughter(*vDaughters[itr]); }
@@ -2304,7 +2304,7 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
 
   const float_v LocalSmall = 1.e-8f;
   float_m mask             = (abs(bq) < LocalSmall);
-  if (!((!mask).isFull())) {
+  if (any_of(mask)) {
     dS = select(mask && float_m(p2 > 1.e-4f), (a + dz * pz) / p2, 0.f);
 
     dsdr[0] = select(mask && float_m(p2 > 1.e-4f), -px / p2, dsdr[0]);
@@ -2314,7 +2314,7 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
     dsdr[4] = select(mask && float_m(p2 > 1.e-4f), (dy * p2 - 2.f * py * (a + dz * pz)) / (p2 * p2), dsdr[4]);
     dsdr[5] = select(mask && float_m(p2 > 1.e-4f), (dz * p2 - 2.f * pz * (a + dz * pz)) / (p2 * p2), dsdr[5]);
 
-    if (mask.isFull()) { return dS; }
+    if (all_of(mask)) { return dS; }
   }
 
   dS = select(mask, dS, KFPMath::ATan2(abq, pt2 + bq * (dy * px - dx * py)) / bq);
@@ -2537,13 +2537,13 @@ void KFParticleSIMD::GetDStoCylinderBz(const float_v B, const float_v R, float_v
   d1         = sqrt(d1);
 
   // find two points of closest approach in XY plane
-  if (!((!isStraight).isEmpty())) {
+  if (any_of(!isStraight)) {
     dS[0] = select(!isStraight,
                    KFPMath::ATan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS[0]);
     dS[1] = select(!isStraight,
                    KFPMath::ATan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS[1]);
   }
-  if (!(isStraight.isEmpty())) {
+  if (any_of(isStraight)) {
     dS[0] = select(isStraight && (pt12 > 0.f), (k11 * c1 + k21 * d1) / (-k21 * c1), dS[0]);
     dS[1] = select(isStraight && (pt12 > 0.f), (k11 * c1 - k21 * d1) / (-k21 * c1), dS[1]);
   }
@@ -2592,7 +2592,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
-  if (isStraight1.isFull() && isStraight2.isFull()) {
+  if (all_of(isStraight1) && all_of(isStraight2)) {
     GetDStoParticleLine(p, dS, dsdr);
     return;
   }
@@ -2717,7 +2717,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   }
 
   // find two points of closest approach in XY plane
-  if (!((!isStraight1).isEmpty())) {
+  if (any_of(!isStraight1)) {
     dS1[0] = select(!isStraight1,
                     KFPMath::ATan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[0]);
     dS1[1] =
@@ -2748,7 +2748,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
       dS1dR2[1][iP] = select(!isStraight1, 1 / bq1 * 1 / (b * b + a * a) * (dadr2 * b - dbdr2 * a), dS1dR2[1][iP]);
     }
   }
-  if (!((!isStraight2).isEmpty())) {
+  if (any_of(!isStraight2)) {
     dS2[0] = select(!isStraight2,
                     KFPMath::ATan2((bq2 * k12 * c2 + k22 * d2 * bq2), (bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[0]);
     dS2[1] =
@@ -2779,7 +2779,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
       dS2dR2[1][iP] = select(!isStraight2, 1 / bq2 * 1 / (b * b + a * a) * (dadr2 * b - dbdr2 * a), dS2dR2[1][iP]);
     }
   }
-  if (!(isStraight1.isEmpty())) {
+  if (any_of(isStraight1)) {
     dS1[0] = select(isStraight1 && (pt12 > 0.f), (k11 * c1 + k21 * d1) / (-k21 * c1), dS1[0]);
     dS1[1] = select(isStraight1 && (pt12 > 0.f), (k11 * c1 - k21 * d1) / (-k21 * c1), dS1[1]);
 
@@ -2807,7 +2807,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
       dS1dR2[1][iP] = select(isStraight1 && (pt12 > 0.f), dadr2 / b - dbdr2 * a / (b * b), dS1dR2[1][iP]);
     }
   }
-  if (!(isStraight2.isEmpty())) {
+  if (any_of(isStraight2)) {
     dS2[0] = select(isStraight2 && (pt22 > 0.f), (k12 * c2 + k22 * d2) / (-k22 * c2), dS2[0]);
     dS2[1] = select(isStraight2 && (pt22 > 0.f), (k12 * c2 - k22 * d2) / (-k22 * c2), dS2[1]);
 
@@ -3300,7 +3300,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
-  if (isStraight1.isFull() && isStraight2.isFull()) {
+  if (all_of(isStraight1) && all_of(isStraight2)) {
     GetDStoParticleLine(p, dS);
     return;
   }
@@ -3354,25 +3354,25 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   d2         = sqrt(d2);
 
   // find two points of closest approach in XY plane
-  if (!((!isStraight1).isEmpty())) {
+  if (any_of(!isStraight1)) {
     dS1[0] = select(!isStraight1,
                     KFPMath::ATan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[0]);
     dS1[1] =
       select(!isStraight1, KFPMath::ATan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1,
              dS1[1]);
   }
-  if (!((!isStraight2).isEmpty())) {
+  if (any_of(!isStraight2)) {
     dS2[0] = select(!isStraight2,
                     KFPMath::ATan2((bq2 * k12 * c2 + k22 * d2 * bq2), (bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[0]);
     dS2[1] =
       select(!isStraight2, KFPMath::ATan2((bq2 * k12 * c2 - k22 * d2 * bq2), (-bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2,
              dS2[1]);
   }
-  if (!(isStraight1.isEmpty())) {
+  if (any_of(isStraight1)) {
     dS1[0] = select(isStraight1 && (pt12 > 0.f), (k11 * c1 + k21 * d1) / (-k21 * c1), dS1[0]);
     dS1[1] = select(isStraight1 && (pt12 > 0.f), (k11 * c1 - k21 * d1) / (-k21 * c1), dS1[1]);
   }
-  if (!(isStraight2.isEmpty())) {
+  if (any_of(isStraight2)) {
     dS2[0] = select(isStraight2 && (pt22 > 0.f), (k12 * c2 + k22 * d2) / (-k22 * c2), dS2[0]);
     dS2[1] = select(isStraight2 && (pt22 > 0.f), (k12 * c2 - k22 * d2) / (-k22 * c2), dS2[1]);
   }
@@ -3846,7 +3846,7 @@ void KFParticleSIMD::GetDStoParticleCBM(const KFParticleSIMD& p, float_v dS[2], 
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
-  if (isStraight1.isFull() && isStraight2.isFull()) { GetDStoParticleLine(p, dS, dsdr); }
+  if (all_of(isStraight1) && all_of(isStraight2)) { GetDStoParticleLine(p, dS, dsdr); }
   else {
     GetDStoParticleBy(fld[1], p, dS, dsdr);
   }
@@ -3875,7 +3875,7 @@ void KFParticleSIMD::GetDStoParticleCBM(const KFParticleSIMD& p, float_v dS[2]) 
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
-  if (isStraight1.isFull() && isStraight2.isFull()) { GetDStoParticleLine(p, dS); }
+  if (all_of(isStraight1) && all_of(isStraight2)) { GetDStoParticleLine(p, dS); }
   else {
     GetDStoParticleBy(fld[1], p, dS);
   }
@@ -4047,12 +4047,12 @@ float_m KFParticleSIMD::GetDistanceFromVertexXY(const float_v vtx[], const float
   float_v py = mP[4];
   float_v pt = sqrt(px * px + py * py);
   float_v ex(0.f), ey(0.f);
-  float_m mask = (pt < float_v(1.e-4));
+  float_m mask = (pt < float_v(1.e-4f));
 
   pt  = select(mask, 1.f, pt);
   ex  = select(!mask, px / pt, ex);
   ey  = select(!mask, py / pt, ey);
-  val = select(mask, float_v(1.e4), val);
+  val = select(mask, float_v(1.e4f), val);
   val = select(!mask, dy * ex - dx * ey, val);
 
   float_v h0 = -ey;
@@ -4315,7 +4315,7 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
    ** with the state vector r1, to which the current particle is being transported, F1 = d(fP new)/d(r1)
    **/
 
-  if ((fQ == int_v(0)).isFull()) {
+  if (all_of(fQ == int_v(0))) {
     TransportLine(dS, dsdr, P, C, dsdr1, F, F1);
     return;
   }
@@ -4552,7 +4552,7 @@ void KFParticleSIMD::TransportCBM(float_v dS, float_v P[]) const
    ** \param[in] dS - transport parameter which defines the distance to which particle should be transported
    ** \param[out] P[8] - array, where transported parameters should be stored
    **/
-  if ((fQ == int_v(0)).isFull()) {
+  if (all_of(fQ == int_v(0))) {
     TransportLine(dS, P);
     return;
   }
