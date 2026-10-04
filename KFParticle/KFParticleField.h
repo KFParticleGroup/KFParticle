@@ -43,11 +43,11 @@ class KFParticleFieldValue {
  public:
   KFParticleFieldValue() : x(0.f), y(0.f), z(0.f) {};
 
-  float32_v x;  ///< Bx component of the magnetic field
-  float32_v y;  ///< By component of the magnetic field
-  float32_v z;  ///< Bz component of the magnetic field
+  float_v x;  ///< Bx component of the magnetic field
+  float_v y;  ///< By component of the magnetic field
+  float_v z;  ///< Bz component of the magnetic field
 
-  void Combine(KFParticleFieldValue& B, float32_v w)
+  void Combine(KFParticleFieldValue& B, float_v w)
   {
     /** Function allows to combine the current magntic field measurement with
      *another measurement
@@ -97,15 +97,15 @@ class KFParticleFieldRegion {
     for (int i = 0; i < 10; i++) { fField[i] = field[i]; }
   }
 
-  KFParticleFieldValue Get(const float32_v z)
+  KFParticleFieldValue Get(const float_v z)
   {
     /** Returns a magnetic field vector calculated using current parametrisation
      *at the given Z coordinate.
      ** \param[in] z - value of the Z coordinate, where magnetic field should be
      *calculated.
      **/
-    float32_v dz  = (z - fField[9]);
-    float32_v dz2 = dz * dz;
+    float_v dz  = (z - fField[9]);
+    float_v dz2 = dz * dz;
     KFParticleFieldValue B;
     B.x = fField[0] + fField[1] * dz + fField[2] * dz2;
     B.y = fField[3] + fField[4] * dz + fField[5] * dz2;
@@ -113,8 +113,8 @@ class KFParticleFieldRegion {
     return B;
   }
 
-  void Set(const KFParticleFieldValue& B0, const float32_v B0z, const KFParticleFieldValue& B1, const float32_v B1z,
-           const KFParticleFieldValue& B2, const float32_v B2z)
+  void Set(const KFParticleFieldValue& B0, const float_v B0z, const KFParticleFieldValue& B1, const float_v B1z,
+           const KFParticleFieldValue& B2, const float_v B2z)
   {
     /** Approximates the magnetic field with the parabolas using three points
      *along the particle trajectory.
@@ -125,19 +125,19 @@ class KFParticleFieldRegion {
      ** \param[in] B2 - magnetic field vector at the third point
      ** \param[in] B2z - Z position of the third point
      **/
-    fField[9]     = B0z;
-    float32_v dz1 = B1z - B0z, dz2 = B2z - B0z;
-    float32_v det = 1.f / (float32_v(dz1 * dz2 * (dz2 - dz1)));
-    float32_v w21 = -dz2 * det;
-    float32_v w22 = dz1 * det;
-    float32_v w11 = -dz2 * w21;
-    float32_v w12 = -dz1 * w22;
+    fField[9]   = B0z;
+    float_v dz1 = B1z - B0z, dz2 = B2z - B0z;
+    float_v det = 1.f / (float_v(dz1 * dz2 * (dz2 - dz1)));
+    float_v w21 = -dz2 * det;
+    float_v w22 = dz1 * det;
+    float_v w11 = -dz2 * w21;
+    float_v w12 = -dz1 * w22;
 
-    float32_v dB1 = B1.x - B0.x;
-    float32_v dB2 = B2.x - B0.x;
-    fField[0]     = B0.x;
-    fField[1]     = dB1 * w11 + dB2 * w12;
-    fField[2]     = dB1 * w21 + dB2 * w22;
+    float_v dB1 = B1.x - B0.x;
+    float_v dB2 = B2.x - B0.x;
+    fField[0]   = B0.x;
+    fField[1]   = dB1 * w11 + dB2 * w12;
+    fField[2]   = dB1 * w21 + dB2 * w22;
 
     dB1       = B1.y - B0.y;
     dB2       = B2.y - B0.y;
@@ -152,7 +152,7 @@ class KFParticleFieldRegion {
     fField[8] = dB1 * w21 + dB2 * w22;
   }
 
-  void Set(const KFParticleFieldValue& B0, const float32_v B0z, const KFParticleFieldValue& B1, const float32_v B1z)
+  void Set(const KFParticleFieldValue& B0, const float_v B0z, const KFParticleFieldValue& B1, const float_v B1z)
   {
     /** Approximates the magnetic field with the strainght line using two
      *points.
@@ -161,14 +161,14 @@ class KFParticleFieldRegion {
      ** \param[in] B1 - magnetic field vector at the second point
      ** \param[in] B1z - Z position of the second point
      **/
-    fField[9]     = B0z;
-    float32_v dzi = 1.f / (float32_v(B1z - B0z));
-    fField[0]     = B0.x;
-    fField[3]     = B0.y;
-    fField[6]     = B0.z;
-    fField[1]     = (B1.x - B0.x) * dzi;
-    fField[4]     = (B1.y - B0.y) * dzi;
-    fField[7]     = (B1.z - B0.z) * dzi;
+    fField[9]   = B0z;
+    float_v dzi = 1.f / (float_v(B1z - B0z));
+    fField[0]   = B0.x;
+    fField[3]   = B0.y;
+    fField[6]   = B0.z;
+    fField[1]   = (B1.x - B0.x) * dzi;
+    fField[4]   = (B1.y - B0.y) * dzi;
+    fField[7]   = (B1.z - B0.z) * dzi;
     fField[2] = fField[5] = fField[8] = 0.f;
   }
 
@@ -208,7 +208,7 @@ class KFParticleFieldRegion {
    ** By(z) = cy0 + cy1*(z-z0) + cy2*(z-z0)^2 \n
    ** Bz(z) = cz0 + cz1*(z-z0) + cz2*(z-z0)^2
    **/
-  float32_v fField[10];
+  float_v fField[10];
 };
 
 #endif

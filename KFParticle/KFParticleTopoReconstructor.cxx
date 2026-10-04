@@ -84,7 +84,7 @@ void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker, vector<int
   fParticles.clear();
   int iOTr = 0;  // index in out array
 
-  float32_v alpha(Vc::Zero);
+  float_v alpha(Vc::Zero);
   int nElements = 0;
 
   for (int iTr = 0; iTr < nTracks; iTr++) {
@@ -537,14 +537,14 @@ void KFParticleTopoReconstructor::TransportPVTracksToPrimVertex()
    ** primary vertex.
    **/
   alignas(SimdSize) float pointArray[3][SimdLen];
-  float32_v point[3];
+  float_v point[3];
   KFParticleSIMD tmpPart;
 
   for (int iTV = 2; iTV < 4; iTV++) {
     unsigned int NTr = fTracks[iTV].Size();
     for (unsigned int iTr = 0; iTr < NTr; iTr += SimdLen) {
-      const int32_v& pdg     = reinterpret_cast<const int32_v&>(fTracks[iTV].PDG()[iTr]);
-      const int32_v& pvIndex = reinterpret_cast<const int32_v&>(fTracks[iTV].PVIndex()[iTr]);
+      const int_v& pdg     = reinterpret_cast<const int_v&>(fTracks[iTV].PDG()[iTr]);
+      const int_v& pvIndex = reinterpret_cast<const int_v&>(fTracks[iTV].PVIndex()[iTr]);
 
       tmpPart.Load(fTracks[iTV], iTr, pdg);
 
@@ -580,18 +580,18 @@ void KFParticleTopoReconstructor::GetChiToPrimVertex(KFParticleSIMD* pv, const i
   for (int iTV = 0; iTV < 2; iTV++) {
     unsigned int NTr = fTracks[iTV].Size();
     for (unsigned int iTr = 0; iTr < NTr; iTr += SimdLen) {
-      int32_v trackIndex = int32_v::indicesSequence(iTr);
-      const int32_v& pdg = reinterpret_cast<const int32_v&>(fTracks[iTV].PDG()[iTr]);
+      int_v trackIndex = int_v::indicesSequence(iTr);
+      const int_v& pdg = reinterpret_cast<const int_v&>(fTracks[iTV].PDG()[iTr]);
       tmpPart.Create(fTracks[iTV], trackIndex, pdg);
 
-      float32_v& chi2 = reinterpret_cast<float32_v&>(fChiToPrimVtx[iTV][iTr]);
-      chi2            = select(trackIndex < NTr, 10000.f, chi2);
+      float_v& chi2 = reinterpret_cast<float_v&>(fChiToPrimVtx[iTV][iTr]);
+      chi2          = select(trackIndex < NTr, 10000.f, chi2);
 
       for (int iPV = 0; iPV < nPV; iPV++) {
-        const float32_v point[3] = {pv[iPV].X(), pv[iPV].Y(), pv[iPV].Z()};
+        const float_v point[3] = {pv[iPV].X(), pv[iPV].Y(), pv[iPV].Z()};
         tmpPart.TransportToPoint(point);
-        const float32_v& chiVec = tmpPart.GetDeviationFromVertex(pv[iPV]);
-        chi2                    = select((chi2 > chiVec) && (trackIndex < NTr), chiVec, chi2);
+        const float_v& chiVec = tmpPart.GetDeviationFromVertex(pv[iPV]);
+        chi2                  = select((chi2 > chiVec) && (trackIndex < NTr), chiVec, chi2);
       }
     }
   }

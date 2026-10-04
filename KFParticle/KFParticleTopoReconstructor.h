@@ -382,6 +382,6 @@ class KFParticleTopoReconstructor {
   Stopwatch timer;  ///< Timer.
 #endif              // USE_TIMERS
 
-} __attribute__((aligned(sizeof(float32_v))));  // class KFParticleTopoReconstructor
+} __attribute__((aligned(sizeof(float_v))));  // class KFParticleTopoReconstructor
 
 #endif  // KFParticleTopoReconstructor_H

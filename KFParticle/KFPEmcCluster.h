@@ -73,8 +73,8 @@ class KFPEmcCluster {
   { fC[iC][iTr] = value; }  ///< Sets the "value" of the element of covariance matrix "iC" of the
   ///< cluster with index "iTr".
 
-  void SetParameter(const float32_v& value, int iP, int iTr);
-  void SetCovariance(const float32_v& value, int iC, int iTr);
+  void SetParameter(const float_v& value, int iP, int iTr);
+  void SetCovariance(const float_v& value, int iC, int iTr);
 
   void SetId(int value, int iTr) { fId[iTr] = value; }  ///< Sets the "value" of the id of the cluster with index "iTr".
 

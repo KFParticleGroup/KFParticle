@@ -20,15 +20,15 @@ namespace KFP
 {
   namespace SIMD
   {
-
-    using simd_mask = Mask32_128;
-
-    using simd_float = Float32_128;
-    static_assert(std::is_same<simd_float::value_type, float>::value,
+    using float_v = Float32_128;
+    static_assert(std::is_same<float_v::value_type, float>::value,
                   "[Error]: Invalid value type for SSE float SimdClass.");
 
-    using simd_int = Int32_128;
-    static_assert(std::is_same<simd_int::value_type, int>::value, "[Error]: Invalid value type for SSE int SimdClass.");
+    using int_v = Int32_128;
+    static_assert(std::is_same<int_v::value_type, int>::value, "[Error]: Invalid value type for SSE int SimdClass.");
+
+    using float_m = Mask32_128;
+    using int_m   = Mask32_128;
 
     KFP_SIMD_INLINE Int32_128 toInt(const Float32_128& a) { return _mm_cvtps_epi32(a.simd()); }
     KFP_SIMD_INLINE Float32_128 toFloat(const Int32_128& a) { return _mm_cvtepi32_ps(a.simd()); }

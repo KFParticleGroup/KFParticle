@@ -153,8 +153,8 @@ class KFPTrackVector {
   { fC[iC][iTr] = value; }  ///< Sets the "value" of the element of covariance matrix "iC" of the track
   ///< with index "iTr".
 
-  void SetParameter(const float32_v& value, int iP, int iTr);
-  void SetCovariance(const float32_v& value, int iC, int iTr);
+  void SetParameter(const float_v& value, int iP, int iTr);
+  void SetCovariance(const float_v& value, int iC, int iTr);
 
 #ifdef NonhomogeneousField
   void SetFieldCoefficient(float value, int iP, int iTr)
@@ -323,7 +323,7 @@ class KFPTrackVector {
   void AddBe7() { fNBe7++; }      ///< Increases by one index of the last Be7.
   void AddSigma() { fNSigma++; }  ///< Increases by one index of the last Sigma.
 
-  void RotateXY(float32_v alpha, int firstElement);
+  void RotateXY(float_v alpha, int firstElement);
 
   void PrintTrack(int n);
   void Print();
@@ -539,10 +539,10 @@ class KFPTrackVector {
   }
 
   void* operator new(size_t size)
-  { return _mm_malloc(size, sizeof(float32_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
+  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
   ///< allocation
   void* operator new[](size_t size)
-  { return _mm_malloc(size, sizeof(float32_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
+  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
   ///< allocation
   void* operator new(size_t size, void* ptr)
   { return ::operator new(size, ptr); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
@@ -599,9 +599,9 @@ class KFPTrackVector {
   int fNLi7;    ///< Index of the last Li7.
   int fNBe7;    ///< Index of the last Be7.
   int fNSigma;  ///< Index of the last Sigma.
-} __attribute__((aligned(sizeof(float32_v))));
+} __attribute__((aligned(sizeof(float_v))));
 
-inline void KFPTrackVector::SetParameter(const float32_v& value, int iP, int iTr)
+inline void KFPTrackVector::SetParameter(const float_v& value, int iP, int iTr)
 {
   /** Copies the SIMD vector "value" to the parameter vector
    *KFPTrackVector::fP[iP]
@@ -614,7 +614,7 @@ inline void KFPTrackVector::SetParameter(const float32_v& value, int iP, int iTr
 
   // gather caused errors at XeonPhi, temporarly replaced with the simple
   // copying
-  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float32_v&>(fP[iP][iTr]) = value; }
+  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float_v&>(fP[iP][iTr]) = value; }
   else {
     for (int i = 0; i < SimdLen; i++) {
       if (iTr + i >= Size()) { continue; }
@@ -623,7 +623,7 @@ inline void KFPTrackVector::SetParameter(const float32_v& value, int iP, int iTr
   }
 }
 
-inline void KFPTrackVector::SetCovariance(const float32_v& value, int iC, int iTr)
+inline void KFPTrackVector::SetCovariance(const float_v& value, int iC, int iTr)
 {
   /** Copies the SIMD vector "value" to the element of the covariance matrix
    *vector KFPTrackVector::fC[iC]
@@ -636,7 +636,7 @@ inline void KFPTrackVector::SetCovariance(const float32_v& value, int iC, int iT
 
   // gather caused errors at XeonPhi, temporarly replaced with the simple
   // copying
-  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float32_v&>(fC[iC][iTr]) = value; }
+  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float_v&>(fC[iC][iTr]) = value; }
   else {
     for (int i = 0; i < SimdLen; i++) {
       if (iTr + i >= Size()) { continue; }
