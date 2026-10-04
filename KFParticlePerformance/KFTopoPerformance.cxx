@@ -1471,7 +1471,7 @@ void KFTopoPerformance::FillParticleParameters(
   M_t        = sqrt(Pt * Pt + fParteff.GetMass(iParticle) * fParteff.GetMass(iParticle)) - fParteff.GetMass(iParticle);
 
   KFParticleSIMD tempSIMDPart(TempPart);
-  float32_v l, dl;
+  float_v l, dl;
   KFParticleSIMD pv(fTopoReconstructor->GetPrimVertex(iPV));
   tempSIMDPart.GetDistanceToVertexLine(pv, l, dl);
 
@@ -1862,7 +1862,7 @@ void KFTopoPerformance::FillParticleParameters(
       const float mcPy = mcTrack.Py();
       const float mcPz = mcTrack.Pz();
 
-      float32_v decayVtx[3] = {mcX, mcY, mcZ};
+      float_v decayVtx[3] = {mcX, mcY, mcZ};
 
       KFParticleSIMD DaughterSIMD(Daughter);
       DaughterSIMD.TransportToPoint(decayVtx);
@@ -1897,14 +1897,14 @@ void KFTopoPerformance::FillParticleParameters(
 
         KFParticleSIMD daughters[2] = {d2, d1};
 
-        float32_v dS[2] = {0.f, 0.f};
-        float32_v dsdr[4][6];
+        float_v dS[2] = {0.f, 0.f};
+        float_v dsdr[4][6];
         for (int i1 = 0; i1 < 4; i1++) {
           for (int i2 = 0; i2 < 6; i2++) { dsdr[i1][i2] = 0.f; }
         }
 
         daughters[0].GetDStoParticle(daughters[1], dS, dsdr);
-        float32_v pD[2][8], cD[2][36], corrPD[2][36], corrCD[2][36];
+        float_v pD[2][8], cD[2][36], corrPD[2][36], corrCD[2][36];
 
         for (int iDR = 0; iDR < 2; iDR++) {
           for (int iPD = 0; iPD < 8; iPD++) {
@@ -1917,7 +1917,7 @@ void KFTopoPerformance::FillParticleParameters(
           }
         }
 
-        float32_v F[4][36];
+        float_v F[4][36];
         {
           for (int i1 = 0; i1 < 4; i1++) {
             for (int i2 = 0; i2 < 36; i2++) { F[i1][i2] = 0; }

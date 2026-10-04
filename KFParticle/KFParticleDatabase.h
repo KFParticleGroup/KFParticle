@@ -79,7 +79,7 @@ class KFParticleDatabase {
     return fMass[pdgIndex];
   }
 
-  float32_v GetMass(const int32_v& pdg) const
+  float_v GetMass(const int_v& pdg) const
   {
     /** Returns vector float variable with the mass of the stable particles with
      *the given PDG codes.
@@ -88,7 +88,7 @@ class KFParticleDatabase {
      ** \param[in] pdg - the input PDG codes of a set of particles in the
      *SIMD-vector format
      **/
-    int32_v pdgIndex(2);
+    int_v pdgIndex(2);
     pdgIndex = select(abs(pdg) == 11, 0, pdgIndex);
     pdgIndex = select(abs(pdg) == 13, 1, pdgIndex);
     pdgIndex = select(abs(pdg) == 19, 1, pdgIndex);
@@ -107,12 +107,12 @@ class KFParticleDatabase {
     pdgIndex = select(abs(pdg) == 3222, 14, pdgIndex);
     pdgIndex = select(abs(pdg) == 3312, 15, pdgIndex);
     pdgIndex = select(abs(pdg) == 3334, 16, pdgIndex);
-    float32_v mass;
+    float_v mass;
     mass.gather(fMass, pdgIndex);
     return mass;
   }
 
-  void GetMotherMass(const int32_v& pdg, float32_v& massMotherPDG, float32_v& massMotherPDGSigma) const
+  void GetMotherMass(const int_v& pdg, float_v& massMotherPDG, float_v& massMotherPDGSigma) const
   {
     /** Returns vector float variable with the mass of the short-lived particles
      *with the given PDG codes
@@ -125,7 +125,7 @@ class KFParticleDatabase {
      *peak
      **/
 
-    int32_v pdgIndex(0);
+    int_v pdgIndex(0);
     // pdgIndex = select(pdg ==  310     , 0, pdgIndex);
     pdgIndex = select(abs(pdg) == 3122, 1, pdgIndex);
     pdgIndex = select(abs(pdg) == 3312, 2, pdgIndex);

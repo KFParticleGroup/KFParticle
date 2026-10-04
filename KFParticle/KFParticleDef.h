@@ -35,30 +35,12 @@
 
 #define NInputSets 8
 
-using float32_v = KFP::SIMD::simd_float;
-using int32_v   = KFP::SIMD::simd_int;
-using mask32_v  = KFP::SIMD::simd_mask;
+using KFP::SIMD::float_m;
+using KFP::SIMD::float_v;
+using KFP::SIMD::int_m;
+using KFP::SIMD::int_v;
 using KFP::SIMD::SimdLen;
 using KFP::SIMD::SimdSize;
-
-using float_v = KFP::SIMD::simd_float;
-using int_v   = KFP::SIMD::simd_int;
-using mask_v  = KFP::SIMD::simd_mask;
-using uint_v  = KFP::SIMD::simd_int;
-
-// using ::Vc::float32_v;
-// using ::Vc::double_v;
-// using ::Vc::float32_v;
-// using ::Vc::int32_v;
-// using ::Vc::VectorAlignment;
-// using ::Vc::double_m;
-// using ::Vc::float_m;
-// using ::Vc::int_m;
-// using ::Vc::uint_m;
-// using ::Vc::atan2;
-// using ::Vc::asin;
-// using ::Vc::round;
-// using ::Vc::isfinite;
 
 #ifdef VC_VERSION_NUMBER
 #if VC_VERSION_NUMBER < VC_VERSION_CHECK(1, 0, 0)
@@ -85,7 +67,7 @@ typedef double Double_t;
 #endif
 
 #include "KFPSimdAllocator.h"
-typedef std::vector<float32_v, KFPSimdAllocator<float32_v>> kfvector_floatv;
+typedef std::vector<float_v, KFPSimdAllocator<float_v>> kfvector_floatv;
 
 typedef std::vector<float, KFPSimdAllocator<float>> kfvector_float;
 typedef std::vector<int, KFPSimdAllocator<int>> kfvector_int;
