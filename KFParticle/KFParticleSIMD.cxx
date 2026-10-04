@@ -148,12 +148,12 @@ KFParticleSIMD::KFParticleSIMD(KFPTrack& Track, const Int_t* pdg)
   Double_t C[21];
 
   Track.XvYvZv(r);
-  for (Int_t i = 0; i < 3; i++) { fP[i] = r[i]; }
+  for (Int_t i = 0; i < 3; i++) { fP[i] = (float_v::value_type) r[i]; }
   Track.PxPyPz(r);
-  for (Int_t i = 0; i < 3; i++) { fP[i + 3] = r[i]; }
+  for (Int_t i = 0; i < 3; i++) { fP[i + 3] = (float_v::value_type) r[i]; }
   fQ = Track.Charge();
   Track.GetCovarianceXYZPxPyPz(C);
-  for (Int_t i = 0; i < 21; i++) { fC[i] = C[i]; }
+  for (Int_t i = 0; i < 21; i++) { fC[i] = (float_v::value_type) C[i]; }
 
   float_v mass = KFParticleDatabase::Instance()->GetMass(*pdg);
   Create(fP, fC, fQ, mass);
@@ -535,9 +535,9 @@ KFParticleSIMD::KFParticleSIMD(const KFPVertex& vertex)
   Double_t C[21];
 
   vertex.GetXYZ(r);
-  for (Int_t i = 0; i < 3; i++) { fP[i] = r[i]; }
+  for (Int_t i = 0; i < 3; i++) { fP[i] = (float_v::value_type) r[i]; }
   vertex.GetCovarianceMatrix(C);
-  for (Int_t i = 0; i < 21; i++) { fC[i] = C[i]; }
+  for (Int_t i = 0; i < 21; i++) { fC[i] = (float_v::value_type) C[i]; }
   fChi2 = vertex.GetChi2();
   fNDF  = 2 * vertex.GetNContributors() - 3;
   fQ    = int_v(0);
@@ -1883,9 +1883,9 @@ void KFParticleSIMD::SetMassConstraint(float_v* mP, float_v* mC, float_v mJ[7][7
   for (Int_t i = 0; i < 7; i++) {
     for (Int_t j = 0; j < 7; j++) { mJ[i][j] = 0; }
   }
-  mJ[0][0] = 1.;
-  mJ[1][1] = 1.;
-  mJ[2][2] = 1.;
+  mJ[0][0] = 1.f;
+  mJ[1][1] = 1.f;
+  mJ[2][2] = 1.f;
 
   for (Int_t i = 3; i < 7; i++) {
     for (Int_t j = 3; j < 7; j++) { mJ[i][j] = dlx[j - 3] * dxx[i - 3]; }
@@ -2017,11 +2017,11 @@ void KFParticleSIMD::Construct(const KFParticleSIMD* vDaughters[], Int_t nDaught
 
     SumDaughterMass = float_v(0.f);
 
-    for (Int_t i = 0; i < 36; ++i) { fC[i] = 0.; }
-    fC[35] = 1.;
+    for (Int_t i = 0; i < 36; ++i) { fC[i] = 0.f; }
+    fC[35] = 1.f;
 
     fNDF  = -3;
-    fChi2 = 0.;
+    fChi2 = 0.f;
     fQ    = 0;
 
     for (Int_t itr = 0; itr < nDaughters; itr++) { AddDaughter(*vDaughters[itr]); }
@@ -4047,12 +4047,12 @@ float_m KFParticleSIMD::GetDistanceFromVertexXY(const float_v vtx[], const float
   float_v py = mP[4];
   float_v pt = sqrt(px * px + py * py);
   float_v ex(0.f), ey(0.f);
-  float_m mask = (pt < float_v(1.e-4));
+  float_m mask = (pt < float_v(1.e-4f));
 
   pt  = select(mask, 1.f, pt);
   ex  = select(!mask, px / pt, ex);
   ey  = select(!mask, py / pt, ey);
-  val = select(mask, float_v(1.e4), val);
+  val = select(mask, float_v(1.e4f), val);
   val = select(!mask, dy * ex - dx * ey, val);
 
   float_v h0 = -ey;

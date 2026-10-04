@@ -37,22 +37,17 @@ namespace KFP
       Float32_128() { m_data = _mm_setzero_ps(); }
       Float32_128(UninitializeTag) {}
       // Constructor to broadcast the same value into all elements:
+
       Float32_128(float val) { m_data = _mm_set1_ps(val); }
+      Float32_128(int val) { m_data = _mm_set1_ps(static_cast<float>(val)); }
+      Float32_128(double) = delete;
+
       Float32_128(const __m128& val_simd) { m_data = val_simd; }
       Float32_128(const float* val_ptr) { m_data = _mm_loadu_ps(val_ptr); }
       Float32_128(const Float32_128& class_simd) = default;
 
       // Assignment constructors:
-      Float32_128& operator=(float val)
-      {
-        m_data = _mm_set1_ps(val);
-        return *this;
-      }
-      Float32_128& operator=(const __m128& val_simd)
-      {
-        m_data = val_simd;
-        return *this;
-      }
+
       Float32_128& operator=(const Float32_128& class_simd) = default;
 
       // ------------------------------------------------------
