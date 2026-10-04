@@ -13,4 +13,4 @@ Emails: mithran@fias.uni-frankfurt.de
 
 #define KFP_SIMD_INLINE inline __attribute__((always_inline))
 
-#endif // !SIMD_MACROS_H
+#endif  // !SIMD_MACROS_H

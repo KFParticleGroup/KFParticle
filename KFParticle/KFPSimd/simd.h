@@ -25,4 +25,4 @@ Emails: mithran@fias.uni-frankfurt.de
 #include "Scalar/types.h"
 #endif
 
-#endif // !KFP_SIMD_H
+#endif  // !KFP_SIMD_H
