@@ -2236,7 +2236,7 @@ void KFParticleSIMD::GetDistanceToVertexLine(const KFParticleSIMD& Vertex, float
     //     ok = float_v(float_v(0)<dCos);
     //     dCos = float_v(ok & ( dCos ));
     //     dCos = sqrt(dCos);
-    *isParticleFromVertex = (*isParticleFromVertex) || (!(*isParticleFromVertex) && (cosV < 0.f));
+    *isParticleFromVertex = (*isParticleFromVertex) || (cosV < 0.f);
   }
 }
 

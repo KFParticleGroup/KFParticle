@@ -304,8 +304,7 @@ void KFParticlePVReconstructor::FindPrimaryClusters(int cutNDF)
 #ifdef CBM
 
       if (primVtx.GetNDF() >= cutNDF
-          && ((cluster.fTracks.size() > 0.1f * fNParticles && fNParticles > 30)
-              || fNParticles <= 30))  //at least 2 particles
+          && (fNParticles <= 30 || cluster.fTracks.size() > 0.1f * fNParticles))  //at least 2 particles
 #else
       if (primVtx.GetNDF() >= cutNDF)
 #endif
