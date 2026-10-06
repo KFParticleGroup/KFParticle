@@ -36,6 +36,10 @@ namespace KFP
     KFP_SIMD_INLINE Int32_128 reinterpretAsInt(const Float32_128& a) { return _mm_castps_si128(a.simd()); }
     KFP_SIMD_INLINE Float32_128 reinterpretAsFloat(const Int32_128& a) { return _mm_castsi128_ps(a.simd()); }
 
+    inline const int_v gkIndicesSequenceI(int_v::indicesSequenceTmp());
+
+    inline const float_v gkIndicesSequenceF(toFloat(gkIndicesSequenceI));
+
   }  // namespace SIMD
 }  // namespace KFP
 

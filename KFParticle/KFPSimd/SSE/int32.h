@@ -57,10 +57,8 @@ namespace KFP
       // ------------------------------------------------------
       // Factory methods
       // ------------------------------------------------------
-      KFP_SIMD_INLINE static Int32_128 indicesSequence(std::int32_t start)
-      { return Int32_128{_mm_add_epi32(_mm_setr_epi32(0, 1, 2, 3), _mm_set1_epi32(start))}; }
 
-      KFP_SIMD_INLINE static Int32_128 indicesSequence() { return Int32_128{_mm_setr_epi32(0, 1, 2, 3)}; }
+      KFP_SIMD_INLINE static Int32_128 indicesSequenceTmp() { return Int32_128{_mm_setr_epi32(0, 1, 2, 3)}; }
 
       // ------------------------------------------------------
       // Load and Store

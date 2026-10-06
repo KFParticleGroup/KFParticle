@@ -580,7 +580,7 @@ void KFParticleTopoReconstructor::GetChiToPrimVertex(KFParticleSIMD* pv, const i
   for (int iTV = 0; iTV < 2; iTV++) {
     unsigned int NTr = fTracks[iTV].Size();
     for (unsigned int iTr = 0; iTr < NTr; iTr += SimdLen) {
-      int_v trackIndex = int_v::indicesSequence(iTr);
+      int_v trackIndex = int_v(iTr) + KFP::SIMD::gkIndicesSequenceI;
       const int_v& pdg = reinterpret_cast<const int_v&>(fTracks[iTV].PDG()[iTr]);
       tmpPart.Create(fTracks[iTV], trackIndex, pdg);
 
