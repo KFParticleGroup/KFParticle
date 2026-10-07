@@ -20,9 +20,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-//#define NonhomogeneousField
-//#define HomogeneousField
-
 #ifndef KFPARTICLE_H
 #define KFPARTICLE_H
 

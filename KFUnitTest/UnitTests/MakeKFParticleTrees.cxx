@@ -1,5 +1,6 @@
 #include "ConfigConstants.h"
 #include "HeadersList.h"
+#include "KFParticle/KFParticle.h"
 #include "ParticleStructures/MCParticleStructure.h"
 #include "TFile.h"
 #include "TString.h"
@@ -29,7 +30,6 @@ void MakeKFParticleTrees()
 
   //get magnetic field from file......
 
-#define HomogeneousField
 #ifdef HomogeneousField  //ALICE
   std::cout << "HomogeneousField option is set" << std::endl;
 #endif

@@ -34,7 +34,6 @@ void MakeKFParticleTreesForRootInteractive()
 
   //get magnetic field from file......
 
-#define HomogeneousField
 #ifdef HomogeneousField  //ALICE
   std::cout << "HomogeneousField option is set" << std::endl;
 #endif
