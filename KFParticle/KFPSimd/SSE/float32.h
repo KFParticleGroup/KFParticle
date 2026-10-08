@@ -92,25 +92,12 @@ namespace KFP
       // ------------------------------------------------------
       // Gather and Scatter
       // ------------------------------------------------------
-      KFP_SIMD_INLINE Float32_128& gather(const float* val_ptr, const Int32_128& index)
+      KFP_SIMD_INLINE Float32_128& gatherTmp(const float* val_ptr, const Int32_128& index)
       {
         alignas(SimdSize) std::int32_t indices[SimdLen]{};  // Helper indices array
         index.copy_to(indices, std::experimental::vector_aligned);
         m_data = _mm_setr_ps(val_ptr[indices[0]], val_ptr[indices[1]], val_ptr[indices[2]], val_ptr[indices[3]]);
         return *this;
-      }
-      KFP_SIMD_INLINE void scatter(float* val_ptr, const Int32_128& index) const
-      {
-        alignas(SimdSize) float data[SimdLen]{};  // Helper data array
-        copy_to(data, std::experimental::vector_aligned);
-
-        alignas(SimdSize) std::int32_t indices[SimdLen]{};  // Helper indices array
-        index.copy_to(indices, std::experimental::vector_aligned);
-
-        val_ptr[indices[0]] = data[0];
-        val_ptr[indices[1]] = data[1];
-        val_ptr[indices[2]] = data[2];
-        val_ptr[indices[3]] = data[3];
       }
 
       // ------------------------------------------------------

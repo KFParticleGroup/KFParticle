@@ -89,26 +89,25 @@ class KFParticleDatabase {
      *SIMD-vector format
      **/
     int_v pdgIndex(2);
-    pdgIndex = select(abs(pdg) == 11, 0, pdgIndex);
-    pdgIndex = select(abs(pdg) == 13, 1, pdgIndex);
-    pdgIndex = select(abs(pdg) == 19, 1, pdgIndex);
-    pdgIndex = select(abs(pdg) == 211, 2, pdgIndex);
-    pdgIndex = select(abs(pdg) == 321, 3, pdgIndex);
-    pdgIndex = select(abs(pdg) == 2212, 4, pdgIndex);
-    pdgIndex = select(abs(pdg) == 1000010020, 5, pdgIndex);
-    pdgIndex = select(abs(pdg) == 1000010030, 6, pdgIndex);
-    pdgIndex = select(abs(pdg) == 1000020030, 7, pdgIndex);
-    pdgIndex = select(abs(pdg) == 1000020040, 8, pdgIndex);
-    pdgIndex = select(abs(pdg) == 1000020060, 9, pdgIndex);
-    pdgIndex = select(abs(pdg) == 1000030060, 10, pdgIndex);
-    pdgIndex = select(abs(pdg) == 1000030070, 11, pdgIndex);
-    pdgIndex = select(abs(pdg) == 1000040070, 12, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3112, 13, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3222, 14, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3312, 15, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3334, 16, pdgIndex);
-    float_v mass;
-    mass.gather(fMass, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 11, 0, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 13, 1, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 19, 1, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 211, 2, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 321, 3, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 2212, 4, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 1000010020, 5, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 1000010030, 6, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 1000020030, 7, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 1000020040, 8, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 1000020060, 9, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 1000030060, 10, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 1000030070, 11, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 1000040070, 12, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 3112, 13, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 3222, 14, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 3312, 15, pdgIndex);
+    pdgIndex     = select(abs(pdg) == 3334, 16, pdgIndex);
+    float_v mass = KFP::SIMD::gather(fMass, pdgIndex);
     return mass;
   }
 
@@ -135,8 +134,8 @@ class KFParticleDatabase {
     pdgIndex = select(abs(pdg) == 3006, 6, pdgIndex);
     pdgIndex = select(abs(pdg) == 3007, 7, pdgIndex);
 
-    massMotherPDG.gather(fMassSecPDG, pdgIndex);
-    massMotherPDGSigma.gather(fMassSecPDGSigma, pdgIndex);
+    massMotherPDG      = KFP::SIMD::gather(fMassSecPDG, pdgIndex);
+    massMotherPDGSigma = KFP::SIMD::gather(fMassSecPDGSigma, pdgIndex);
   }
 
   void GetMotherMass(const int pdg, float& massMotherPDG, float& massMotherPDGSigma) const

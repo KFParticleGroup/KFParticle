@@ -906,11 +906,11 @@ inline void KFParticleFinder::ConstructV0(KFPTrackVector* vTracks, int iTrTypePo
   float_m isPrimary = pvIndex > -1;
   int_v trackId;
   KFParticleSIMD posDaughter(vTracks[iTrTypePos], idPosDaughters, daughterPosPDG);
-  trackId.gather(&(vTracks[iTrTypePos].Id()[0]), idPosDaughters);
+  trackId = KFP::SIMD::gather(&(vTracks[iTrTypePos].Id()[0]), idPosDaughters);
   posDaughter.SetId(trackId);
 
   KFParticleSIMD negDaughter(vTracks[iTrTypeNeg], idNegDaughters, daughterNegPDG);
-  trackId.gather(&(vTracks[iTrTypeNeg].Id()[0]), idNegDaughters);
+  trackId = KFP::SIMD::gather(&(vTracks[iTrTypeNeg].Id()[0]), idNegDaughters);
   negDaughter.SetId(trackId);
 #ifdef CBM
   float_v ds[2] = {0.f, 0.f};
@@ -2243,7 +2243,7 @@ void KFParticleFinder::ConstructTrackV0Cand(
   float_m isPrimary = (pvIndex > -1);
 
   int_v trackId(KFP::SIMD::UninitializeTag{});
-  trackId.gather(&(vTracks.Id()[0]), idTracks);
+  trackId = KFP::SIMD::gather(&(vTracks.Id()[0]), idTracks);
 
   KFParticleSIMD V0(vV0, nElements);
   KFParticleSIMD track(vTracks, idTracks, trackPDG);
