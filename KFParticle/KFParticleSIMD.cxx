@@ -290,14 +290,14 @@ void KFParticleSIMD::Create(KFPTrackVector& track, int_v& index, const int_v& pd
    ** \param[in] pdg - a SIMD vector with an individual pdg hypothesis for each element
    **/
 
-  for (int i = 0; i < 6; i++) { fP[i].gather(&(track.Parameter(i)[0]), index); }
-  for (int i = 0; i < 21; i++) { fC[i].gather(&(track.Covariance(i)[0]), index); }
+  for (int i = 0; i < 6; i++) { fP[i] = KFP::SIMD::gather(&(track.Parameter(i)[0]), index); }
+  for (int i = 0; i < 21; i++) { fC[i] = KFP::SIMD::gather(&(track.Covariance(i)[0]), index); }
 #ifdef NonhomogeneousField
-  for (int i = 0; i < 10; i++) { fField.fField[i].gather(&(track.FieldCoefficient(i)[0]), index); }
+  for (int i = 0; i < 10; i++) { fField.fField[i] = KFP::SIMD::gather(&(track.FieldCoefficient(i)[0]), index); }
 #endif
 
   //   fPDG.gather(&(track.PDG()[0]), index);
-  fQ.gather(&(track.Q()[0]), index);
+  fQ = KFP::SIMD::gather(&(track.Q()[0]), index);
 
   float_v mass = KFParticleDatabase::Instance()->GetMass(pdg);
   Create(fP, fC, fQ, mass);
@@ -349,8 +349,8 @@ void KFParticleSIMD::Create(KFPEmcCluster& track, int_v& index, const KFParticle
    ** \param[in] vertexGuess - vertex guess for estimation of the momentum of created gamma particles
    **/
 
-  for (int i = 0; i < 3; i++) { fP[i].gather(&(track.Parameter(i)[0]), index); }
-  fP[6].gather(&(track.Parameter(3)[0]), index);
+  for (int i = 0; i < 3; i++) { fP[i] = KFP::SIMD::gather(&(track.Parameter(i)[0]), index); }
+  fP[6] = KFP::SIMD::gather(&(track.Parameter(3)[0]), index);
 
   const float_v& dx  = fP[0] - vertexGuess.fP[0];
   const float_v& dy  = fP[1] - vertexGuess.fP[1];
@@ -367,7 +367,7 @@ void KFParticleSIMD::Create(KFPEmcCluster& track, int_v& index, const KFParticle
   fP[5] = dz / dl * fP[6];
 
   float_v V[10];
-  for (int i = 0; i < 10; i++) { V[i].gather(&(track.Covariance(i)[0]), index); }
+  for (int i = 0; i < 10; i++) { V[i] = KFP::SIMD::gather(&(track.Covariance(i)[0]), index); }
 
   float_v J[7][4];
   for (int i = 0; i < 7; i++) {

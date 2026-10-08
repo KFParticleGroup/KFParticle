@@ -33,9 +33,9 @@ void KFPEmcCluster::SetParameter(const float_v& value, int iP, int iTr)
    **/
   if ((iTr + SimdLen) < Size()) { reinterpret_cast<float_v&>(fP[iP][iTr]) = value; }
   else {
-    int_v index = KFP::SIMD::gkIndicesSequenceI;
-    index       = select(index < (Size() - iTr), index, 0);
-    (reinterpret_cast<float_v&>(fP[iP][iTr])).gather(reinterpret_cast<const float*>(&value), index);
+    int_v index                               = KFP::SIMD::gkIndicesSequenceI;
+    index                                     = select(index < (Size() - iTr), index, 0);
+    (reinterpret_cast<float_v&>(fP[iP][iTr])) = KFP::SIMD::gather(reinterpret_cast<const float*>(&value), index);
   }
 }
 void KFPEmcCluster::SetCovariance(const float_v& value, int iC, int iTr)
@@ -48,9 +48,9 @@ void KFPEmcCluster::SetCovariance(const float_v& value, int iC, int iTr)
    **/
   if ((iTr + SimdLen) < Size()) { reinterpret_cast<float_v&>(fC[iC][iTr]) = value; }
   else {
-    int_v index = KFP::SIMD::gkIndicesSequenceI;
-    index       = select(index < (Size() - iTr), index, 0);
-    (reinterpret_cast<float_v&>(fC[iC][iTr])).gather(reinterpret_cast<const float*>(&value), index);
+    int_v index                               = KFP::SIMD::gkIndicesSequenceI;
+    index                                     = select(index < (Size() - iTr), index, 0);
+    (reinterpret_cast<float_v&>(fC[iC][iTr])) = KFP::SIMD::gather(reinterpret_cast<const float*>(&value), index);
   }
 }
 
@@ -96,36 +96,36 @@ void KFPEmcCluster::SetTracks(const KFPEmcCluster& track, const kfvector_int& tr
     for (iElement = 0; iElement < nIndexes - SimdLen; iElement += SimdLen) {
       const int_v& index = reinterpret_cast<const int_v&>(trackIndex[iElement]);
       float_v& vec       = reinterpret_cast<float_v&>(fP[iP][iElement]);
-      vec.gather(&(track.fP[iP][0]), index);
+      vec                = KFP::SIMD::gather(&(track.fP[iP][0]), index);
     }
     const int_v& index           = reinterpret_cast<const int_v&>(trackIndex[iElement]);
     float_v& vec                 = reinterpret_cast<float_v&>(fP[iP][iElement]);
     const int_v correctedIndices = select(int_v(iElement) + KFP::SIMD::gkIndicesSequenceI < nIndexes, index, 0);
-    vec.gather(&(track.fP[iP][0]), correctedIndices);
+    vec                          = KFP::SIMD::gather(&(track.fP[iP][0]), correctedIndices);
   }
   for (int iC = 0; iC < 10; iC++) {
     int iElement = 0;
     for (iElement = 0; iElement < nIndexes - SimdLen; iElement += SimdLen) {
       const int_v& index = reinterpret_cast<const int_v&>(trackIndex[iElement]);
       float_v& vec       = reinterpret_cast<float_v&>(fC[iC][iElement]);
-      vec.gather(&(track.fC[iC][0]), index);
+      vec                = KFP::SIMD::gather(&(track.fC[iC][0]), index);
     }
     const int_v& index           = reinterpret_cast<const int_v&>(trackIndex[iElement]);
     float_v& vec                 = reinterpret_cast<float_v&>(fC[iC][iElement]);
     const int_v correctedIndices = select(int_v(iElement) + KFP::SIMD::gkIndicesSequenceI < nIndexes, index, 0);
-    vec.gather(&(track.fC[iC][0]), correctedIndices);
+    vec                          = KFP::SIMD::gather(&(track.fC[iC][0]), correctedIndices);
   }
   {
     int iElement = 0;
     for (iElement = 0; iElement < nIndexes - SimdLen; iElement += SimdLen) {
       const int_v& index = reinterpret_cast<const int_v&>(trackIndex[iElement]);
       int_v& vec         = reinterpret_cast<int_v&>(fId[iElement]);
-      vec.gather(&(track.fId[0]), index);
+      vec                = KFP::SIMD::gather(&(track.fId[0]), index);
     }
     const int_v& index           = reinterpret_cast<const int_v&>(trackIndex[iElement]);
     int_v& vec                   = reinterpret_cast<int_v&>(fId[iElement]);
     const int_v correctedIndices = select(int_v(iElement) + KFP::SIMD::gkIndicesSequenceI < nIndexes, index, 0);
-    vec.gather(&(track.fId[0]), correctedIndices);
+    vec                          = KFP::SIMD::gather(&(track.fId[0]), correctedIndices);
   }
 }
 
