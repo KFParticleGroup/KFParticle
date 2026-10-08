@@ -63,6 +63,7 @@ namespace KFP
       // ------------------------------------------------------
       // Load and Store
       // ------------------------------------------------------
+     private:
       // Member function to load from array (unaligned)
       KFP_SIMD_INLINE Int32_128& loadUnaligned(const std::int32_t* val_ptr)
       {
@@ -82,23 +83,41 @@ namespace KFP
       KFP_SIMD_INLINE void store(std::int32_t* val_ptr) const
       { _mm_store_si128(reinterpret_cast<__m128i*>(val_ptr), m_data); }
 
+     public:
+      template<class Flags>
+      KFP_SIMD_INLINE void copy_from(const std::int32_t* mem, Flags)
+      {
+        if constexpr (std::is_same_v<Flags, std::experimental::vector_aligned_tag>) { load(mem); }
+        else {
+          loadUnaligned(mem);
+        }
+      }
+      template<class Flags>
+      KFP_SIMD_INLINE void copy_to(std::int32_t* mem, Flags) const
+      {
+        if constexpr (std::is_same_v<Flags, std::experimental::vector_aligned_tag>) { store(mem); }
+        else {
+          storeUnaligned(mem);
+        }
+      }
+
       // ------------------------------------------------------
       // Gather and Scatter
       // ------------------------------------------------------
       KFP_SIMD_INLINE Int32_128& gather(const std::int32_t* val_ptr, const Int32_128& index)
       {
         alignas(SimdSize) std::int32_t indices[SimdLen]{};  // Helper indices array
-        index.store(indices);
+        index.copy_to(indices, std::experimental::vector_aligned);
         m_data = _mm_setr_epi32(val_ptr[indices[0]], val_ptr[indices[1]], val_ptr[indices[2]], val_ptr[indices[3]]);
         return *this;
       }
       KFP_SIMD_INLINE void scatter(std::int32_t* val_ptr, const Int32_128& index) const
       {
         alignas(SimdSize) std::int32_t data[SimdLen]{};  // Helper data array
-        store(data);
+        copy_to(data, std::experimental::vector_aligned);
 
         alignas(SimdSize) int indices[SimdLen]{};  // Helper indices array
-        index.store(indices);
+        index.copy_to(indices, std::experimental::vector_aligned);
 
         val_ptr[indices[0]] = data[0];
         val_ptr[indices[1]] = data[1];
@@ -122,7 +141,7 @@ namespace KFP
       {
         assert((index >= 0) && (index < int(SimdLen)));
         alignas(SimdSize) std::int32_t data[SimdLen]{};  // Helper array
-        store(data);
+        copy_to(data, std::experimental::vector_aligned);
         return data[index];
       }
 

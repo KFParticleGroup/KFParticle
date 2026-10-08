@@ -556,9 +556,9 @@ void KFParticleTopoReconstructor::TransportPVTracksToPrimVertex()
         pointArray[1][iV] = fPV[iPV].Y()[0];
         pointArray[2][iV] = fPV[iPV].Z()[0];
       }
-      point[0].load(pointArray[0]);
-      point[1].load(pointArray[1]);
-      point[2].load(pointArray[2]);
+      point[0].copy_from(pointArray[0], std::experimental::vector_aligned);
+      point[1].copy_from(pointArray[1], std::experimental::vector_aligned);
+      point[2].copy_from(pointArray[2], std::experimental::vector_aligned);
 
       tmpPart.TransportToPoint(point);
 

@@ -115,11 +115,11 @@ KFParticleSIMD::KFParticleSIMD(const KFPTrack* track, Int_t PID)
     ndfArray[iPart]  = track[iPart].GetNDF();
   }
 
-  for (int i = 0; i < 6; i++) { fP[i].load(pArray[i]); }
-  for (int i = 0; i < 21; i++) { fC[i].load(cArray[i]); }
-  fQ.load(qArray);
-  fChi2.load(chi2Array);
-  fNDF.load(ndfArray);
+  for (int i = 0; i < 6; i++) { fP[i].copy_from(pArray[i], std::experimental::vector_aligned); }
+  for (int i = 0; i < 21; i++) { fC[i].copy_from(cArray[i], std::experimental::vector_aligned); }
+  fQ.copy_from(qArray, std::experimental::vector_aligned);
+  fChi2.copy_from(chi2Array, std::experimental::vector_aligned);
+  fNDF.copy_from(ndfArray, std::experimental::vector_aligned);
 
   float_v mass = KFParticleDatabase::Instance()->GetMass(PID);
   Create(fP, fC, fQ, mass);
@@ -247,11 +247,11 @@ void KFParticleSIMD::Create(KFPTrack* Track[], int NTracks, const Int_t* pdg)
     ndfArray[iPart]  = Track[iEntry]->GetNDF();
   }
 
-  for (int i = 0; i < 6; i++) { fP[i].load(pArray[i]); }
-  for (int i = 0; i < 21; i++) { fC[i].load(cArray[i]); }
-  fQ.load(qArray);
-  fChi2.load(chi2Array);
-  fNDF.load(ndfArray);
+  for (int i = 0; i < 6; i++) { fP[i].copy_from(pArray[i], std::experimental::vector_aligned); }
+  for (int i = 0; i < 21; i++) { fC[i].copy_from(cArray[i], std::experimental::vector_aligned); }
+  fQ.copy_from(qArray, std::experimental::vector_aligned);
+  fChi2.copy_from(chi2Array, std::experimental::vector_aligned);
+  fNDF.copy_from(ndfArray, std::experimental::vector_aligned);
 
   float_v mass = KFParticleDatabase::Instance()->GetMass(*pdg);
   Create(fP, fC, fQ, mass);
@@ -555,46 +555,46 @@ void KFParticleSIMD::SetOneEntry(int iEntry, KFParticleSIMD& part, int iEntryPar
   alignas(SimdSize) int32_t intArray[SimdLen]{0};
 
   for (int i = 0; i < 7; ++i) {
-    fP[i].store(floatArray);
+    fP[i].copy_to(floatArray, std::experimental::vector_aligned);
     floatArray[iEntry] = part.Parameters()[i][iEntryPart];
-    fP[i].load(floatArray);
+    fP[i].copy_from(floatArray, std::experimental::vector_aligned);
   }
   for (int i = 0; i < 36; ++i) {
-    fC[i].store(floatArray);
+    fC[i].copy_to(floatArray, std::experimental::vector_aligned);
     floatArray[iEntry] = part.CovarianceMatrix()[i][iEntryPart];
-    fC[i].load(floatArray);
+    fC[i].copy_from(floatArray, std::experimental::vector_aligned);
   }
 
-  fChi2.store(floatArray);
+  fChi2.copy_to(floatArray, std::experimental::vector_aligned);
   floatArray[iEntry] = part.Chi2()[iEntryPart];
   ;
-  fChi2.load(floatArray);
+  fChi2.copy_from(floatArray, std::experimental::vector_aligned);
 
-  fQ.store(intArray);
+  fQ.copy_to(intArray, std::experimental::vector_aligned);
   intArray[iEntry] = part.Q()[iEntryPart];
-  fQ.load(intArray);
+  fQ.copy_from(intArray, std::experimental::vector_aligned);
 
-  fNDF.store(intArray);
+  fNDF.copy_to(intArray, std::experimental::vector_aligned);
   intArray[iEntry] = part.NDF()[iEntryPart];
-  fNDF.load(intArray);
+  fNDF.copy_from(intArray, std::experimental::vector_aligned);
 
   //   SumDaughterMass[iEntry] = part.SumDaughterMass[iEntryPart];
   //   fMassHypo[iEntry] = part.fMassHypo[iEntryPart];
 
-  fId.store(intArray);
+  fId.copy_to(intArray, std::experimental::vector_aligned);
   intArray[iEntry] = part.Id()[iEntryPart];
-  fId.load(intArray);
+  fId.copy_from(intArray, std::experimental::vector_aligned);
 
-  fPDG.store(intArray);
+  fPDG.copy_to(intArray, std::experimental::vector_aligned);
   intArray[iEntry] = part.GetPDG()[iEntryPart];
-  fPDG.load(intArray);
+  fPDG.copy_from(intArray, std::experimental::vector_aligned);
 
   if (iEntry == 0) { fDaughterIds.resize(part.NDaughters(), int_v(-1)); }
 
   for (int iD = 0; iD < part.NDaughters(); iD++) {
-    fDaughterIds[iD].store(intArray);
+    fDaughterIds[iD].copy_to(intArray, std::experimental::vector_aligned);
     intArray[iEntry] = part.fDaughterIds[iD][iEntryPart];
-    fDaughterIds[iD].load(intArray);
+    fDaughterIds[iD].copy_from(intArray, std::experimental::vector_aligned);
   }
 
 #ifdef NonhomogeneousField
@@ -664,13 +664,13 @@ KFParticleSIMD::KFParticleSIMD(KFParticle* parts[], const int nPart)
 #endif
   }
 
-  for (int i = 0; i < 8; ++i) { fP[i].load(pArray[i]); }
-  for (int i = 0; i < 36; ++i) { fC[i].load(cArray[i]); }
-  fChi2.load(chi2Array);
-  fQ.load(qArray);
-  fNDF.load(ndfArray);
-  fPDG.load(pdgArray);
-  fId.load(idArray);
+  for (int i = 0; i < 8; ++i) { fP[i].copy_from(pArray[i], std::experimental::vector_aligned); }
+  for (int i = 0; i < 36; ++i) { fC[i].copy_from(cArray[i], std::experimental::vector_aligned); }
+  fChi2.copy_from(chi2Array, std::experimental::vector_aligned);
+  fQ.copy_from(qArray, std::experimental::vector_aligned);
+  fNDF.copy_from(ndfArray, std::experimental::vector_aligned);
+  fPDG.copy_from(pdgArray, std::experimental::vector_aligned);
+  fId.copy_from(idArray, std::experimental::vector_aligned);
 
   for (int iD = 0; iD < parts[0]->NDaughters(); iD++) {
     alignas(SimdSize) int32_t tmp[SimdLen]{0};
@@ -679,7 +679,7 @@ KFParticleSIMD::KFParticleSIMD(KFParticle* parts[], const int nPart)
 
       tmp[iEntry] = parts[iEntry]->DaughterIds()[iD];
     }
-    fDaughterIds[iD].load(tmp);
+    fDaughterIds[iD].copy_from(tmp, std::experimental::vector_aligned);
   }
 }
 
