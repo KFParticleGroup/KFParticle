@@ -9,6 +9,8 @@
 #include <Riostream.h>
 
 //#include "../ConfigConstants.h"
+#include "KFPVertex.h"
+#include "KFParticle.h"
 
 template<typename T>
 bool SmearParameters(size_t num_of_params, T parameters[], T covMatArr[])
