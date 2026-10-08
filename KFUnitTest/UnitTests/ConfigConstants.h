@@ -1,5 +1,10 @@
 #pragma once
 
+#include <TROOT.h>
+#include <TString.h>
+#include <TSystem.h>
+
+#include <array>
 #include <vector>
 
 // header file with function std::vector<float> MakeCovMatrix(const
