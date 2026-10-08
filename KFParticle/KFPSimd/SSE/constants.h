@@ -10,6 +10,7 @@ Emails: mithran@fias.uni-frankfurt.de
 #define SIMD_SSE_CONSTANTS_H
 
 #include <cstddef>
+#include <experimental/simd>
 
 namespace KFP
 {
