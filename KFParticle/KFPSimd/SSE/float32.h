@@ -145,7 +145,7 @@ namespace KFP
         return Float32_128{_mm_xor_ps(m_data, sign)};
       }
       template<int N>
-      KFP_SIMD_INLINE Float32_128 rotate() const
+      KFP_SIMD_INLINE Float32_128 rotateTmp() const
       {
         if (N < 0) {
           constexpr int num_shift         = (-N) % SimdLen;

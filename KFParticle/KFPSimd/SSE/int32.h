@@ -165,7 +165,7 @@ namespace KFP
         return Int32_128{_mm_srai_epi32(m_data, N)};
       }
       template<int N>
-      KFP_SIMD_INLINE Int32_128 rotate() const
+      KFP_SIMD_INLINE Int32_128 rotateTmp() const
       {
         if (N < 0) {
           constexpr int num_shift         = (-N) % SimdLen;

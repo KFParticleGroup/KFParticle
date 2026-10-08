@@ -40,6 +40,14 @@ namespace KFP
 
     inline const float_v gkIndicesSequenceF(toFloat(gkIndicesSequenceI));
 
+    template<int N>
+    KFP_SIMD_INLINE float_v rotate(const float_v& v)
+    { return v.rotateTmp<N>(); }
+
+    template<int N>
+    KFP_SIMD_INLINE int_v rotate(const int_v& v)
+    { return v.rotateTmp<N>(); }
+
   }  // namespace SIMD
 }  // namespace KFP
 

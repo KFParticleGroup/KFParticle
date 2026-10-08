@@ -307,13 +307,13 @@ void KFParticleSIMD::Rotate()
 {
   /** Rotates the entries of each SIMD vector of the data members. */
 
-  for (int i = 0; i < 7; i++) { fP[i] = fP[i].rotate<1>(); }
-  for (int i = 0; i < 27; i++) { fC[i] = fC[i].rotate<1>(); }
+  for (int i = 0; i < 7; i++) { fP[i] = KFP::SIMD::rotate<1>(fP[i]); }
+  for (int i = 0; i < 27; i++) { fC[i] = KFP::SIMD::rotate<1>(fC[i]); }
 #ifdef NonhomogeneousField
-  for (int i = 0; i < 10; i++) { fField.fField[i] = fField.fField[i].rotate<1>(); }
+  for (int i = 0; i < 10; i++) { fField.fField[i] = KFP::SIMD::rotate<1>(fField.fField[i]); }
 #endif
-  fQ  = fQ.rotate<1>();
-  fId = fId.rotate<1>();
+  fQ  = KFP::SIMD::rotate<1>(fQ);
+  fId = KFP::SIMD::rotate<1>(fId);
 }
 
 KFParticleSIMD::KFParticleSIMD(KFPEmcCluster& track, int_v& index, const KFParticleSIMD& vertexGuess)
