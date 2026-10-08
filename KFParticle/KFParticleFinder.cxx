@@ -1352,14 +1352,14 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, kfvector_floa
             for (int iRot = 0; iRot < SimdLen; iRot++) {
               //               if(iRot>0)
               {
-                negPDG        = negPDG.rotate<1>();
-                negPVIndex    = negPVIndex.rotate<1>();
-                negNPixelHits = negNPixelHits.rotate<1>();
-                negInd        = negInd.rotate<1>();
-                trackPdgNeg   = trackPdgNeg.rotate<1>();
+                negPDG        = KFP::SIMD::rotate<1>(negPDG);
+                negPVIndex    = KFP::SIMD::rotate<1>(negPVIndex);
+                negNPixelHits = KFP::SIMD::rotate<1>(negNPixelHits);
+                negInd        = KFP::SIMD::rotate<1>(negInd);
+                trackPdgNeg   = KFP::SIMD::rotate<1>(trackPdgNeg);
 
                 daughterNeg.Rotate();
-                chiPrimNeg = chiPrimNeg.rotate<1>();
+                chiPrimNeg = KFP::SIMD::rotate<1>(chiPrimNeg);
 
                 activeNeg = ((negPDG != -1) || (negPVIndex < 0)) && (negInd < negTracksSize);
               }
@@ -1780,7 +1780,7 @@ void KFParticleFinder::Find2DaughterDecayOneSign(KFPTrackVector& vTracks, std::v
       fragment.SetId(fragmentId);
 
       for (int iRot = 0; iRot < SimdLen; iRot++) {
-        pionPDG = pionPDG.rotate<1>();
+        pionPDG = KFP::SIMD::rotate<1>(pionPDG);
         pion.Rotate();
         pion.SetPDG(pionPDG);
 
@@ -3737,9 +3737,9 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
           {
             if(iRot>0)
             {
-              DaughterPDG = DaughterPDG.rotate<1>();
-              DaughterPVIndex = DaughterPVIndex.rotate<1>();
-              DaughterInd = DaughterInd.rotate<1>();
+              DaughterPDG = KFP::SIMD::rotate<1>(DaughterPDG);
+              DaughterPVIndex = KFP::SIMD::rotate<1>(DaughterPVIndex);
+              DaughterInd = KFP::SIMD::rotate<1>(DaughterInd);
             
               ChargedDaughter.Rotate();
 
@@ -4074,9 +4074,9 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
 
           for (int iRot = 0; iRot < SimdLen; iRot++) {
             if (iRot > 0) {
-              DaughterPDG     = DaughterPDG.rotate<1>();
-              DaughterPVIndex = DaughterPVIndex.rotate<1>();
-              DaughterInd     = DaughterInd.rotate<1>();
+              DaughterPDG     = KFP::SIMD::rotate<1>(DaughterPDG);
+              DaughterPVIndex = KFP::SIMD::rotate<1>(DaughterPVIndex);
+              DaughterInd     = KFP::SIMD::rotate<1>(DaughterInd);
 
               ChargedDaughter.Rotate();
 
