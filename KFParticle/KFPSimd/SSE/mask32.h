@@ -48,8 +48,7 @@ namespace KFP
       friend Mask32_128 operator==(const Float32_128& a, const Float32_128& b);
       friend Mask32_128 operator!=(const Float32_128& a, const Float32_128& b);
 
-      friend Mask32_128 isNan(const Float32_128& a);
-      friend Mask32_128 isFinite(const Float32_128& a);
+      friend Mask32_128 isFiniteTmp(const Float32_128& a);
 
       // ------------------------------------------------------
       // Constructors

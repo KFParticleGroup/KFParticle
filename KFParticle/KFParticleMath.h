@@ -146,7 +146,10 @@ namespace std
   { return KFPMathTmp::ATan2(y, x); }
 
   static inline __attribute__((always_inline)) float_v log(const float_v x) { return x; }
+
   static inline __attribute__((always_inline)) float_v acos(const float_v x) { return x; }
+
+  static inline __attribute__((always_inline)) float_m isfinite(const float_v x) { return isFiniteTmp(x); }
 
 }  // namespace std
 
