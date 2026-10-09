@@ -2242,7 +2242,7 @@ void KFParticleFinder::ConstructTrackV0Cand(
 
   float_m isPrimary = (pvIndex > -1);
 
-  int_v trackId(KFP::SIMD::UninitializeTag{});
+  int_v trackId = 0;
   trackId = KFP::SIMD::gather(&(vTracks.Id()[0]), idTracks);
 
   KFParticleSIMD V0(vV0, nElements);

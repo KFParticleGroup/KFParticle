@@ -34,7 +34,7 @@ namespace KFP
       // ------------------------------------------------------
       // Default constructor:
       Int32_128() { m_data = _mm_setzero_si128(); }
-      Int32_128(UninitializeTag) {}
+
       // Constructor to broadcast the same value into all elements:
       Int32_128(std::int32_t val) { m_data = _mm_set1_epi32(val); }
       Int32_128(const __m128i& val_simd) { m_data = val_simd; }
@@ -205,37 +205,37 @@ namespace KFP
       // Comparison (mask returned)
       friend Mask32_128 operator<(const Int32_128& a, const Int32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_cmplt_epi32(a.m_data, b.m_data);
         return result;
       }
       friend Mask32_128 operator<=(const Int32_128& a, const Int32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_cmpeq_epi32(_mm_min_epi32(a.m_data, b.m_data), a.m_data);
         return result;
       }
       friend Mask32_128 operator>(const Int32_128& a, const Int32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_cmpgt_epi32(a.m_data, b.m_data);
         return result;
       }
       friend Mask32_128 operator>=(const Int32_128& a, const Int32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_cmpeq_epi32(_mm_min_epi32(b.m_data, a.m_data), b.m_data);
         return result;
       }
       friend Mask32_128 operator==(const Int32_128& a, const Int32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_cmpeq_epi32(a.m_data, b.m_data);
         return result;
       }
       friend Mask32_128 operator!=(const Int32_128& a, const Int32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_cmpeq_epi32(a.m_data, b.m_data);
         return not result;
       }

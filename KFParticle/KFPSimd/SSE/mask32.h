@@ -55,7 +55,7 @@ namespace KFP
       // ------------------------------------------------------
       // Default constructor:
       Mask32_128() : m_data(_mm_setzero_si128()) {}
-      Mask32_128(UninitializeTag) {}
+
       // Constructor to broadcast the same value into all elements:
       Mask32_128(bool value) : m_data(value ? _mm_set1_epi32(-1) : _mm_setzero_si128()) {}
 
@@ -93,25 +93,25 @@ namespace KFP
 
       friend Mask32_128 operator!(const Mask32_128& a)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_xor_si128(_mm_set1_epi32(-1), a.m_data);
         return result;
       }
       friend Mask32_128 operator^(const Mask32_128& a, const Mask32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_xor_si128(a.m_data, b.m_data);
         return result;
       }
       friend Mask32_128 operator&&(const Mask32_128& a, const Mask32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_and_si128(a.m_data, b.m_data);
         return result;
       }
       friend Mask32_128 operator||(const Mask32_128& a, const Mask32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_or_si128(a.m_data, b.m_data);
         return result;
       }
