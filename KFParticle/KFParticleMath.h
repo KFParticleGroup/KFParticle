@@ -24,7 +24,7 @@
 
 #include "KFParticleDef.h"
 
-namespace KFPMath
+namespace KFPMathTmp
 {
   static inline __attribute__((always_inline)) float_v multiplySign(const int_v& sign, const float_v& value)
   {
@@ -123,6 +123,31 @@ namespace KFPMath
   // __attribute__((always_inline)) T ACos( const T &x ) { return
   // (3.1415926535897f/2.f - asin( x )); }
 
-}  // namespace KFPMath
+}  // namespace KFPMathTmp
+
+// temporary implementations of std methods for custom float_v type
+namespace std
+{
+  static inline __attribute__((always_inline)) float_v sin(const float_v x)
+  {
+    float_v s, c;
+    KFPMathTmp::sincos(x, s, c);
+    return s;
+  }
+
+  static inline __attribute__((always_inline)) float_v cos(const float_v x)
+  {
+    float_v s, c;
+    KFPMathTmp::sincos(x, s, c);
+    return c;
+  }
+
+  static inline __attribute__((always_inline)) float_v atan2(const float_v y, const float_v x)
+  { return KFPMathTmp::ATan2(y, x); }
+
+  static inline __attribute__((always_inline)) float_v log(const float_v x) { return x; }
+  static inline __attribute__((always_inline)) float_v acos(const float_v x) { return x; }
+
+}  // namespace std
 
 #endif  // KFParticleMath_H

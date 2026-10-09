@@ -12,6 +12,8 @@ Emails: mithran@fias.uni-frankfurt.de
 #include <cstddef>
 #include <experimental/simd>
 
+namespace stdx = std::experimental;
+
 namespace KFP
 {
   namespace SIMD
