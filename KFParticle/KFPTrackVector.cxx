@@ -242,8 +242,8 @@ void KFPTrackVector::RotateXY(float_v alpha, int firstElement)
    ** \param[in] firstElement - track index, starting from which SIMD vector of tracks will be rotated
    **/
 
-  float_v cA, sA;
-  KFPMath::sincos(alpha, sA, cA);
+  float_v sA = std::sin(alpha);
+  float_v cA = std::cos(alpha);
 
   const float_v xInit = reinterpret_cast<const float_v&>(fP[0][firstElement]);
   const float_v yInit = reinterpret_cast<const float_v&>(fP[1][firstElement]);

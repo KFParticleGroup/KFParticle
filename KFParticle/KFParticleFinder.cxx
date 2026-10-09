@@ -1584,14 +1584,14 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, kfvector_floa
                 active[iPDGPos] &= (motherPDG != -1);
                 if (!(fDecayReconstructionList.empty())) {
                   alignas(SimdSize) std::int32_t motherPdgArray[SimdLen];
-                  motherPDG.copy_to(motherPdgArray, std::experimental::vector_aligned);
+                  motherPDG.copy_to(motherPdgArray, stdx::vector_aligned);
                   for (int iV = 0; iV < SimdLen; iV++) {
                     if (!(active[iPDGPos][iV])) { continue; }
                     if (fDecayReconstructionList.find(motherPDG[iV]) == fDecayReconstructionList.end()) {
                       motherPdgArray[iV] = -1;
                     }
                   }
-                  motherPDG.copy_from(motherPdgArray, std::experimental::vector_aligned);
+                  motherPDG.copy_from(motherPdgArray, stdx::vector_aligned);
                   active[iPDGPos] &= (motherPDG != -1);
                 }
                 if (none_of(active[iPDGPos])) { continue; }
@@ -1656,12 +1656,12 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, kfvector_floa
                   nBufEntry++;
 
                   if (int(nBufEntry) == SimdLen) {
-                    idNegDaughters.copy_from(idNegDaughtersArray, std::experimental::vector_aligned);
-                    idPosDaughters.copy_from(idPosDaughtersArray, std::experimental::vector_aligned);
-                    daughterNegPDG.copy_from(daughterNegPDGArray, std::experimental::vector_aligned);
-                    daughterPosPDG.copy_from(daughterPosPDGArray, std::experimental::vector_aligned);
-                    pvIndexMother.copy_from(pvIndexMotherArray, std::experimental::vector_aligned);
-                    V0PDG.copy_from(V0PDGArray, std::experimental::vector_aligned);
+                    idNegDaughters.copy_from(idNegDaughtersArray, stdx::vector_aligned);
+                    idPosDaughters.copy_from(idPosDaughtersArray, stdx::vector_aligned);
+                    daughterNegPDG.copy_from(daughterNegPDGArray, stdx::vector_aligned);
+                    daughterPosPDG.copy_from(daughterPosPDGArray, stdx::vector_aligned);
+                    pvIndexMother.copy_from(pvIndexMotherArray, stdx::vector_aligned);
+                    V0PDG.copy_from(V0PDGArray, stdx::vector_aligned);
 
                     KFParticleDatabase::Instance()->GetMotherMass(V0PDG, massMotherPDG, massMotherPDGSigma);
                     mother.SetPDG(V0PDG);
@@ -1700,12 +1700,12 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, kfvector_floa
                     nBufEntry++;
 
                     if (int(nBufEntry) == SimdLen) {
-                      idNegDaughters.copy_from(idNegDaughtersArray, std::experimental::vector_aligned);
-                      idPosDaughters.copy_from(idPosDaughtersArray, std::experimental::vector_aligned);
-                      daughterNegPDG.copy_from(daughterNegPDGArray, std::experimental::vector_aligned);
-                      daughterPosPDG.copy_from(daughterPosPDGArray, std::experimental::vector_aligned);
-                      pvIndexMother.copy_from(pvIndexMotherArray, std::experimental::vector_aligned);
-                      V0PDG.copy_from(V0PDGArray, std::experimental::vector_aligned);
+                      idNegDaughters.copy_from(idNegDaughtersArray, stdx::vector_aligned);
+                      idPosDaughters.copy_from(idPosDaughtersArray, stdx::vector_aligned);
+                      daughterNegPDG.copy_from(daughterNegPDGArray, stdx::vector_aligned);
+                      daughterPosPDG.copy_from(daughterPosPDGArray, stdx::vector_aligned);
+                      pvIndexMother.copy_from(pvIndexMotherArray, stdx::vector_aligned);
+                      V0PDG.copy_from(V0PDGArray, stdx::vector_aligned);
 
                       KFParticleDatabase::Instance()->GetMotherMass(V0PDG, massMotherPDG, massMotherPDGSigma);
                       mother.SetPDG(V0PDG);
@@ -1728,20 +1728,20 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, kfvector_floa
             idPosDaughtersArray[iV] = idPosDaughtersArray[0];
             idNegDaughtersArray[iV] = idNegDaughtersArray[0];
           }
-          idNegDaughters.copy_from(idNegDaughtersArray, std::experimental::vector_aligned);
-          idPosDaughters.copy_from(idPosDaughtersArray, std::experimental::vector_aligned);
-          daughterNegPDG.copy_from(daughterNegPDGArray, std::experimental::vector_aligned);
-          daughterPosPDG.copy_from(daughterPosPDGArray, std::experimental::vector_aligned);
-          pvIndexMother.copy_from(pvIndexMotherArray, std::experimental::vector_aligned);
-          V0PDG.copy_from(V0PDGArray, std::experimental::vector_aligned);
+          idNegDaughters.copy_from(idNegDaughtersArray, stdx::vector_aligned);
+          idPosDaughters.copy_from(idPosDaughtersArray, stdx::vector_aligned);
+          daughterNegPDG.copy_from(daughterNegPDGArray, stdx::vector_aligned);
+          daughterPosPDG.copy_from(daughterPosPDGArray, stdx::vector_aligned);
+          pvIndexMother.copy_from(pvIndexMotherArray, stdx::vector_aligned);
+          V0PDG.copy_from(V0PDGArray, stdx::vector_aligned);
 
           KFParticleDatabase::Instance()->GetMotherMass(V0PDG, massMotherPDG, massMotherPDGSigma);
           mother.SetPDG(V0PDG);
-          idNegDaughters.copy_from(idNegDaughtersArray, std::experimental::vector_aligned);
-          idPosDaughters.copy_from(idPosDaughtersArray, std::experimental::vector_aligned);
-          daughterNegPDG.copy_from(daughterNegPDGArray, std::experimental::vector_aligned);
-          daughterPosPDG.copy_from(daughterPosPDGArray, std::experimental::vector_aligned);
-          pvIndexMother.copy_from(pvIndexMotherArray, std::experimental::vector_aligned);
+          idNegDaughters.copy_from(idNegDaughtersArray, stdx::vector_aligned);
+          idPosDaughters.copy_from(idPosDaughtersArray, stdx::vector_aligned);
+          daughterNegPDG.copy_from(daughterNegPDGArray, stdx::vector_aligned);
+          daughterPosPDG.copy_from(daughterPosPDGArray, stdx::vector_aligned);
+          pvIndexMother.copy_from(pvIndexMotherArray, stdx::vector_aligned);
           ConstructV0(vTracks, trTypeIndexPos[iTrTypePos], trTypeIndexNeg[iTrTypeNeg], idPosDaughters, idNegDaughters,
                       daughterPosPDG, daughterNegPDG, mother, mother_temp, nBufEntry, l, dl, Particles, PrimVtx, cuts,
                       pvIndexMother, secCuts, massMotherPDG, massMotherPDGSigma, motherPrimSecCand, nPrimSecCand,
@@ -2163,12 +2163,12 @@ void KFParticleFinder::ConstructPrimaryBG(KFPTrackVector* vTracks, vector<KFPart
           nBufEntry++;
 
           if (int(nBufEntry) == SimdLen) {
-            idNegDaughters.copy_from(idNegDaughtersArray, std::experimental::vector_aligned);
-            idPosDaughters.copy_from(idPosDaughtersArray, std::experimental::vector_aligned);
-            daughterNegPDG.copy_from(daughterNegPDGArray, std::experimental::vector_aligned);
-            daughterPosPDG.copy_from(daughterPosPDGArray, std::experimental::vector_aligned);
-            pvIndexMother.copy_from(pvIndexMotherArray, std::experimental::vector_aligned);
-            V0PDG.copy_from(V0PDGArray, std::experimental::vector_aligned);
+            idNegDaughters.copy_from(idNegDaughtersArray, stdx::vector_aligned);
+            idPosDaughters.copy_from(idPosDaughtersArray, stdx::vector_aligned);
+            daughterNegPDG.copy_from(daughterNegPDGArray, stdx::vector_aligned);
+            daughterPosPDG.copy_from(daughterPosPDGArray, stdx::vector_aligned);
+            pvIndexMother.copy_from(pvIndexMotherArray, stdx::vector_aligned);
+            V0PDG.copy_from(V0PDGArray, stdx::vector_aligned);
 
             KFParticleDatabase::Instance()->GetMotherMass(V0PDG, massMotherPDG, massMotherPDGSigma);
             mother.SetPDG(V0PDG);
@@ -2186,12 +2186,12 @@ void KFParticleFinder::ConstructPrimaryBG(KFPTrackVector* vTracks, vector<KFPart
           idNegDaughtersArray[iV] = idNegDaughters[0];
         }
 
-        idNegDaughters.copy_from(idNegDaughtersArray, std::experimental::vector_aligned);
-        idPosDaughters.copy_from(idPosDaughtersArray, std::experimental::vector_aligned);
-        daughterNegPDG.copy_from(daughterNegPDGArray, std::experimental::vector_aligned);
-        daughterPosPDG.copy_from(daughterPosPDGArray, std::experimental::vector_aligned);
-        pvIndexMother.copy_from(pvIndexMotherArray, std::experimental::vector_aligned);
-        V0PDG.copy_from(V0PDGArray, std::experimental::vector_aligned);
+        idNegDaughters.copy_from(idNegDaughtersArray, stdx::vector_aligned);
+        idPosDaughters.copy_from(idPosDaughtersArray, stdx::vector_aligned);
+        daughterNegPDG.copy_from(daughterNegPDGArray, stdx::vector_aligned);
+        daughterPosPDG.copy_from(daughterPosPDGArray, stdx::vector_aligned);
+        pvIndexMother.copy_from(pvIndexMotherArray, stdx::vector_aligned);
+        V0PDG.copy_from(V0PDGArray, stdx::vector_aligned);
 
         KFParticleDatabase::Instance()->GetMotherMass(V0PDG, massMotherPDG, massMotherPDGSigma);
         mother.SetPDG(V0PDG);
@@ -2966,14 +2966,14 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
         active[iPDGPos] &= (motherPDG != -1);
         if (!(fDecayReconstructionList.empty())) {
           alignas(SimdSize) std::int32_t motherPdgArray[SimdLen];
-          motherPDG.copy_to(motherPdgArray, std::experimental::vector_aligned);
+          motherPDG.copy_to(motherPdgArray, stdx::vector_aligned);
           for (int iV = 0; iV < SimdLen; iV++) {
             if (!(active[iPDGPos][iV])) { continue; }
             if (fDecayReconstructionList.find(motherPDG[iV]) == fDecayReconstructionList.end()) {
               motherPdgArray[iV] = -1;
             }
           }
-          motherPDG.copy_from(motherPdgArray, std::experimental::vector_aligned);
+          motherPDG.copy_from(motherPdgArray, stdx::vector_aligned);
           active[iPDGPos] &= (motherPDG != -1);
         }
         if (ChiToPrimVtx) {
@@ -3089,15 +3089,15 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
           nBufEntry++;
 
           if (int(nBufEntry) == SimdLen) {
-            idTrack.copy_from(idTrackArray, std::experimental::vector_aligned);
-            trackPDGMother.copy_from(trackPDGMotherArray, std::experimental::vector_aligned);
-            pvIndexMother.copy_from(pvIndexMotherArray, std::experimental::vector_aligned);
-            massMotherPDG.copy_from(massMotherPDGArray, std::experimental::vector_aligned);
-            massMotherPDGSigma.copy_from(massMotherPDGSigmaArray, std::experimental::vector_aligned);
-            motherParticlePDG.copy_from(motherParticlePDGArray, std::experimental::vector_aligned);
-            cuts[0].copy_from(cutsArray[0], std::experimental::vector_aligned);
-            cuts[1].copy_from(cutsArray[1], std::experimental::vector_aligned);
-            cuts[2].copy_from(cutsArray[2], std::experimental::vector_aligned);
+            idTrack.copy_from(idTrackArray, stdx::vector_aligned);
+            trackPDGMother.copy_from(trackPDGMotherArray, stdx::vector_aligned);
+            pvIndexMother.copy_from(pvIndexMotherArray, stdx::vector_aligned);
+            massMotherPDG.copy_from(massMotherPDGArray, stdx::vector_aligned);
+            massMotherPDGSigma.copy_from(massMotherPDGSigmaArray, stdx::vector_aligned);
+            motherParticlePDG.copy_from(motherParticlePDGArray, stdx::vector_aligned);
+            cuts[0].copy_from(cutsArray[0], stdx::vector_aligned);
+            cuts[1].copy_from(cutsArray[1], stdx::vector_aligned);
+            cuts[2].copy_from(cutsArray[2], stdx::vector_aligned);
 
             mother.SetPDG(motherParticlePDG);
             ConstructTrackV0Cand(vTracks, idTrack, trackPDGMother, v0Pointer, mother, motherTopo, mother_temp,
@@ -3113,15 +3113,15 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
   if (nBufEntry > 0) {
     for (int iV = nBufEntry; iV < SimdLen; iV++) { idTrackArray[iV] = idTrack[0]; }
 
-    idTrack.copy_from(idTrackArray, std::experimental::vector_aligned);
-    trackPDGMother.copy_from(trackPDGMotherArray, std::experimental::vector_aligned);
-    pvIndexMother.copy_from(pvIndexMotherArray, std::experimental::vector_aligned);
-    massMotherPDG.copy_from(massMotherPDGArray, std::experimental::vector_aligned);
-    massMotherPDGSigma.copy_from(massMotherPDGSigmaArray, std::experimental::vector_aligned);
-    motherParticlePDG.copy_from(motherParticlePDGArray, std::experimental::vector_aligned);
-    cuts[0].copy_from(cutsArray[0], std::experimental::vector_aligned);
-    cuts[1].copy_from(cutsArray[1], std::experimental::vector_aligned);
-    cuts[2].copy_from(cutsArray[2], std::experimental::vector_aligned);
+    idTrack.copy_from(idTrackArray, stdx::vector_aligned);
+    trackPDGMother.copy_from(trackPDGMotherArray, stdx::vector_aligned);
+    pvIndexMother.copy_from(pvIndexMotherArray, stdx::vector_aligned);
+    massMotherPDG.copy_from(massMotherPDGArray, stdx::vector_aligned);
+    massMotherPDGSigma.copy_from(massMotherPDGSigmaArray, stdx::vector_aligned);
+    motherParticlePDG.copy_from(motherParticlePDGArray, stdx::vector_aligned);
+    cuts[0].copy_from(cutsArray[0], stdx::vector_aligned);
+    cuts[1].copy_from(cutsArray[1], stdx::vector_aligned);
+    cuts[2].copy_from(cutsArray[2], stdx::vector_aligned);
 
     mother.SetPDG(motherParticlePDG);
     ConstructTrackV0Cand(vTracks, idTrack, trackPDGMother, v0Pointer, mother, motherTopo, mother_temp, nBufEntry, l, dl,
