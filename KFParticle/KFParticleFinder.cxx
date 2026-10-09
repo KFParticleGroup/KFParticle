@@ -932,7 +932,7 @@ inline void KFParticleFinder::ConstructV0(KFPTrackVector* vTracks, int iTrTypePo
   }
 
   saveParticle &= (mother.Chi2() / toFloat(mother.NDF()) < chi2Cut);
-  saveParticle &= isFinite(mother.GetChi2());
+  saveParticle &= std::isfinite(mother.GetChi2());
   saveParticle &= (mother.GetChi2() > 0.0f);
   saveParticle &= (mother.GetChi2() == mother.GetChi2());
 
@@ -1804,7 +1804,7 @@ void KFParticleFinder::Find2DaughterDecayOneSign(KFPTrackVector& vTracks, std::v
         mother.SetPDG(motherPDG);
 
         saveParticle &= (mother.Chi2() / toFloat(mother.NDF()) < fCuts2D[1]);
-        saveParticle &= isFinite(mother.GetChi2());
+        saveParticle &= std::isfinite(mother.GetChi2());
         saveParticle &= (mother.GetChi2() > 0.0f);
         saveParticle &= (mother.GetChi2() == mother.GetChi2());
 
@@ -1829,7 +1829,7 @@ void KFParticleFinder::Find2DaughterDecayOneSign(KFPTrackVector& vTracks, std::v
           KFParticleSIMD mother_topo = mother;
           mother_topo.SetProductionVertex(PrimVtx[iP]);
           float_m isPrimary = (mother_topo.Chi2() / toFloat(mother_topo.NDF()) < fCuts2D[1]);
-          isPrimary &= isFinite(mother_topo.GetChi2());
+          isPrimary &= std::isfinite(mother_topo.GetChi2());
           isPrimary &= (mother_topo.GetChi2() > 0.0f);
           isPrimary &= (mother_topo.GetChi2() == mother_topo.GetChi2());
           isPrimaryParticle |= isPrimary;
@@ -2242,7 +2242,7 @@ void KFParticleFinder::ConstructTrackV0Cand(
 
   float_m isPrimary = (pvIndex > -1);
 
-  int_v trackId(KFP::SIMD::UninitializeTag{});
+  int_v trackId = 0;
   trackId = KFP::SIMD::gather(&(vTracks.Id()[0]), idTracks);
 
   KFParticleSIMD V0(vV0, nElements);
@@ -2281,7 +2281,7 @@ void KFParticleFinder::ConstructTrackV0Cand(
 
   float_m saveParticle = active;
   saveParticle &= (mother.Chi2() / toFloat(mother.NDF()) < cuts[2]);
-  saveParticle &= isFinite(mother.GetChi2());
+  saveParticle &= std::isfinite(mother.GetChi2());
   saveParticle &= (mother.GetChi2() > 0.0f);
   saveParticle &= (mother.GetChi2() == mother.GetChi2());
 
@@ -3171,7 +3171,7 @@ void KFParticleFinder::FindLL(const int motherPDG, const int correctTrackPDG, co
       mother.SetPDG(motherPDG);
 
       isOk &= (mother.Chi2() / toFloat(mother.NDF()) < 10.f);
-      isOk &= isFinite(mother.GetChi2());
+      isOk &= std::isfinite(mother.GetChi2());
       isOk &= (mother.GetChi2() > 0.0f);
       isOk &= (mother.GetChi2() == mother.GetChi2());
 
@@ -3255,7 +3255,7 @@ void KFParticleFinder::SelectParticles(vector<KFParticle>& Particles, vector<KFP
 
       bool isPrimary = 0;
       for (int iP = 0; iP < fNPV; iP++) {
-        if (!(isFinite(candTopo[iP].GetChi2())[iv])) { continue; }
+        if (!(std::isfinite(candTopo[iP].GetChi2())[iv])) { continue; }
         if (!(candTopo[iP].GetChi2()[iv] > 0.0f)) { continue; }
         if (!(candTopo[iP].GetChi2()[iv] == candTopo[iP].GetChi2()[iv])) { continue; }
 
@@ -3378,7 +3378,7 @@ void KFParticleFinder::CombinePartPart(vector<KFParticle>& particles1, vector<KF
 
       float_m saveParticle(active);
       saveParticle &= (mother.Chi2() / toFloat(mother.NDF()) < cuts[2]);
-      saveParticle &= isFinite(mother.GetChi2());
+      saveParticle &= std::isfinite(mother.GetChi2());
       saveParticle &= (mother.GetChi2() >= 0.0f);
       saveParticle &= (mother.GetChi2() == mother.GetChi2());
 

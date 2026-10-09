@@ -35,7 +35,7 @@ namespace KFP
       // ------------------------------------------------------
       // Default constructor:
       Float32_128() { m_data = _mm_setzero_ps(); }
-      Float32_128(UninitializeTag) {}
+
       // Constructor to broadcast the same value into all elements:
 
       Float32_128(float val) { m_data = _mm_set1_ps(val); }
@@ -103,15 +103,10 @@ namespace KFP
       // ------------------------------------------------------
       // Data member accessors
       // ------------------------------------------------------
+
       KFP_SIMD_INLINE __m128& simd() { return m_data; }
       KFP_SIMD_INLINE const __m128& simd() const { return m_data; }
-      template<int N>
-      KFP_SIMD_INLINE float get() const
-      {
-        static_assert(N >= 0, "[Error] (Float32_128::get): Invalid value of index N. Negative");
-        static_assert(N < SimdLen, "[Error] (Float32_128::get): Invalid value of index N. Out of range.");
-        return _mm_extract_ps(m_data, N);
-      }
+
       KFP_SIMD_INLINE float operator[](int index) const
       {
         assert((index >= 0) && (index < int(SimdLen)));
@@ -159,16 +154,15 @@ namespace KFP
       KFP_SIMD_INLINE friend Float32_128 round(const Float32_128& a)
       { return _mm_round_ps(a.m_data, (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC)); }
 
-      KFP_SIMD_INLINE friend Float32_128 trunc(const Float32_128& a)
-      { return _mm_round_ps(a.m_data, (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC)); }
-
 
       // ------------------------------------------------------
       // Basic Arithmetic
       // ------------------------------------------------------
       friend Float32_128 operator-(const Float32_128& a) { return Float32_128{_mm_sub_ps(_mm_setzero_ps(), a.m_data)}; }
+
       friend Float32_128 operator+(const Float32_128& a, const Float32_128& b)
       { return Float32_128{_mm_add_ps(a.m_data, b.m_data)}; }
+
       Float32_128& operator+=(const Float32_128& a)
       {
         *this = *this + a;
@@ -199,37 +193,37 @@ namespace KFP
       // Comparison (mask returned)
       friend Mask32_128 operator<(const Float32_128& a, const Float32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_castps_si128(_mm_cmplt_ps(a.m_data, b.m_data));
         return result;
       }
       friend Mask32_128 operator<=(const Float32_128& a, const Float32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_castps_si128(_mm_cmple_ps(a.m_data, b.m_data));
         return result;
       }
       friend Mask32_128 operator>(const Float32_128& a, const Float32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_castps_si128(_mm_cmpgt_ps(a.m_data, b.m_data));
         return result;
       }
       friend Mask32_128 operator>=(const Float32_128& a, const Float32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_castps_si128(_mm_cmpge_ps(a.m_data, b.m_data));
         return result;
       }
       friend Mask32_128 operator==(const Float32_128& a, const Float32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_castps_si128(_mm_cmpeq_ps(a.m_data, b.m_data));
         return result;
       }
       friend Mask32_128 operator!=(const Float32_128& a, const Float32_128& b)
       {
-        Mask32_128 result{UninitializeTag{}};
+        Mask32_128 result;
         result.m_data = _mm_castps_si128(_mm_cmpneq_ps(a.m_data, b.m_data));
         return result;
       }
@@ -249,16 +243,9 @@ namespace KFP
       // Float checks
       // ------------------------------------------------------
 
-      KFP_SIMD_INLINE friend Mask32_128 isNan(const Float32_128& a)
+      KFP_SIMD_INLINE friend Mask32_128 isFiniteTmp(const Float32_128& a)
       {
-        Mask32_128 result(UninitializeTag{});
-        result.m_data = _mm_castps_si128(_mm_cmpunord_ps(a.m_data, a.m_data));
-        return result;
-      }
-
-      KFP_SIMD_INLINE friend Mask32_128 isFinite(const Float32_128& a)
-      {
-        Mask32_128 result(UninitializeTag{});
+        Mask32_128 result;
         result.m_data = _mm_castps_si128(_mm_cmpord_ps(a.m_data, _mm_mul_ps(_mm_setzero_ps(), a.m_data)));
         return result;
       }
