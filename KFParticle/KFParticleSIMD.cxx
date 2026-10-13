@@ -2317,12 +2317,12 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
     if (all_of(mask)) { return dS; }
   }
 
-  dS = select(mask, dS, std::atan2(abq, pt2 + bq * (dy * px - dx * py)) / bq);
+  dS = select(mask, dS, atan2(abq, pt2 + bq * (dy * px - dx * py)) / bq);
 
   float_v bs = bq * dS;
 
-  float_v s = std::sin(bs);
-  float_v c = std::cos(bs);
+  float_v s = sin(bs);
+  float_v c = cos(bs);
 
   bq          = select(abs(bq) < LocalSmall, LocalSmall, bq);
   float_v bbq = bq * (dx * py - dy * px) - pt2;
@@ -2354,8 +2354,8 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
   dS = select(mask, dS, dS + sz);
 
   bs = bq * dS;
-  s  = std::sin(bs);
-  c  = std::cos(bs);
+  s  = sin(bs);
+  c  = cos(bs);
 
   float_v sB, cB;
   const float_v kOvSqr6 = 1.f / sqrt(float_v(6.f));
@@ -2377,7 +2377,7 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
 
   abq = bq * a;
 
-  dS = select(mask, dS, dS + std::atan2(abq, p2 + bq * (dy * p[3] - dx * p[4])) / bq);
+  dS = select(mask, dS, dS + atan2(abq, p2 + bq * (dy * p[3] - dx * p[4])) / bq);
 
   return dS;
 }
@@ -2469,7 +2469,7 @@ float_v KFParticleSIMD::GetDStoPointXYBz(float_v B, const float_v xyz[2]) const
 
   const float_v LocalSmall = 1.e-8f;
   float_m mask             = (abs(bq) < LocalSmall);
-  dS                       = select(!mask, std::atan2(abq, pt2 + bq * (dy * px - dx * py)) / bq, dS);
+  dS                       = select(!mask, atan2(abq, pt2 + bq * (dy * px - dx * py)) / bq, dS);
 
   return dS;
 }
@@ -2539,10 +2539,10 @@ void KFParticleSIMD::GetDStoCylinderBz(const float_v B, const float_v R, float_v
 
   // find two points of closest approach in XY plane
   if (any_of(!isStraight)) {
-    dS[0] = select(!isStraight, std::atan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1,
-                   dS[0]);
-    dS[1] = select(!isStraight, std::atan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1,
-                   dS[1]);
+    dS[0] =
+      select(!isStraight, atan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS[0]);
+    dS[1] =
+      select(!isStraight, atan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS[1]);
   }
   if (any_of(isStraight)) {
     dS[0] = select(isStraight && (pt12 > 0.f), (k11 * c1 + k21 * d1) / (-k21 * c1), dS[0]);
@@ -2719,10 +2719,10 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   // find two points of closest approach in XY plane
   if (any_of(!isStraight1)) {
-    dS1[0] = select(!isStraight1,
-                    std::atan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[0]);
-    dS1[1] = select(!isStraight1,
-                    std::atan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[1]);
+    dS1[0] =
+      select(!isStraight1, atan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[0]);
+    dS1[1] =
+      select(!isStraight1, atan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[1]);
 
     float_v a = bq1 * (k11 * c1 + k21 * d1);
     float_v b = bq1 * k11 * d1 * bq1 - k21 * c1;
@@ -2749,10 +2749,10 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     }
   }
   if (any_of(!isStraight2)) {
-    dS2[0] = select(!isStraight2,
-                    std::atan2((bq2 * k12 * c2 + k22 * d2 * bq2), (bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[0]);
-    dS2[1] = select(!isStraight2,
-                    std::atan2((bq2 * k12 * c2 - k22 * d2 * bq2), (-bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[1]);
+    dS2[0] =
+      select(!isStraight2, atan2((bq2 * k12 * c2 + k22 * d2 * bq2), (bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[0]);
+    dS2[1] =
+      select(!isStraight2, atan2((bq2 * k12 * c2 - k22 * d2 * bq2), (-bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[1]);
 
     float_v a = bq2 * (k12 * c2 + k22 * d2);
     float_v b = bq2 * k12 * d2 * bq2 - k22 * c2;
@@ -2842,8 +2842,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v& bs1 = bq1 * dS1[iP];
     const float_v& bs2 = bq2 * dS2[iP];
 
-    float_v sss = std::sin(bs1);
-    float_v ccc = std::cos(bs1);
+    float_v sss = sin(bs1);
+    float_v ccc = cos(bs1);
 
     const float_m& bs1Big = abs(bs1) > 1.e-8f;
     const float_m& bs2Big = abs(bs2) > 1.e-8f;
@@ -2858,8 +2858,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v& y1 = param1[1] - cB * px1 + sB * py1;
     const float_v& z1 = param1[2] + dS1[iP] * param1[5];
 
-    sss = std::sin(bs2);
-    ccc = std::cos(bs2);
+    sss = sin(bs2);
+    ccc = cos(bs2);
 
     sB = select(bs2Big, sss / bq2, sB);
     sB = select(!bs2Big, ((1.f - bs2 * kOvSqr6) * (1.f + bs2 * kOvSqr6) * dS2[iP]), sB);
@@ -2977,11 +2977,11 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v& bs1 = bq1*dS[0];
     const float_v& bs2 = bq2*dS[1];
     
-    float_v sss = std::sin(bs1), ccc = std::cos(bs1);
+    float_v sss =   sin(bs1), ccc = cos(bs1);
     const float_v& xr1 = sss*px1 - ccc*py1;
     const float_v& yr1 = ccc*px1 + sss*py1;
 
-    float_v sss1 = std::sin(bs2), ccc1 = std::cos(bs2);
+    float_v sss1 = sin(bs2), ccc1 = cos(bs2);
     const float_v& xr2 = sss1*px2 - ccc1*py2;
     const float_v& yr2 = ccc1*px2 + sss1*py2;
     
@@ -3147,8 +3147,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v& bs1 = bq1 * dS[0];
     const float_v& bs2 = bq2 * dS[1];
 
-    float_v sss = std::sin(bs1);
-    float_v ccc = std::cos(bs1);
+    float_v sss = sin(bs1);
+    float_v ccc = cos(bs1);
 
     const float_m& bs1Big = abs(bs1) > 1.e-8f;
     const float_m& bs2Big = abs(bs2) > 1.e-8f;
@@ -3166,8 +3166,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v& ppy1 = -sss * px1 + ccc * py1;
     const float_v& ppz1 = pz1;
 
-    float_v sss1 = std::sin(bs2);
-    float_v ccc1 = std::cos(bs2);
+    float_v sss1 = sin(bs2);
+    float_v ccc1 = cos(bs2);
 
     float_v sB1(0.f), cB1(0.f);
     sB1 = select(bs2Big, sss1 / bq2, sB1);
@@ -3357,16 +3357,16 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   // find two points of closest approach in XY plane
   if (any_of(!isStraight1)) {
-    dS1[0] = select(!isStraight1,
-                    std::atan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[0]);
-    dS1[1] = select(!isStraight1,
-                    std::atan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[1]);
+    dS1[0] =
+      select(!isStraight1, atan2((bq1 * k11 * c1 + k21 * d1 * bq1), (bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[0]);
+    dS1[1] =
+      select(!isStraight1, atan2((bq1 * k11 * c1 - k21 * d1 * bq1), (-bq1 * k11 * d1 * bq1 - k21 * c1)) / bq1, dS1[1]);
   }
   if (any_of(!isStraight2)) {
-    dS2[0] = select(!isStraight2,
-                    std::atan2((bq2 * k12 * c2 + k22 * d2 * bq2), (bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[0]);
-    dS2[1] = select(!isStraight2,
-                    std::atan2((bq2 * k12 * c2 - k22 * d2 * bq2), (-bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[1]);
+    dS2[0] =
+      select(!isStraight2, atan2((bq2 * k12 * c2 + k22 * d2 * bq2), (bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[0]);
+    dS2[1] =
+      select(!isStraight2, atan2((bq2 * k12 * c2 - k22 * d2 * bq2), (-bq2 * k12 * d2 * bq2 - k22 * c2)) / bq2, dS2[1]);
   }
   if (any_of(isStraight1)) {
     dS1[0] = select(isStraight1 && (pt12 > 0.f), (k11 * c1 + k21 * d1) / (-k21 * c1), dS1[0]);
@@ -3384,8 +3384,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v& bs1 = bq1 * dS1[iP];
     const float_v& bs2 = bq2 * dS2[iP];
 
-    float_v sss = std::sin(bs1);
-    float_v ccc = std::cos(bs1);
+    float_v sss = sin(bs1);
+    float_v ccc = cos(bs1);
 
     const float_m& bs1Big = abs(bs1) > 1.e-8f;
     const float_m& bs2Big = abs(bs2) > 1.e-8f;
@@ -3400,8 +3400,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v& y1 = param1[1] - cB * px1 + sB * py1;
     const float_v& z1 = param1[2] + dS1[iP] * param1[5];
 
-    sss = std::sin(bs2);
-    ccc = std::cos(bs2);
+    sss = sin(bs2);
+    ccc = cos(bs2);
 
     sB = select(bs2Big, sss / bq2, sB);
     sB = select(!bs2Big, ((1.f - bs2 * kOvSqr6) * (1.f + bs2 * kOvSqr6) * dS2[iP]), sB);
@@ -3470,8 +3470,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v& bs1 = bq1 * dS[0];
     const float_v& bs2 = bq2 * dS[1];
 
-    float_v sss = std::sin(bs1);
-    float_v ccc = std::cos(bs1);
+    float_v sss = sin(bs1);
+    float_v ccc = cos(bs1);
 
     const float_m& bs1Big = abs(bs1) > 1.e-8f;
     const float_m& bs2Big = abs(bs2) > 1.e-8f;
@@ -3489,8 +3489,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v& ppy1 = -sss * px1 + ccc * py1;
     const float_v& ppz1 = pz1;
 
-    float_v sss1 = std::sin(bs2);
-    float_v ccc1 = std::cos(bs2);
+    float_v sss1 = sin(bs2);
+    float_v ccc1 = cos(bs2);
 
     float_v sB1(0.f), cB1(0.f);
     sB1 = select(bs2Big, sss1 / bq2, sB1);
@@ -4731,8 +4731,8 @@ void KFParticleSIMD::TransportBz(float_v Bz, float_v dS, const float_v* dsdr, fl
 
   Bz         = Bz * toFloat(fQ) * kCLight;
   float_v bs = Bz * dS;
-  float_v s  = std::sin(bs);
-  float_v c  = std::cos(bs);
+  float_v s  = sin(bs);
+  float_v c  = cos(bs);
 
   float_v sB(0.f), cB(0.f);
 
@@ -5039,8 +5039,8 @@ void KFParticleSIMD::TransportBz(float_v Bz, float_v dS, float_v P[]) const
 
   Bz         = Bz * toFloat(fQ) * kCLight;
   float_v bs = Bz * dS;
-  float_v s  = std::sin(bs);
-  float_v c  = std::cos(bs);
+  float_v s  = sin(bs);
+  float_v c  = cos(bs);
 
   float_v sB(0.f), cB(0.f);
 
@@ -5264,7 +5264,7 @@ float_m KFParticleSIMD::GetEta(float_v& eta, float_v& error) const
   eta          = BIG;
   float_v c    = 0.f;
   c            = select(b > LocalSmall, a / b, c);
-  float_v logc = 0.5f * std::log(c);
+  float_v logc = 0.5f * log(c);
   eta          = select(LocalSmall < abs(c), logc, eta);
 
   float_v h3    = -px * pz;
@@ -5294,7 +5294,7 @@ float_m KFParticleSIMD::GetPhi(float_v& phi, float_v& error) const
   float_v px2 = px * px;
   float_v py2 = py * py;
   float_v pt2 = px2 + py2;
-  phi         = std::atan2(py, px);
+  phi         = atan2(py, px);
   error       = (py2 * fC[9] + px2 * fC[14] - float_v(2.f) * px * py * fC[13]);
 
   float_m mask = (0.f < error) && (1.e-4f < pt2);
@@ -5456,7 +5456,7 @@ float_v KFParticleSIMD::GetAngle(const KFParticleSIMD& p) const
   a            = select(mask, (mP[3] * mP1[3] + mP[4] * mP1[4] + mP[5] * mP1[5]) / n, a);
   mask         = (abs(a) < float_v(1.f));
   float_m aPos = (a >= float_v(0.f));
-  a            = select(mask, std::acos(a), a);
+  a            = select(mask, acos(a), a);
   a            = select((!mask) && aPos, 0.f, a);
   a            = select((!mask) && (!aPos), 3.1415926535f, a);
   return a;
@@ -5483,7 +5483,7 @@ float_v KFParticleSIMD::GetAngleXY(const KFParticleSIMD& p) const
   a            = select(!mask, 0.f, a);
   mask         = (abs(a) < float_v(1.f));
   float_m aPos = (a >= float_v(0.f));
-  a            = select(mask, std::acos(a), a);
+  a            = select(mask, acos(a), a);
   a            = select((!mask) && aPos, 0.f, a);
   a            = select((!mask) && (!aPos), 3.1415926535f, a);
   return a;
@@ -5511,7 +5511,7 @@ float_v KFParticleSIMD::GetAngleRZ(const KFParticleSIMD& p) const
   a            = select(mask, (nr * n1r + mP[5] * mP1[5]) / n, a);
   mask         = (abs(a) < float_v(0.f));
   float_m aPos = (a >= float_v(0.f));
-  a            = select(mask, std::acos(a), a);
+  a            = select(mask, acos(a), a);
   a            = select((!mask) && aPos, 0.f, a);
   a            = select((!mask) && (!aPos), 3.1415926535f, a);
   return a;
@@ -5662,8 +5662,8 @@ void KFParticleSIMD::RotateXY(float_v angle, float_v Vtx[3])
   Z() = Z() - Vtx[2];
 
   // Rotate the kf particle
-  float_v s = std::sin(angle);
-  float_v c = std::cos(angle);
+  float_v s = sin(angle);
+  float_v c = cos(angle);
 
   float_v mA[8][8];
   for (Int_t i = 0; i < 8; i++) {

@@ -201,7 +201,7 @@ class KFParticleSIMD {
   float_v GetR() const;              ///< Returns distance to the origin of the coordinate
                                      ///< system {0,0,0}
   float_v GetRapidity() const
-  { return float_v(0.5f) * std::log((fP[6] + fP[5]) / (fP[6] - fP[5])); }  ///< Returns rapidity of the particle
+  { return float_v(0.5f) * log((fP[6] + fP[5]) / (fP[6] - fP[5])); }  ///< Returns rapidity of the particle
 
   //* Accessors to estimated errors
 
