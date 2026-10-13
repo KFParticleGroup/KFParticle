@@ -125,32 +125,35 @@ namespace KFPMathTmp
 
 }  // namespace KFPMathTmp
 
-// temporary implementations of std methods for custom float_v type
-namespace std
+namespace KFP
 {
-  static inline __attribute__((always_inline)) float_v sin(const float_v x)
+  namespace SIMD
   {
-    float_v s, c;
-    KFPMathTmp::sincos(x, s, c);
-    return s;
-  }
 
-  static inline __attribute__((always_inline)) float_v cos(const float_v x)
-  {
-    float_v s, c;
-    KFPMathTmp::sincos(x, s, c);
-    return c;
-  }
+    static inline __attribute__((always_inline)) float_v sin(const float_v x)
+    {
+      float_v s, c;
+      KFPMathTmp::sincos(x, s, c);
+      return s;
+    }
 
-  static inline __attribute__((always_inline)) float_v atan2(const float_v y, const float_v x)
-  { return KFPMathTmp::ATan2(y, x); }
+    static inline __attribute__((always_inline)) float_v cos(const float_v x)
+    {
+      float_v s, c;
+      KFPMathTmp::sincos(x, s, c);
+      return c;
+    }
 
-  static inline __attribute__((always_inline)) float_v log(const float_v x) { return x; }
+    static inline __attribute__((always_inline)) float_v atan2(const float_v y, const float_v x)
+    { return KFPMathTmp::ATan2(y, x); }
 
-  static inline __attribute__((always_inline)) float_v acos(const float_v x) { return x; }
+    static inline __attribute__((always_inline)) float_v log(const float_v x) { return x; }
 
-  static inline __attribute__((always_inline)) float_m isfinite(const float_v x) { return isFiniteTmp(x); }
+    static inline __attribute__((always_inline)) float_v acos(const float_v x) { return x; }
 
-}  // namespace std
+    static inline __attribute__((always_inline)) float_m isfinite(const float_v x) { return isFiniteTmp(x); }
+
+  }  // namespace SIMD
+}  // namespace KFP
 
 #endif  // KFParticleMath_H
