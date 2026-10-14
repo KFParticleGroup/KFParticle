@@ -27,7 +27,6 @@
 #include "KFPTrackVector.h"
 #include "KFPVertex.h"
 #include "KFParticleDatabase.h"
-#include "KFParticleMath.h"
 
 #ifdef NonhomogeneousField
 #include "KFParticleField.h"
@@ -131,7 +130,7 @@ class KFParticleSIMD {
   KFParticleSIMD(KFPTrackVector& track, int_v& index, const int_v& pdg);
 
   void Create(KFPTrack* Track[], int NTracks, const int* pdg = 0);
-  void Create(KFPTrackVector& track, int_v& index, const int_v& pdg);
+  void Create(const KFPTrackVector& track, const int_v& index, const int_v& pdg);
   void Load(const KFPTrackVector& track, int index, const int_v& pdg);
   void Load(const KFPTrackVector& track, int index);
   void Rotate();
@@ -904,7 +903,7 @@ inline void KFParticleSIMD::GetDStoParticleFast(const KFParticleSIMD& p, float_v
 }
 
 inline void KFParticleSIMD::Transport(float_v dS, const float_v* dsdr, float_v P[], float_v C[], float_v* dsdr1,
-                                      float_v* F, float_v* F1, const bool fullC) const
+                                      float_v* F, float_v* F1, [[maybe_unused]] const bool fullC) const
 {
   /** Transports the parameters and their covariance matrix of the current
    *particle

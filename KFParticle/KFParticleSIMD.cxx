@@ -23,11 +23,14 @@
 #include "KFParticleSIMD.h"
 
 #include "KFParticle.h"
+#include "KFParticleDef.h"
 
 #include <iostream>
 #ifdef HomogeneousField
 float_v KFParticleSIMD::fgBz = -5.f;  //* Bz compoment of the magnetic field
 #endif
+
+using namespace KFP::SIMD;
 
 void KFParticleSIMD::Create(const float_v Param[], const float_v Cov[], int_v Charge, float_v mass /*Int_t PID*/)
 {
@@ -280,7 +283,7 @@ KFParticleSIMD::KFParticleSIMD(KFPTrackVector& track, int_v& index, const int_v&
   Create(track, index, pdg);
 }
 
-void KFParticleSIMD::Create(KFPTrackVector& track, int_v& index, const int_v& pdg)
+void KFParticleSIMD::Create(const KFPTrackVector& track, const int_v& index, const int_v& pdg)
 {
   /** Create a particle from a set of tracks with indices "index" stored in the KFPTrackVector format.
    ** The function should be used in case if indices are random. If they are aligned please use function Load()

@@ -578,20 +578,22 @@ void KFParticleTopoReconstructor::GetChiToPrimVertex(KFParticleSIMD* pv, const i
   KFParticleSIMD tmpPart;
 
   for (int iTV = 0; iTV < 2; iTV++) {
-    unsigned int NTr = fTracks[iTV].Size();
-    for (unsigned int iTr = 0; iTr < NTr; iTr += SimdLen) {
+    int NTr = fTracks[iTV].Size();
+    for (int iTr = 0; iTr < NTr; iTr += SimdLen) {
       int_v trackIndex = int_v(iTr) + KFP::SIMD::gkIndicesSequenceI;
       const int_v& pdg = reinterpret_cast<const int_v&>(fTracks[iTV].PDG()[iTr]);
       tmpPart.Create(fTracks[iTV], trackIndex, pdg);
 
-      float_v& chi2 = reinterpret_cast<float_v&>(fChiToPrimVtx[iTV][iTr]);
-      chi2          = select(trackIndex < NTr, 10000.f, chi2);
+      // TODO: SG: no need to check the valid index. There is no danger in initializing the rest of the simd vector with 10000.f
+      float_m validIndexMask = KFP::SIMD::mask_cast<float_m>(trackIndex < NTr);
+      float_v& chi2          = reinterpret_cast<float_v&>(fChiToPrimVtx[iTV][iTr]);
+      chi2                   = select(validIndexMask, 10000.f, chi2);
 
       for (int iPV = 0; iPV < nPV; iPV++) {
         const float_v point[3] = {pv[iPV].X(), pv[iPV].Y(), pv[iPV].Z()};
         tmpPart.TransportToPoint(point);
         const float_v& chiVec = tmpPart.GetDeviationFromVertex(pv[iPV]);
-        chi2                  = select((chi2 > chiVec) && (trackIndex < NTr), chiVec, chi2);
+        chi2                  = select((chi2 > chiVec) && validIndexMask, chiVec, chi2);
       }
     }
   }

@@ -9,6 +9,8 @@ Emails: mithran@fias.uni-frankfurt.de
 #ifndef KFP_SIMD_H
 #define KFP_SIMD_H
 
+#include "SSE/types.h"
+
 // Determine instruction set, and define platform-dependent functions
 #include "Utils/macros.h"
 // #include "Utils/memory.h"

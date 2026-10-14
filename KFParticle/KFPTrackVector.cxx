@@ -21,8 +21,6 @@
 
 #include "KFPTrackVector.h"
 
-#include "KFParticleMath.h"
-
 #include <iostream>
 
 void KFPTrackVector::Resize(const int n)
