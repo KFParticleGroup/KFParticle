@@ -50,20 +50,24 @@ class KFPEmcCluster {
 
   void Resize(const int n);
   void Set(KFPEmcCluster& v, int vSize, int offset);
-  void SetTracks(const KFPEmcCluster& track, const kfvector_int& trackIndex, const int nIndexes);
+  void SetTracks(const KFPEmcCluster& track, const AlignedVector<int>& trackIndex, const int nIndexes);
 
-  const kfvector_float& X() const { return fP[0]; }  ///< Returns constant reference to the vector with X coordinates.
-  const kfvector_float& Y() const { return fP[1]; }  ///< Returns constant reference to the vector with Y coordinates.
-  const kfvector_float& Z() const { return fP[2]; }  ///< Returns constant reference to the vector with Z coordinates.
-  const kfvector_float& E() const
+  const AlignedVector<float>& X() const
+  { return fP[0]; }  ///< Returns constant reference to the vector with X coordinates.
+  const AlignedVector<float>& Y() const
+  { return fP[1]; }  ///< Returns constant reference to the vector with Y coordinates.
+  const AlignedVector<float>& Z() const
+  { return fP[2]; }  ///< Returns constant reference to the vector with Z coordinates.
+  const AlignedVector<float>& E() const
   { return fP[3]; }  ///< Returns constant reference to the vector with energy of the cluster.
 
-  const kfvector_float& Parameter(const int i) const
+  const AlignedVector<float>& Parameter(const int i) const
   { return fP[i]; }  ///< Returns constant reference to the parameter vector with index "i".
-  const kfvector_float& Covariance(const int i) const
+  const AlignedVector<float>& Covariance(const int i) const
   { return fC[i]; }  ///< Returns constant reference to the vector of the covariance matrix
   ///< elements with index "i".
-  const kfvector_int& Id() const { return fId; }  ///< Returns constant reference to the vector with unique id of the
+  const AlignedVector<int>& Id() const
+  { return fId; }  ///< Returns constant reference to the vector with unique id of the
   ///< clusters.
 
   // modifiers
@@ -123,10 +127,10 @@ class KFPEmcCluster {
   }
 
  private:
-  kfvector_float fP[4];   ///< Coordinates of the cluster and energy: X, Y, Z, E.
-  kfvector_float fC[10];  ///< Covariance matrix of the parameters of the cluster.
+  AlignedVector<float> fP[4];   ///< Coordinates of the cluster and energy: X, Y, Z, E.
+  AlignedVector<float> fC[10];  ///< Covariance matrix of the parameters of the cluster.
 
-  kfvector_int fId;  ///< Vector with unique ids of the clusters.
+  AlignedVector<int> fId;  ///< Vector with unique ids of the clusters.
 };
 
 #endif

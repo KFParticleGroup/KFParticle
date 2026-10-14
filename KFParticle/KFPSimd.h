@@ -1,20 +1,18 @@
-// -*- C++ Header -*-
 /*
 ==================================================
-Authors: A.Mithran;
-Emails: mithran@fias.uni-frankfurt.de
+Authors: S.Gorbunov;
+Emails: se.gorbunov@gsi.de
 ==================================================
 */
 
-#ifndef SIMD_SSE_TYPE_H
-#define SIMD_SSE_TYPE_H
+#ifndef KFPSIMD_H
+#define KFPSIMD_H
 
-#include <bit>
+#include "KFPSimdPaddedAllocator.h"
+
+#include <boost/align/aligned_allocator.hpp>
+
 #include <experimental/simd>
-
-// #include "mask32.h"
-// #include "int32.h"
-// #include "float32.h"
 #include <stdexcept>
 #include <type_traits>
 
@@ -32,7 +30,9 @@ namespace KFP
   namespace SIMD
   {
 
-    using float_v = stdx::native_simd<float>;
+    // TODO: making SIMD size larger than 4 requires changes in TrackVector and using PaddedAllocator in AlignedVector
+
+    using float_v = stdx::fixed_size_simd<float, 4>;
     using int_v   = stdx::rebind_simd_t<int, float_v>;
 
     using float_m = float_v::mask_type;
@@ -46,12 +46,36 @@ namespace KFP
 
     static_assert(std::is_same<int_v::value_type, int>::value, "[Error]: Invalid value type for SSE int SimdClass.");
 
+    //--- SIMD-aligned vectors of scalars - only for float and int types
 
-    KFP_SIMD_INLINE int_v toInt(const float_v& a) { return stdx::static_simd_cast<int_v>(a); }
-    KFP_SIMD_INLINE float_v toFloat(const int_v& a) { return stdx::static_simd_cast<float_v>(a); }
+    /// @brief default implementation for aligned vector - returns void for unsupported types
+    template<typename T>
+    struct AlignedVectorImpl {
+      using type = void;  // dummy for other types
+    };
 
-    KFP_SIMD_INLINE int_v reinterpretAsInt(const float_v& a) { return std::bit_cast<int_v>(a); }
-    KFP_SIMD_INLINE float_v reinterpretAsFloat(const int_v& a) { return std::bit_cast<float_v>(a); }
+    /// @brief vector of floats aligned to float_v
+    template<>
+    struct AlignedVectorImpl<float_v::value_type> {
+      using type =
+        std::vector<float_v::value_type,
+                    boost::alignment::aligned_allocator<float_v::value_type,
+                                                        stdx::memory_alignment_v<float_v, float_v::value_type>>>;
+    };
+
+    /// @brief vector of ints aligned to int_v
+    template<>
+    struct AlignedVectorImpl<int_v::value_type> {
+      using type = std::vector<
+        int_v::value_type,
+        boost::alignment::aligned_allocator<int_v::value_type, stdx::memory_alignment_v<int_v, int_v::value_type>>>;
+    };
+
+    template<typename T>
+    using AlignedVector = typename AlignedVectorImpl<T>::type;
+
+
+    //--- Casting between different mask types
 
     template<class ToMask, class T, class Abi>
     [[nodiscard]] ToMask mask_cast(const stdx::simd_mask<T, Abi>& src) noexcept
@@ -73,20 +97,38 @@ namespace KFP
       }
     }
 
+    //--- precomputed index sequences for int and float vectors
+
     inline const int_v gkIndicesSequenceI([](auto lane) { return static_cast<int_v::value_type>(lane); });
 
     inline const float_v gkIndicesSequenceF([](auto lane) { return static_cast<float_v::value_type>(lane); });
 
+    //--- select() function for pre-C++23 standards
+
+#if __cplusplus < 202302L
+
+    template<typename T>
+    struct type_identity {
+      using type = T;
+    };
+
+    template<typename T>
+    using type_identity_t = typename type_identity<T>::type;
+
+    // Implement select for pre-C++23 standards
 
     template<typename T, typename Abi>
     KFP_SIMD_INLINE stdx::simd<T, Abi> select(const stdx::simd_mask<T, Abi>& mask,
-                                              const std::type_identity_t<stdx::simd<T, Abi>>& on_true,
-                                              const std::type_identity_t<stdx::simd<T, Abi>>& on_false)
+                                              const type_identity_t<stdx::simd<T, Abi>>& on_true,
+                                              const type_identity_t<stdx::simd<T, Abi>>& on_false)
     {
       auto result               = on_false;
       stdx::where(mask, result) = on_true;
       return result;
     }
+#endif
+
+    //-- TODO: SG: replace with std::simd::unchecked_gather_from() when switching to c++26
 
     KFP_SIMD_INLINE float_v gather(const float_v::value_type* data, const int_v& indices)
     {
@@ -97,6 +139,8 @@ namespace KFP
     {
       return int_v([&](auto lane) -> int_v::value_type { return data[indices[lane]]; });
     }
+
+    //--- rotate() function for SIMD vectors
 
     template<int N, typename T, typename Abi>
     KFP_SIMD_INLINE stdx::simd<T, Abi> rotate(const stdx::simd<T, Abi>& v)
@@ -122,4 +166,4 @@ namespace KFP
 
 using KFP::SIMD::select;
 
-#endif  // !SIMD_SSE_TYPE_H
+#endif  // !KFPSIMD_H

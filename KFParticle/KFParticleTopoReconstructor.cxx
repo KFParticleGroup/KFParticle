@@ -84,7 +84,7 @@ void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker, vector<int
   fParticles.clear();
   int iOTr = 0;  // index in out array
 
-  float_v alpha(Vc::Zero);
+  float_v alpha(0.f);
   int nElements = 0;
 
   for (int iTr = 0; iTr < nTracks; iTr++) {
@@ -434,7 +434,7 @@ void KFParticleTopoReconstructor::SortTracks()
     int Size = fTracks[0].Size();
 
     vector<KFPTrackIndex> sortedTracks(Size);
-    kfvector_int trackIndex[4];
+    AlignedVector<int> trackIndex[4];
     for (int iTV = 0; iTV < 4; iTV++) { trackIndex[iTV].resize(Size); }
     int nTracks[4] = {0, 0, 0, 0};
 
