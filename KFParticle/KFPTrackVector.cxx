@@ -21,8 +21,6 @@
 
 #include "KFPTrackVector.h"
 
-#include "KFParticleMath.h"
-
 #include <iostream>
 
 void KFPTrackVector::Resize(const int n)
@@ -69,7 +67,7 @@ void KFPTrackVector::Set(KFPTrackVector& v, int vSize, int offset)
 }
 
 #if 0
-void KFPTrackVector::SetTracks(const KFPTrackVector& track, const kfvector_int& trackIndex, const int nIndexes)
+void KFPTrackVector::SetTracks(const KFPTrackVector& track, const AlignedVector<int>& trackIndex, const int nIndexes)
 {
   /** The current object is resised to "nIndexes", tracks with indices "trackIndex" are copied to the current object.
    ** \param[in] track - input vector of tracks
@@ -192,7 +190,7 @@ void KFPTrackVector::SetTracks(const KFPTrackVector& track, const kfvector_int& 
   }
 }
 #else
-void KFPTrackVector::SetTracks(const KFPTrackVector& track, const kfvector_int& trackIndex, const int nIndexes)
+void KFPTrackVector::SetTracks(const KFPTrackVector& track, const AlignedVector<int>& trackIndex, const int nIndexes)
 {
   /** The current object is resised to "nIndexes", tracks with indices "trackIndex" are copied to the current object.
    ** \param[in] track - input vector of tracks

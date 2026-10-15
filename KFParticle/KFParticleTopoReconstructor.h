@@ -208,7 +208,7 @@ class KFParticleTopoReconstructor {
   }
   const KFPTrackVector* GetTracks() const { return fTracks; }  ///< Returns a pointer to the arrays with tracks
   ///< KFParticleTopoReconstructor::fTracks.
-  const kfvector_float* GetChiPrim() const
+  const AlignedVector<float>* GetChiPrim() const
   { return fChiToPrimVtx; }  ///< Returns a pointer to the arrays with chi2-deviations
   ///< KFParticleTopoReconstructor::fChiToPrimVtx.
 
@@ -363,10 +363,10 @@ class KFParticleTopoReconstructor {
    ** 7) primary negative at the last hit position.
    **/
   KFPTrackVector* fTracks;
-  kfvector_float fChiToPrimVtx[2];                                    ///< Chi2-deviation of the secondary tracks.
-  std::vector<KFParticle> fParticles;                                 ///< Vector of the reconstructed
-                                                                      ///< candidates of short-lived particles.
-  std::vector<KFParticleSIMD, KFPSimdAllocator<KFParticleSIMD>> fPV;  ///< Vector of the reconstructed primary vertices.
+  AlignedVector<float> fChiToPrimVtx[2];  ///< Chi2-deviation of the secondary tracks.
+  std::vector<KFParticle> fParticles;     ///< Vector of the reconstructed
+                                          ///< candidates of short-lived particles.
+  std::vector<KFParticleSIMD> fPV;        ///< Vector of the reconstructed primary vertices.
 
   short int fNThreads;  ///< Number of threads to be run in KFParticleFinder.
                         ///< Currently is not used.

@@ -95,45 +95,48 @@ class KFPTrackVector {
 
   void Resize(const int n);
   void Set(KFPTrackVector& v, int vSize, int offset);
-  void SetTracks(const KFPTrackVector& track, const kfvector_int& trackIndex, const int nIndexes);
+  void SetTracks(const KFPTrackVector& track, const AlignedVector<int>& trackIndex, const int nIndexes);
   void GetTrack(KFPTrack& track, const int n);
 
-  const kfvector_float& X() const { return fP[0]; }  ///< Returns constant reference to the vector with X coordinates.
-  const kfvector_float& Y() const { return fP[1]; }  ///< Returns constant reference to the vector with Y coordinates.
-  const kfvector_float& Z() const { return fP[2]; }  ///< Returns constant reference to the vector with Z coordinates.
-  const kfvector_float& Px() const
+  const AlignedVector<float>& X() const
+  { return fP[0]; }  ///< Returns constant reference to the vector with X coordinates.
+  const AlignedVector<float>& Y() const
+  { return fP[1]; }  ///< Returns constant reference to the vector with Y coordinates.
+  const AlignedVector<float>& Z() const
+  { return fP[2]; }  ///< Returns constant reference to the vector with Z coordinates.
+  const AlignedVector<float>& Px() const
   { return fP[3]; }  ///< Returns constant reference to the vector with Px components of
   ///< momentum.
-  const kfvector_float& Py() const
+  const AlignedVector<float>& Py() const
   { return fP[4]; }  ///< Returns constant reference to the vector with Py components of
   ///< momentum.
-  const kfvector_float& Pz() const
+  const AlignedVector<float>& Pz() const
   { return fP[5]; }  ///< Returns constant reference to the vector with Pz components of
   ///< momentum.
 
-  const kfvector_float& Parameter(const int i) const
+  const AlignedVector<float>& Parameter(const int i) const
   { return fP[i]; }  ///< Returns constant reference to the track parameter vector with index
   ///< "i".
-  const kfvector_float& Covariance(const int i) const
+  const AlignedVector<float>& Covariance(const int i) const
   { return fC[i]; }  ///< Returns constant reference to the vector of the covariance matrix
   ///< elements with index "i".
 #ifdef NonhomogeneousField
-  const kfvector_float& FieldCoefficient(const int i) const
+  const AlignedVector<float>& FieldCoefficient(const int i) const
   { return fField[i]; }  ///< Returns constant reference to the magnetic field coefficient with index
   ///< "i".
 #endif
 
-  const kfvector_int& Id() const { return fId; }  ///< Returns constant reference to the vector with track Id
+  const AlignedVector<int>& Id() const { return fId; }  ///< Returns constant reference to the vector with track Id
   ///< KFPTrackVector::fId.
-  const kfvector_int& PDG() const
+  const AlignedVector<int>& PDG() const
   { return fPDG; }  ///< Returns constant reference to the vector with assigned PDG hypothesis
   ///< KFPTrackVector::fPDG.
-  const kfvector_int& Q() const { return fQ; }  ///< Returns constant reference to the vector with charge
+  const AlignedVector<int>& Q() const { return fQ; }  ///< Returns constant reference to the vector with charge
   ///< KFPTrackVector::fQ.
-  const kfvector_int& PVIndex() const
+  const AlignedVector<int>& PVIndex() const
   { return fPVIndex; }  ///< Returns constant reference to the vector with indices of corresponding
   ///< primary vertex KFPTrackVector::fPVIndex.
-  const kfvector_int& NPixelHits() const
+  const AlignedVector<int>& NPixelHits() const
   { return fNPixelHits; }  ///< Returns constant reference to the vector with the number of precise
   ///< measurements KFPTrackVector::fNPixelHits.
 
@@ -538,35 +541,18 @@ class KFPTrackVector {
     offset++;
   }
 
-  void* operator new(size_t size)
-  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
-  ///< allocation
-  void* operator new[](size_t size)
-  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
-  ///< allocation
-  void* operator new(size_t size, void* ptr)
-  { return ::operator new(size, ptr); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
-  ///< allocation
-  void* operator new[](size_t size, void* ptr)
-  { return ::operator new(size, ptr); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
-  ///< allocation
-  void operator delete(void* ptr, size_t)
-  { _mm_free(ptr); }  ///< delete operator for the SIMD-alligned dynamic memory release
-  void operator delete[](void* ptr, size_t)
-  { _mm_free(ptr); }  ///< delete operator for the SIMD-alligned dynamic memory release
-
  private:
-  kfvector_float fP[6];   ///< Vectors with parameters of the track : X, Y, Z, Px, Py, Pz.
-  kfvector_float fC[21];  ///< Vectors with covariance matrix of the track
-                          ///< parameters stroed in a lower triangular form.
+  AlignedVector<float> fP[6];   ///< Vectors with parameters of the track : X, Y, Z, Px, Py, Pz.
+  AlignedVector<float> fC[21];  ///< Vectors with covariance matrix of the track
+                                ///< parameters stroed in a lower triangular form.
 
-  kfvector_int fId;          ///< Vector with the unique Id of tracks.
-  kfvector_int fPDG;         ///< Vector with the PDG hypothesis.
-  kfvector_int fQ;           ///< Vector with the charge of the tracks.
-  kfvector_int fPVIndex;     ///< Vector with the index of the corresponding primary vertex.
-                             ///< If track is considered secondary "-1" is stored.
-  kfvector_int fNPixelHits;  ///< Vector with the number of hits from precise detectors
-                             ///< (like MVD in CBM, HFT in STAR, ITS in ALICE, etc.)
+  AlignedVector<int> fId;          ///< Vector with the unique Id of tracks.
+  AlignedVector<int> fPDG;         ///< Vector with the PDG hypothesis.
+  AlignedVector<int> fQ;           ///< Vector with the charge of the tracks.
+  AlignedVector<int> fPVIndex;     ///< Vector with the index of the corresponding primary vertex.
+                                   ///< If track is considered secondary "-1" is stored.
+  AlignedVector<int> fNPixelHits;  ///< Vector with the number of hits from precise detectors
+                                   ///< (like MVD in CBM, HFT in STAR, ITS in ALICE, etc.)
 
   /** The coefficients of the field approximation of each field component along
    *the track trajectory using parabolas: \n
@@ -582,7 +568,7 @@ class KFPTrackVector {
    ** Bz(z) = cz0 + cz1*(z-z0) + cz2*(z-z0)^2
    **/
 #ifdef NonhomogeneousField
-  kfvector_float fField[10];
+  AlignedVector<float> fField[10];
 #endif
 
   int fNE;      ///< Index of the last electron.

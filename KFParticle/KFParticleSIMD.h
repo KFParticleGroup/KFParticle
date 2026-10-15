@@ -27,7 +27,6 @@
 #include "KFPTrackVector.h"
 #include "KFPVertex.h"
 #include "KFParticleDatabase.h"
-#include "KFParticleMath.h"
 
 #ifdef NonhomogeneousField
 #include "KFParticleField.h"
@@ -62,22 +61,6 @@ class KFParticle;
 class KFParticleSIMD {
 
  public:
-  void* operator new(size_t size)
-  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
-  ///< allocation
-  void* operator new[](size_t size)
-  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
-  ///< allocation
-  void* operator new(size_t size, void* ptr)
-  { return ::operator new(size, ptr); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
-  ///< allocation
-  void* operator new[](size_t size, void* ptr)
-  { return ::operator new(size, ptr); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
-  ///< allocation
-  void operator delete(void* ptr, size_t)
-  { _mm_free(ptr); }  ///< delete operator for the SIMD-alligned dynamic memory release
-  void operator delete[](void* ptr, size_t)
-  { _mm_free(ptr); }  ///< delete operator for the SIMD-alligned dynamic memory release
   //*
   //*  INITIALIZATION
   //*
@@ -131,7 +114,7 @@ class KFParticleSIMD {
   KFParticleSIMD(KFPTrackVector& track, int_v& index, const int_v& pdg);
 
   void Create(KFPTrack* Track[], int NTracks, const int* pdg = 0);
-  void Create(KFPTrackVector& track, int_v& index, const int_v& pdg);
+  void Create(const KFPTrackVector& track, const int_v& index, const int_v& pdg);
   void Load(const KFPTrackVector& track, int index, const int_v& pdg);
   void Load(const KFPTrackVector& track, int index);
   void Rotate();
@@ -492,34 +475,34 @@ class KFParticleSIMD {
   /** Return an element of the covariance matrix with {i,j} indices. */
   float_v Cij(int i, int j) const { return fC[IJ(i, j)]; }
 
-  float_v fP[8];            ///< Particle parameters { X, Y, Z, Px, Py, Pz, E,
-                            ///< S[=DecayLength/P]}.
-  float_v fC[36];           ///< Low-triangle covariance matrix of fP.
-  int_v fQ;                 ///< The charge of the particle in the units of the elementary charge.
-  int_v fNDF;               ///< Number of degrees of freedom.
-  float_v fChi2;            ///< Chi^2.
-  float_v SumDaughterMass;  ///< Sum of the daughter particles masses. Needed
-                            ///< to set the constraint on the minimum mass
-                            ///< during particle construction.
-  float_v fMassHypo;        ///< The mass hypothesis, used for the constraints during
-                            ///< particle construction.
-  int_v fId;                ///< Id of the particle.
-  int_v fPDG;               ///< The PDG hypothesis assigned to the particle.
+  float_v fP[8]{{0}};          ///< Particle parameters { X, Y, Z, Px, Py, Pz, E,
+                               ///< S[=DecayLength/P]}.
+  float_v fC[36]{{0}};         ///< Low-triangle covariance matrix of fP.
+  int_v fQ{0};                 ///< The charge of the particle in the units of the elementary charge.
+  int_v fNDF{0};               ///< Number of degrees of freedom.
+  float_v fChi2{0};            ///< Chi^2.
+  float_v SumDaughterMass{0};  ///< Sum of the daughter particles masses. Needed
+                               ///< to set the constraint on the minimum mass
+                               ///< during particle construction.
+  float_v fMassHypo{0};        ///< The mass hypothesis, used for the constraints during
+                               ///< particle construction.
+  int_v fId{0};                ///< Id of the particle.
+  int_v fPDG{0};               ///< The PDG hypothesis assigned to the particle.
   /** \brief Determines the method for the particle construction. \n
    ** 0 - Energy considered as an independent veriable, fitted independently
    *from momentum, without any constraints on mass \n
    ** 2 - Energy considered as an independent variable, fitted independently
    *from momentum, with constraints on mass of daughter particle
    **/
-  int fConstructMethod;
+  int fConstructMethod{0};
   /** \brief A vector with ids of the daughter particles: \n
    ** 1) if particle is created from a track - the index of the track, in this
    *case the size of the vector is always equal to one; \n
    ** 2) if particle is constructed from other particles - indices of these
    *particles in the same array.
    **/
-  std::vector<int_v> fDaughterIds;  // id of particles it created from. if size
-                                    // == 1 then this is id of track.
+  std::vector<int_v> fDaughterIds{};  // id of particles it created from. if size
+                                      // == 1 then this is id of track.
 
   //* Method to access ALICE field
 #ifdef HomogeneousField
@@ -528,15 +511,15 @@ class KFParticleSIMD {
 
  private:
 #ifdef HomogeneousField
-  static float_v fgBz;  ///< Bz compoment of the magnetic field (is defined in
-                        ///< case of #ifdef HomogeneousField)
+  static float_v fgBz{0};  ///< Bz compoment of the magnetic field (is defined in
+                           ///< case of #ifdef HomogeneousField)
 #endif
 #ifdef NonhomogeneousField
   /** \brief Approximation of the magnetic field along the track trajectory.
    ** Each component (Bx, By, Bz) is approximated with the parabola depending on
    *Z coordinate. Is defined in case of #ifdef NonhomogeneousField.
    **/
-  KFParticleFieldRegion fField;
+  KFParticleFieldRegion fField{};
 #endif
 } __attribute__((aligned(sizeof(float_v))));
 
@@ -904,7 +887,7 @@ inline void KFParticleSIMD::GetDStoParticleFast(const KFParticleSIMD& p, float_v
 }
 
 inline void KFParticleSIMD::Transport(float_v dS, const float_v* dsdr, float_v P[], float_v C[], float_v* dsdr1,
-                                      float_v* F, float_v* F1, const bool fullC) const
+                                      float_v* F, float_v* F1, [[maybe_unused]] const bool fullC) const
 {
   /** Transports the parameters and their covariance matrix of the current
    *particle

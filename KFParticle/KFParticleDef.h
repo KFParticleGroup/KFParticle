@@ -27,34 +27,21 @@
 
 #if defined(HLTCA_STANDALONE) || defined(CBM_ONLINE)
 #include "RootTypesDef.h"
-#include "simd.h"
 #else
-#include "KFPSimd/simd.h"
 #include "TObject.h"
 #endif
 
+#include "KFPSimd.h"
+
 #define NInputSets 8
 
+using KFP::SIMD::AlignedVector;
 using KFP::SIMD::float_m;
 using KFP::SIMD::float_v;
 using KFP::SIMD::int_m;
 using KFP::SIMD::int_v;
 using KFP::SIMD::SimdLen;
 using KFP::SIMD::SimdSize;
-
-#ifdef VC_VERSION_NUMBER
-#if VC_VERSION_NUMBER < VC_VERSION_CHECK(1, 0, 0)
-template<typename To, typename From>
-To simd_cast(From&& x)
-{ return static_cast<To>(x); }
-#endif
-#elif defined(Vc_VERSION_NUMBER)
-#if Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1, 0, 0)
-template<typename To, typename From>
-To simd_cast(From&& x)
-{ return static_cast<To>(x); }
-#endif
-#endif
 
 #if defined(HLTCA_STANDALONE)
 typedef unsigned char UChar_t;
@@ -65,11 +52,5 @@ typedef double Double_t;
 #else
 #include "Rtypes.h"
 #endif
-
-#include "KFPSimdAllocator.h"
-typedef std::vector<float_v, KFPSimdAllocator<float_v>> kfvector_floatv;
-
-typedef std::vector<float, KFPSimdAllocator<float>> kfvector_float;
-typedef std::vector<int, KFPSimdAllocator<int>> kfvector_int;
 
 #endif

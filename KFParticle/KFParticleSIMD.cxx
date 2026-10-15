@@ -23,11 +23,14 @@
 #include "KFParticleSIMD.h"
 
 #include "KFParticle.h"
+#include "KFParticleDef.h"
 
 #include <iostream>
 #ifdef HomogeneousField
 float_v KFParticleSIMD::fgBz = -5.f;  //* Bz compoment of the magnetic field
 #endif
+
+using namespace KFP::SIMD;
 
 void KFParticleSIMD::Create(const float_v Param[], const float_v Cov[], int_v Charge, float_v mass /*Int_t PID*/)
 {
@@ -280,7 +283,7 @@ KFParticleSIMD::KFParticleSIMD(KFPTrackVector& track, int_v& index, const int_v&
   Create(track, index, pdg);
 }
 
-void KFParticleSIMD::Create(KFPTrackVector& track, int_v& index, const int_v& pdg)
+void KFParticleSIMD::Create(const KFPTrackVector& track, const int_v& index, const int_v& pdg)
 {
   /** Create a particle from a set of tracks with indices "index" stored in the KFPTrackVector format.
    ** The function should be used in case if indices are random. If they are aligned please use function Load()
@@ -2290,7 +2293,7 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
   const float_v& pz = param[5];
 
   const float_v kCLight = 0.000299792458f;
-  float_v bq            = B * toFloat(fQ) * kCLight;
+  float_v bq            = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
   float_v pt2           = param[3] * param[3] + param[4] * param[4];
   float_v p2            = pt2 + param[5] * param[5];
 
@@ -2457,7 +2460,7 @@ float_v KFParticleSIMD::GetDStoPointXYBz(float_v B, const float_v xyz[2]) const
   const float_v& py = fP[4];
 
   const float_v kCLight = 0.000299792458f;
-  float_v bq            = B * toFloat(fQ) * kCLight;
+  float_v bq            = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
   float_v pt2           = fP[3] * fP[3] + fP[4] * fP[4];
 
   float_v dx = xyz[0] - fP[0];
@@ -2497,7 +2500,7 @@ void KFParticleSIMD::GetDStoCylinderBz(const float_v B, const float_v R, float_v
 
   //in XY plane
   //first root
-  const float_v& bq1 = B * toFloat(fQ) * kCLight;
+  const float_v& bq1 = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
   const float_v& bq2 = B * kCLight;
 
   const float_m& isStraight = abs(bq1) < float_v(1.e-8f);
@@ -2587,8 +2590,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   //in XY plane
   //first root
-  const float_v& bq1 = B * toFloat(fQ) * kCLight;
-  const float_v& bq2 = B * toFloat(p.fQ) * kCLight;
+  const float_v& bq1 = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
+  const float_v& bq2 = B * stdx::static_simd_cast<float_v>(p.fQ) * kCLight;
 
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
@@ -3296,8 +3299,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   //in XY plane
   //first root
-  const float_v& bq1 = B * toFloat(fQ) * kCLight;
-  const float_v& bq2 = B * toFloat(p.fQ) * kCLight;
+  const float_v& bq1 = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
+  const float_v& bq2 = B * stdx::static_simd_cast<float_v>(p.fQ) * kCLight;
 
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
@@ -3844,8 +3847,8 @@ void KFParticleSIMD::GetDStoParticleCBM(const KFParticleSIMD& p, float_v dS[2], 
   float_v fld[3];
   GetFieldValue(fP, fld);
 
-  const float_v& bq1         = fld[1] * toFloat(fQ);
-  const float_v& bq2         = fld[1] * toFloat(p.fQ);
+  const float_v& bq1         = fld[1] * stdx::static_simd_cast<float_v>(fQ);
+  const float_v& bq2         = fld[1] * stdx::static_simd_cast<float_v>(p.fQ);
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
@@ -3873,8 +3876,8 @@ void KFParticleSIMD::GetDStoParticleCBM(const KFParticleSIMD& p, float_v dS[2]) 
   float_v fld[3];
   GetFieldValue(fP, fld);
 
-  const float_v& bq1         = fld[1] * toFloat(fQ);
-  const float_v& bq2         = fld[1] * toFloat(p.fQ);
+  const float_v& bq1         = fld[1] * stdx::static_simd_cast<float_v>(fQ);
+  const float_v& bq2         = fld[1] * stdx::static_simd_cast<float_v>(p.fQ);
   const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
   const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
 
@@ -4325,7 +4328,7 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
 
   const float_v kCLight = 0.000299792458f;
 
-  float_v c = toFloat(fQ) * kCLight;
+  float_v c = stdx::static_simd_cast<float_v>(fQ) * kCLight;
 
   // construct coefficients
 
@@ -4562,7 +4565,7 @@ void KFParticleSIMD::TransportCBM(float_v dS, float_v P[]) const
 
   const float_v kCLight = 0.000299792458f;
 
-  float_v c = toFloat(fQ) * kCLight;
+  float_v c = stdx::static_simd_cast<float_v>(fQ) * kCLight;
 
   // construct coefficients
 
@@ -4729,7 +4732,7 @@ void KFParticleSIMD::TransportBz(float_v Bz, float_v dS, const float_v* dsdr, fl
 
   const float_v kCLight = 0.000299792458f;
 
-  Bz         = Bz * toFloat(fQ) * kCLight;
+  Bz         = Bz * stdx::static_simd_cast<float_v>(fQ) * kCLight;
   float_v bs = Bz * dS;
   float_v s  = sin(bs);
   float_v c  = cos(bs);
@@ -5037,7 +5040,7 @@ void KFParticleSIMD::TransportBz(float_v Bz, float_v dS, float_v P[]) const
 
   const float_v kCLight = 0.000299792458f;
 
-  Bz         = Bz * toFloat(fQ) * kCLight;
+  Bz         = Bz * stdx::static_simd_cast<float_v>(fQ) * kCLight;
   float_v bs = Bz * dS;
   float_v s  = sin(bs);
   float_v c  = cos(bs);

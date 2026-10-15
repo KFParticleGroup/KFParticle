@@ -79,7 +79,7 @@ void KFPEmcCluster::Set(KFPEmcCluster& v, int vSize, int offset)
   }
 }
 
-void KFPEmcCluster::SetTracks(const KFPEmcCluster& track, const kfvector_int& trackIndex, const int nIndexes)
+void KFPEmcCluster::SetTracks(const KFPEmcCluster& track, const AlignedVector<int>& trackIndex, const int nIndexes)
 {
   /** The current object is resised to "nIndexes", clusters with indices "trackIndex" are copied to the current object.
    ** \param[in] track - input vector of clusters
