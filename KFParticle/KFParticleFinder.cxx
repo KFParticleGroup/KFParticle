@@ -3115,7 +3115,7 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
   }
 
   if (nBufEntry > 0) {
-    for (int iV = nBufEntry; iV < SimdLen; iV++) { idTrackArray[iV] = idTrack[0]; }
+    for (int iV = nBufEntry; iV < SimdLen; iV++) { idTrackArray[iV] = idTrackArray[0]; }
 
     idTrack.copy_from(idTrackArray, stdx::vector_aligned);
     trackPDGMother.copy_from(trackPDGMotherArray, stdx::vector_aligned);
