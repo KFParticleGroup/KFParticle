@@ -200,7 +200,7 @@ void KFParticleFinder::Init(int nPV)
 }
 //________________________________________________________________________________
 
-void KFParticleFinder::FindParticles(KFPTrackVector* vRTracks, AlignedVector<float>* ChiToPrimVtx,
+void KFParticleFinder::FindParticles(KFPTrackVector* vRTracks, PaddedVector<float_v>* ChiToPrimVtx,
                                      std::vector<KFParticle>& Particles, std::vector<KFParticleSIMD>& PrimVtx, int nPV)
 {
   /** The main interface which runs reconstruction of short-lived particles:\n
@@ -904,11 +904,11 @@ inline void KFParticleFinder::ConstructV0(
   float_m isPrimary = KFP::SIMD::mask_cast<float_m>(pvIndex > -1);
   int_v trackId;
   KFParticleSIMD posDaughter(vTracks[iTrTypePos], idPosDaughters, daughterPosPDG);
-  trackId = KFP::SIMD::gather(&(vTracks[iTrTypePos].Id()[0]), idPosDaughters);
+  trackId = KFP::SIMD::gather(vTracks[iTrTypePos].Id(), idPosDaughters);
   posDaughter.SetId(trackId);
 
   KFParticleSIMD negDaughter(vTracks[iTrTypeNeg], idNegDaughters, daughterNegPDG);
-  trackId = KFP::SIMD::gather(&(vTracks[iTrTypeNeg].Id()[0]), idNegDaughters);
+  trackId = KFP::SIMD::gather(vTracks[iTrTypeNeg].Id(), idNegDaughters);
   negDaughter.SetId(trackId);
 #ifdef CBM
   float_v ds[2] = {0.f, 0.f};
@@ -1167,7 +1167,7 @@ inline void KFParticleFinder::SaveV0PrimSecCand(KFParticleSIMD& mother, int& NPa
   }
 }
 
-void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, AlignedVector<float>* ChiToPrimVtx,
+void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<float_v>* ChiToPrimVtx,
                                           vector<KFParticle>& Particles, std::vector<KFParticleSIMD>& PrimVtx,
                                           const float* cuts, const float* secCuts,
                                           vector<vector<KFParticle>>* vMotherPrim, vector<KFParticle>* vMotherSec)
@@ -1309,11 +1309,13 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, AlignedVector
         for (int iTrN = startTCNeg[iTC]; iTrN < endTCNeg[iTC]; iTrN += SimdLen) {
           const int NTracksNeg = (iTrN + SimdLen < negTracksSize[0]) ? SimdLen : (negTracksSize[0] - iTrN);
 
-          int_v negInd = KFP::SIMD::gkIndicesSequenceI + int(iTrN);
+          int iBlockNeg = iTrN / SimdLen;
 
-          int_v negPDG        = reinterpret_cast<const int_v&>(negTracks.PDG()[iTrN]);
-          int_v negPVIndex    = reinterpret_cast<const int_v&>(negTracks.PVIndex()[iTrN]);
-          int_v negNPixelHits = reinterpret_cast<const int_v&>(negTracks.NPixelHits()[iTrN]);
+          int_v negInd = KFP::SIMD::gkIndicesSequenceI + iTrN;
+
+          int_v negPDG        = negTracks.PDG().block(iBlockNeg);
+          int_v negPVIndex    = negTracks.PVIndex().block(iBlockNeg);
+          int_v negNPixelHits = negTracks.NPixelHits().block(iBlockNeg);
 
           int_v trackPdgNeg = negPDG;
           int_m activeNeg   = (negPDG != -1);
@@ -1333,21 +1335,22 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, AlignedVector
           float_v chiPrimPos(0.f);
 
           if ((iTrTypeNeg == 0) && (iTrTypePos == 0)) {
-            chiPrimNeg = reinterpret_cast<const float_v&>(ChiToPrimVtx[trTypeIndexNeg[iTrTypeNeg]][iTrN]);
+            chiPrimNeg = ChiToPrimVtx[trTypeIndexNeg[iTrTypeNeg]].block(iBlockNeg);
           }
 
           for (int iTrP = startTCPos[iTC]; iTrP < endTCPos[iTC]; iTrP += SimdLen) {
             const int NTracks = (iTrP + SimdLen < nPositiveTracks) ? SimdLen : (nPositiveTracks - iTrP);
 
-            const int_v& posPDG        = reinterpret_cast<const int_v&>(posTracks.PDG()[iTrP]);
-            const int_v& posPVIndex    = reinterpret_cast<const int_v&>(posTracks.PVIndex()[iTrP]);
-            const int_v& posNPixelHits = reinterpret_cast<const int_v&>(posTracks.NPixelHits()[iTrP]);
+            int iBlockPos              = iTrP / SimdLen;
+            const int_v& posPDG        = posTracks.PDG().block(iBlockPos);
+            const int_v& posPVIndex    = posTracks.PVIndex().block(iBlockPos);
+            const int_v& posNPixelHits = posTracks.NPixelHits().block(iBlockPos);
             const int_m isPosSecondary = (posPVIndex < 0);
 
             daughterPos.Load(posTracks, iTrP, posPDG);
 
             if ((iTrTypeNeg == 0) && (iTrTypePos == 0)) {
-              chiPrimPos = reinterpret_cast<const float_v&>(ChiToPrimVtx[trTypeIndexPos[iTrTypePos]][iTrP]);
+              chiPrimPos = ChiToPrimVtx[trTypeIndexPos[iTrTypePos]].block(iBlockPos);
             }
 
             for (int iRot = 0; iRot < SimdLen; iRot++) {
@@ -1773,14 +1776,16 @@ void KFParticleFinder::Find2DaughterDecayOneSign(KFPTrackVector& vTracks, std::v
   KFParticleSIMD pion, fragment;
 
   for (int iPion = vTracks.FirstPion(); iPion < vTracks.LastPion(); iPion += SimdLen) {
-    int_v pionId  = reinterpret_cast<const int_v&>(vTracks.Id()[iPion]);
-    int_v pionPDG = reinterpret_cast<const int_v&>(vTracks.PDG()[iPion]);
+    int iBlockPion = iPion / SimdLen;
+    int_v pionId   = vTracks.Id().block(iBlockPion);
+    int_v pionPDG  = vTracks.PDG().block(iBlockPion);
     pion.Load(vTracks, iPion, pionPDG);
     pion.SetId(pionId);
 
     for (int iFragment = vTracks.FirstDeuteron(); iFragment < vTracks.LastBe7(); iFragment += SimdLen) {
-      const int_v fragmentId  = reinterpret_cast<const int_v&>(vTracks.Id()[iFragment]);
-      const int_v fragmentPDG = reinterpret_cast<const int_v&>(vTracks.PDG()[iFragment]);
+      int iBlockFragment      = iFragment / SimdLen;
+      const int_v fragmentId  = vTracks.Id().block(iBlockFragment);
+      const int_v fragmentPDG = vTracks.PDG().block(iBlockFragment);
 
       fragment.Load(vTracks, iFragment, fragmentPDG);
       fragment.SetId(fragmentId);
@@ -1937,8 +1942,9 @@ void KFParticleFinder::ConstructResonances2D(KFPTrackVector* vTracks, std::vecto
   KFParticle track;
 
   for (int iTrack = vTracks[2].FirstPion(); iTrack < vTracks[2].LastBe7(); iTrack += SimdLen) {
-    const int_v& pdg = reinterpret_cast<const int_v&>(vTracks[2].PDG()[iTrack]);
-    const int_v& id  = reinterpret_cast<const int_v&>(vTracks[2].Id()[iTrack]);
+    int iBlockTrack  = iTrack / SimdLen;
+    const int_v& pdg = vTracks[2].PDG().block(iBlockTrack);
+    const int_v& id  = vTracks[2].Id().block(iBlockTrack);
 
     trackSIMD.Load(vTracks[2], iTrack, pdg);
     trackSIMD.SetPDG(pdg);
@@ -1967,8 +1973,9 @@ void KFParticleFinder::ConstructResonances2D(KFPTrackVector* vTracks, std::vecto
   }
 
   for (int iTrack = vTracks[3].FirstPion(); iTrack < vTracks[3].LastProton(); iTrack += SimdLen) {
-    const int_v& pdg = reinterpret_cast<const int_v&>(vTracks[3].PDG()[iTrack]);
-    const int_v& id  = reinterpret_cast<const int_v&>(vTracks[3].Id()[iTrack]);
+    int iBlockTrack  = iTrack / SimdLen;
+    const int_v& pdg = vTracks[3].PDG().block(iBlockTrack);
+    const int_v& id  = vTracks[3].Id().block(iBlockTrack);
 
     trackSIMD.Load(vTracks[3], iTrack, pdg);
     trackSIMD.SetPDG(pdg);
@@ -2247,7 +2254,7 @@ void KFParticleFinder::ConstructTrackV0Cand(
   float_m isPrimary = KFP::SIMD::mask_cast<float_m>(pvIndex > -1);
 
   int_v trackId = 0;
-  trackId       = KFP::SIMD::gather(&(vTracks.Id()[0]), idTracks);
+  trackId       = KFP::SIMD::gather(vTracks.Id(), idTracks);
 
   KFParticleSIMD V0(vV0, nElements);
   KFParticleSIMD track(vTracks, idTracks, trackPDG);
@@ -2558,7 +2565,7 @@ void KFParticleFinder::ConstructTrackV0Cand(
 void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG, KFPTrackVector& vTracks, const int q,
                                         const int firstTrack, const int lastTrack, vector<KFParticle>& Particles,
                                         std::vector<KFParticleSIMD>& PrimVtx, int v0PVIndex,
-                                        AlignedVector<float>* ChiToPrimVtx, vector<vector<KFParticle>>* vMotherPrim,
+                                        PaddedVector<float_v>* ChiToPrimVtx, vector<vector<KFParticle>>* vMotherPrim,
                                         vector<KFParticle>* vMotherSec)
 {
   /** Combines tracks and already reconstructed particle candidate of certain type in the next candidate.
@@ -2627,9 +2634,11 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
 
     for (int iTr = firstTrack; iTr < lastTrack; iTr += SimdLen) {
       const int NTracks = (iTr + SimdLen < lastTrack) ? SimdLen : (lastTrack - iTr);
+      int iBlockTrack   = iTr / SimdLen;
 
-      const int_v& trackPDG     = reinterpret_cast<const int_v&>(vTracks.PDG()[iTr]);
-      const int_v& trackPVIndex = reinterpret_cast<const int_v&>(vTracks.PVIndex()[iTr]);
+      const int_v& trackPDG     = vTracks.PDG().block(iBlockTrack);
+      const int_v& trackPVIndex = vTracks.PVIndex().block(iBlockTrack);
+      const int_v& id           = vTracks.Id().block(iBlockTrack);
 
       const int_m isTrackSecondary = (trackPVIndex < 0);
       const int_m isSecondary      = isPvIndexNeg && isTrackSecondary;
@@ -2741,7 +2750,6 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -104122, motherPDG);
         }
         else if (V0PDG == 100310) {
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 211) && (id > iPosDaughter), 100321, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -211) && (id > iNegDaughter), -100321, motherPDG);
         }
@@ -2758,41 +2766,37 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
           motherPDG = select(isPrimary && (trackPdgPos[iPDGPos] == 321), -1003334, motherPDG);
         }
         else if (V0PDG == 421) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 211), 411, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 321), 431, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 4122, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
-          int_m isDMeson  = isSecondary && (trackPdgPos[iPDGPos] == 211);
+          motherPDG      = select(isSecondary && (trackPdgPos[iPDGPos] == 211), 411, motherPDG);
+          motherPDG      = select(isSecondary && (trackPdgPos[iPDGPos] == 321), 431, motherPDG);
+          motherPDG      = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 4122, motherPDG);
+          int_m isDMeson = isSecondary && (trackPdgPos[iPDGPos] == 211);
           active[iPDGPos] &= (!(isDMeson)) || (isDMeson && (id > iPosDaughter));
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -211), -521, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -321), -529, motherPDG);
           motherPDG = select(isPrimary && (trackPdgPos[iPDGPos] == 211), 10411, motherPDG);
         }
         else if (V0PDG == -421) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -211), -411, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -321), -431, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -4122, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
-          int_m isDMeson  = isSecondary && (trackPdgPos[iPDGPos] == -211);
+          motherPDG      = select(isSecondary && (trackPdgPos[iPDGPos] == -211), -411, motherPDG);
+          motherPDG      = select(isSecondary && (trackPdgPos[iPDGPos] == -321), -431, motherPDG);
+          motherPDG      = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -4122, motherPDG);
+          int_m isDMeson = isSecondary && (trackPdgPos[iPDGPos] == -211);
           active[iPDGPos] &= (!(isDMeson)) || (isDMeson && (id > iNegDaughter));
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 211), 521, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 321), 529, motherPDG);
           motherPDG = select(isPrimary && (trackPdgPos[iPDGPos] == -211), -10411, motherPDG);
         }
         else if (V0PDG == 420 && q > 0) {
-          motherPDG       = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 211), 300411, motherPDG);
-          motherPDG       = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 321), 400431, motherPDG);
-          motherPDG       = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 2212), 504122, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
-          int_m isDMeson  = isSecondary && (abs(trackPdgPos[iPDGPos]) == 211);
+          motherPDG      = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 211), 300411, motherPDG);
+          motherPDG      = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 321), 400431, motherPDG);
+          motherPDG      = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 2212), 504122, motherPDG);
+          int_m isDMeson = isSecondary && (abs(trackPdgPos[iPDGPos]) == 211);
           active[iPDGPos] &= (!(isDMeson)) || (isDMeson && (id > iPosDaughter));
         }
         else if (V0PDG == 420 && q < 0) {
-          motherPDG       = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 211), -300411, motherPDG);
-          motherPDG       = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 321), -400431, motherPDG);
-          motherPDG       = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 2212), -504122, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
-          int_m isDMeson  = isSecondary && (abs(trackPdgPos[iPDGPos]) == 211);
+          motherPDG      = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 211), -300411, motherPDG);
+          motherPDG      = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 321), -400431, motherPDG);
+          motherPDG      = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 2212), -504122, motherPDG);
+          int_m isDMeson = isSecondary && (abs(trackPdgPos[iPDGPos]) == 211);
           active[iPDGPos] &= (!(isDMeson)) || (isDMeson && (id > iNegDaughter));
         }
         else if (V0PDG == 411) {
@@ -2818,7 +2822,6 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
           motherPDG = select(isPrimary && (trackPdgPos[iPDGPos] == -211), -20411, motherPDG);
         }
         else if (V0PDG == 3002) {
-          const int_v& id    = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
           int_m isSameProton = (id == fLPiPIndex[iV0]);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 2212) && (!isSameProton), 3001, motherPDG);
         }
@@ -2841,75 +2844,65 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
           motherPDG = select(isPrimary && (trackPdgPos[iPDGPos] == -321), -100323, motherPDG);
         }
         else if (V0PDG == 3003) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 3012, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 3012, motherPDG);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == 1000010020) && (id > iPosDaughter), 3014, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 1000010030), 3015, motherPDG);
         }
         else if (V0PDG == -3003) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -3012, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -3012, motherPDG);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == -1000010020) && (id > iNegDaughter), -3014, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -1000010030), -3015, motherPDG);
         }
         else if (V0PDG == 3103) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 3013, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 3013, motherPDG);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == 1000010030) && (id > iPosDaughter), 3017, motherPDG);
         }
         else if (V0PDG == -3103) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -3013, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -3013, motherPDG);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == -1000010030) && (id > iNegDaughter), -3017, motherPDG);
         }
         else if (V0PDG == 3004) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 3006, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 1000010020), 3018, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 1000010030), 3020, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 3006, motherPDG);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 1000010020), 3018, motherPDG);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 1000010030), 3020, motherPDG);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == 1000020030) && (id > iPosDaughter), 3024, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 1000020040), 3026, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -211) && (id != iNegDaughter), 3203, motherPDG);
         }
         else if (V0PDG == -3004) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -3006, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -1000010020), -3018, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -1000010030), -3020, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -3006, motherPDG);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -1000010020), -3018, motherPDG);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -1000010030), -3020, motherPDG);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == -1000020030) && (id > iNegDaughter), -3024, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -1000020040), -3026, motherPDG);
         }
         else if (V0PDG == 3005) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 3007, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 1000010020), 3021, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == 1000010030), 3023, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 3007, motherPDG);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 1000010020), 3021, motherPDG);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 1000010030), 3023, motherPDG);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == 1000020040) && (id > iPosDaughter), 3027, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -211) && (id != iNegDaughter), 3040, motherPDG);
         }
         else if (V0PDG == -3005) {
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -3007, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -1000010020), -3021, motherPDG);
-          motherPDG       = select(isSecondary && (trackPdgPos[iPDGPos] == -1000010030), -3023, motherPDG);
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -2212), -3007, motherPDG);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -1000010020), -3021, motherPDG);
+          motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -1000010030), -3023, motherPDG);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == -1000020040) && (id > iNegDaughter), -3027, motherPDG);
         }
         else if (V0PDG == 3006) {
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == 2212) && (id > vV0[iV0].DaughterIds()[2]), 3038, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -211) && (id > iNegDaughter), 3008, motherPDG);
         }
         else if (V0PDG == 3007) {
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
           motherPDG =
             select(isSecondary && (trackPdgPos[iPDGPos] == 2212) && (id > vV0[iV0].DaughterIds()[2]), 3039, motherPDG);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == -211) && (id > iNegDaughter), 3010, motherPDG);
@@ -2918,27 +2911,22 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 2212), 3009, motherPDG);
         }
         else if (V0PDG == 3010) {
-          const int_v& id    = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
           int_m isSameProton = (id == Particles[vV0[iV0].DaughterIds()[1]].DaughterIds()[2]);
           motherPDG = select(isSecondary && (trackPdgPos[iPDGPos] == 2212) && (!isSameProton), 3011, motherPDG);
         }
         else if (V0PDG == 8122) {
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
           motherPDG =
             select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 2212) && (id > iPosDaughter), 3028, motherPDG);
         }
         else if (V0PDG == -8122) {
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
           motherPDG =
             select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 2212) && (id > iNegDaughter), -3028, motherPDG);
         }
         else if (V0PDG == 3028) {
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
           motherPDG = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 2212) && (id > vV0[iV0].DaughterIds()[2]),
                              3029, motherPDG);
         }
         else if (V0PDG == -3028) {
-          const int_v& id = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
           motherPDG = select(isSecondary && (abs(trackPdgPos[iPDGPos]) == 2212) && (id > vV0[iV0].DaughterIds()[2]),
                              -3029, motherPDG);
         }
@@ -2980,24 +2968,28 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
           motherPDG.copy_from(motherPdgArray, stdx::vector_aligned);
           active[iPDGPos] &= (motherPDG != -1);
         }
+
+        float_v trackChiToPrimVtx(0.f);
+
         if (ChiToPrimVtx) {
+          trackChiToPrimVtx = (*ChiToPrimVtx).block(iBlockTrack);
           active[iPDGPos] &= (!((abs(motherPDG) == 3334 || abs(motherPDG) == 3312))
                               || ((abs(motherPDG) == 3334 || abs(motherPDG) == 3312)
-                                  && KFP::SIMD::mask_cast<int_m>(reinterpret_cast<const float_v&>((*ChiToPrimVtx)[iTr])
-                                                                 > float_v(fCuts2D[0]))));
+                                  && KFP::SIMD::mask_cast<int_m>(trackChiToPrimVtx > float_v(fCuts2D[0]))));
         }
 
         if (none_of(active[iPDGPos])) { continue; }
 
+        const int_v& trackNpixelHits = vTracks.NPixelHits().block(iBlockTrack);
+
         if (isCharm) {
           track.Load(vTracks, iTr, trackPDG);
-          const float_v trackPt   = track.Px() * track.Px() + track.Py() * track.Py();
-          const int_v& nPixelHits = reinterpret_cast<const int_v&>(vTracks.NPixelHits()[iTr]);
+          const float_v trackPt = track.Px() * track.Px() + track.Py() * track.Py();
 
-          active[iPDGPos] &=
-            KFP::SIMD::mask_cast<int_m>((trackPt >= fCutCharmPt * fCutCharmPt)
-                                        && (reinterpret_cast<const float_v&>((*ChiToPrimVtx)[iTr]) > fCutCharmChiPrim))
-            && (nPixelHits >= int_v(3));
+
+          active[iPDGPos] &= KFP::SIMD::mask_cast<int_m>((trackPt >= fCutCharmPt * fCutCharmPt)
+                                                         && (trackChiToPrimVtx > fCutCharmChiPrim))
+                             && (trackNpixelHits >= int_v(3));
         }
         {
           int_m isCharmParticle = (abs(motherPDG) == 104122) || (abs(motherPDG) == 204122) || (abs(motherPDG) == 304122)
@@ -3007,14 +2999,12 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
 
           if (any_of(isCharmParticle)) {
             track.Load(vTracks, iTr, trackPDG);
-            const float_v trackPt   = track.Px() * track.Px() + track.Py() * track.Py();
-            const int_v& nPixelHits = reinterpret_cast<const int_v&>(vTracks.NPixelHits()[iTr]);
+            const float_v trackPt = track.Px() * track.Px() + track.Py() * track.Py();
 
             active[iPDGPos] &= (!isCharmParticle) ||         //
                                KFP::SIMD::mask_cast<int_m>(  //
-                                 (trackPt >= fCutCharmPt * fCutCharmPt)
-                                 && (reinterpret_cast<const float_v&>((*ChiToPrimVtx)[iTr]) > fCutCharmChiPrim))
-                                 && (nPixelHits >= 3);
+                                 (trackPt >= fCutCharmPt * fCutCharmPt) && (trackChiToPrimVtx > fCutCharmChiPrim))
+                                 && (trackNpixelHits >= 3);
           }
         }
 
@@ -3156,9 +3146,10 @@ void KFParticleFinder::FindLL(const int motherPDG, const int correctTrackPDG, co
     const KFParticleSIMD particleSIMD(particle);
 
     for (int iTr = firstTrack; iTr < lastTrack; iTr += SimdLen) {
+      int iBlockTrack       = iTr / SimdLen;
       const int NTracks     = (iTr + SimdLen < lastTrack) ? SimdLen : (lastTrack - iTr);
-      const int_v& trackPDG = reinterpret_cast<const int_v&>(vTracks.PDG()[iTr]);
-      const int_v& trackId  = reinterpret_cast<const int_v&>(vTracks.Id()[iTr]);
+      const int_v& trackPDG = vTracks.PDG().block(iBlockTrack);
+      const int_v& trackId  = vTracks.Id().block(iBlockTrack);
 
       int_m isOk = (trackPDG == correctTrackPDG);
 
@@ -3535,9 +3526,10 @@ void KFParticleFinder::MatchKaons(KFPTrackVector* vTracks, std::vector<KFParticl
         KFParticleSIMD candidate(candidates[iCandidate]);
 
         for (int iTrack = firstTrack; iTrack < lastTrack; iTrack += SimdLen) {
+          int iBlockTrack           = iTrack / SimdLen;
           const int NTracks         = (iTrack + SimdLen < lastTrack) ? SimdLen : (lastTrack - iTrack);
-          const int_v& trackPDG     = reinterpret_cast<const int_v&>(primTracks.PDG()[iTrack]);
-          const int_v& trackPVIndex = reinterpret_cast<const int_v&>(primTracks.PVIndex()[iTrack]);
+          const int_v& trackPDG     = primTracks.PDG().block(iBlockTrack);
+          const int_v& trackPVIndex = primTracks.PVIndex().block(iBlockTrack);
           const float_m isSamePV    = KFP::SIMD::mask_cast<float_m>(int_v((int) iPV) == trackPVIndex);
 
           float_m active = KFP::SIMD::mask_cast<float_m>((abs(trackPDG) == 321)) && isSamePV
@@ -4050,14 +4042,15 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
 
     for (int iTC = 0; iTC < nTC; iTC++) {
       for (unsigned short iTrD = startTCDaughter[iTC]; iTrD < endTCDaughter[iTC]; iTrD += SimdLen) {
+        int iBlockTrackD = iTrD / SimdLen;
         const unsigned short NTracksDaughter =
           (iTrD + SimdLen < DaughterTracks.Size()) ? SimdLen : (DaughterTracks.Size() - iTrD);
 
         int_v DaughterInd = int_v(iTrD) + KFP::SIMD::gkIndicesSequenceI;
 
-        int_v DaughterPDG     = reinterpret_cast<const int_v&>(DaughterTracks.PDG()[iTrD]);
-        int_v DaughterPVIndex = reinterpret_cast<const int_v&>(DaughterTracks.PVIndex()[iTrD]);
-        int_v daughterId      = reinterpret_cast<const int_v&>(DaughterTracks.Id()[iTrD]);
+        int_v DaughterPDG     = DaughterTracks.PDG().block(iBlockTrackD);
+        int_v DaughterPVIndex = DaughterTracks.PVIndex().block(iBlockTrackD);
+        int_v daughterId      = DaughterTracks.Id().block(iBlockTrackD);
 
         int_m activeDaughter = (KFP::SIMD::gkIndicesSequenceI < NTracksDaughter);
 
@@ -4065,12 +4058,13 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
         ChargedDaughter.SetId(daughterId);
 
         for (unsigned short iTrM = startTCMother[iTC]; iTrM < endTCMother[iTC]; iTrM += SimdLen) {
+          int iBlockTrackM             = iTrM / SimdLen;
           const unsigned short NTracks = (iTrM + SimdLen < MotherTracksSize) ? SimdLen : (MotherTracksSize - iTrM);
 
-          const int_v& MotherPDG = reinterpret_cast<const int_v&>(MotherTracks.PDG()[iTrM]);
+          const int_v& MotherPDG = MotherTracks.PDG().block(iBlockTrackM);
 
           //const int_v& MotherPVIndex = reinterpret_cast<const  int_v&>(MotherTracks.PVIndex()[iTrM]);
-          const int_v& motherTrackId = reinterpret_cast<const int_v&>(MotherTracks.Id()[iTrM]);
+          const int_v& motherTrackId = MotherTracks.Id().block(iBlockTrackM);
 
           for (int iRot = 0; iRot < SimdLen; iRot++) {
             if (iRot > 0) {

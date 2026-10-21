@@ -31,13 +31,12 @@ void KFPEmcCluster::SetParameter(const float_v& value, int iP, int iTr)
    ** \param[in] iP - number of the parameter vector
    ** \param[in] iTr - starting position in the parameter vector where the values should be stored
    **/
-  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float_v&>(fP[iP][iTr]) = value; }
-  else {
-    int_v index                               = KFP::SIMD::gkIndicesSequenceI;
-    index                                     = select(index < (Size() - iTr), index, 0);
-    (reinterpret_cast<float_v&>(fP[iP][iTr])) = KFP::SIMD::gather(reinterpret_cast<const float*>(&value), index);
-  }
+  assert(iP >= 0 && iP < 4 && iTr >= 0 && iTr < Size() && iTr % SimdLen == 0);
+  int iBlock           = iTr / SimdLen;
+  fP[iP].block(iBlock) = value;
+  if (iTr + SimdLen > Size()) { fP[iP].fillPaddingWithLastElement(); }
 }
+
 void KFPEmcCluster::SetCovariance(const float_v& value, int iC, int iTr)
 {
   /** Copies the SIMD vector "value" to the element of the covariance matrix vector KFPEmcCluster::fC[iC]
@@ -46,12 +45,11 @@ void KFPEmcCluster::SetCovariance(const float_v& value, int iC, int iTr)
    ** \param[in] iC - number of the element of the covariance matrix
    ** \param[in] iTr - starting position in the parameter vector where the values should be stored
    **/
-  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float_v&>(fC[iC][iTr]) = value; }
-  else {
-    int_v index                               = KFP::SIMD::gkIndicesSequenceI;
-    index                                     = select(index < (Size() - iTr), index, 0);
-    (reinterpret_cast<float_v&>(fC[iC][iTr])) = KFP::SIMD::gather(reinterpret_cast<const float*>(&value), index);
-  }
+
+  assert(iC >= 0 && iC < 10 && iTr >= 0 && iTr < Size() && iTr % SimdLen == 0);
+  int iBlock           = iTr / SimdLen;
+  fC[iC].block(iBlock) = value;
+  if (iTr + SimdLen > Size()) { fC[iC].fillPaddingWithLastElement(); }
 }
 
 void KFPEmcCluster::Resize(const int n)
@@ -79,53 +77,51 @@ void KFPEmcCluster::Set(KFPEmcCluster& v, int vSize, int offset)
   }
 }
 
-void KFPEmcCluster::SetTracks(const KFPEmcCluster& track, const AlignedVector<int>& trackIndex, const int nIndexes)
+void KFPEmcCluster::SetTracks(const KFPEmcCluster& track, const PaddedVector<int_v>& trackIndex, const int nIndices)
 {
-  /** The current object is resised to "nIndexes", clusters with indices "trackIndex" are copied to the current object.
+  /** The current object is resised to "nIndices", clusters with indices "trackIndex" are copied to the current object.
    ** \param[in] track - input vector of clusters
    ** \param[in] trackIndex - indices of clusters in a vector "track", which should be stored to the current object
-   ** \param[in] nIndexes - number of clusters to be copied, defines the new size of the current object
+   ** \param[in] nIndices - number of clusters to be copied, defines the new size of the current object
    **/
 
-  if (nIndexes == 0) { return; }
+  if (nIndices == 0) { return; }
 
-  Resize(nIndexes);
+  Resize(nIndices);
+
+  int nFullBlocks = nIndices / SimdLen;
 
   for (int iP = 0; iP < 4; iP++) {
-    int iElement = 0;
-    for (iElement = 0; iElement < nIndexes - SimdLen; iElement += SimdLen) {
-      const int_v& index = reinterpret_cast<const int_v&>(trackIndex[iElement]);
-      float_v& vec       = reinterpret_cast<float_v&>(fP[iP][iElement]);
-      vec                = KFP::SIMD::gather(&(track.fP[iP][0]), index);
+    for (int iBlock = 0; iBlock < nFullBlocks; iBlock++) {
+      fP[iP].block(iBlock) = KFP::SIMD::gather(track.fP[iP], trackIndex.block(iBlock));
     }
-    const int_v& index           = reinterpret_cast<const int_v&>(trackIndex[iElement]);
-    float_v& vec                 = reinterpret_cast<float_v&>(fP[iP][iElement]);
-    const int_v correctedIndices = select(int_v(iElement) + KFP::SIMD::gkIndicesSequenceI < nIndexes, index, 0);
-    vec                          = KFP::SIMD::gather(&(track.fP[iP][0]), correctedIndices);
+    fP[iP].markPaddingFilled();
   }
+
   for (int iC = 0; iC < 10; iC++) {
-    int iElement = 0;
-    for (iElement = 0; iElement < nIndexes - SimdLen; iElement += SimdLen) {
-      const int_v& index = reinterpret_cast<const int_v&>(trackIndex[iElement]);
-      float_v& vec       = reinterpret_cast<float_v&>(fC[iC][iElement]);
-      vec                = KFP::SIMD::gather(&(track.fC[iC][0]), index);
+    for (int iBlock = 0; iBlock < nFullBlocks; iBlock++) {
+      fC[iC].block(iBlock) = KFP::SIMD::gather(track.fC[iC], trackIndex.block(iBlock));
     }
-    const int_v& index           = reinterpret_cast<const int_v&>(trackIndex[iElement]);
-    float_v& vec                 = reinterpret_cast<float_v&>(fC[iC][iElement]);
-    const int_v correctedIndices = select(int_v(iElement) + KFP::SIMD::gkIndicesSequenceI < nIndexes, index, 0);
-    vec                          = KFP::SIMD::gather(&(track.fC[iC][0]), correctedIndices);
+    fC[iC].markPaddingFilled();
   }
+
   {
-    int iElement = 0;
-    for (iElement = 0; iElement < nIndexes - SimdLen; iElement += SimdLen) {
-      const int_v& index = reinterpret_cast<const int_v&>(trackIndex[iElement]);
-      int_v& vec         = reinterpret_cast<int_v&>(fId[iElement]);
-      vec                = KFP::SIMD::gather(&(track.fId[0]), index);
+    for (int iBlock = 0; iBlock < nFullBlocks; iBlock++) {
+      fId.block(iBlock) = KFP::SIMD::gather(track.fId, trackIndex.block(iBlock));
     }
-    const int_v& index           = reinterpret_cast<const int_v&>(trackIndex[iElement]);
-    int_v& vec                   = reinterpret_cast<int_v&>(fId[iElement]);
-    const int_v correctedIndices = select(int_v(iElement) + KFP::SIMD::gkIndicesSequenceI < nIndexes, index, 0);
-    vec                          = KFP::SIMD::gather(&(track.fId[0]), correctedIndices);
+    fId.markPaddingFilled();
+  }
+
+  int rest = nIndices % SimdLen;
+
+  if (rest > 0) {
+
+    int_v restBlock =
+      select(KFP::SIMD::gkIndicesSequenceI < rest, trackIndex.block(nFullBlocks), trackIndex[nIndices - 1]);
+
+    for (int iP = 0; iP < 4; iP++) { fP[iP].block(nFullBlocks) = KFP::SIMD::gather(track.fP[iP], restBlock); }
+    for (int iC = 0; iC < 10; iC++) { fC[iC].block(nFullBlocks) = KFP::SIMD::gather(track.fC[iC], restBlock); }
+    fId.block(nFullBlocks) = KFP::SIMD::gather(track.fId, restBlock);
   }
 }
 

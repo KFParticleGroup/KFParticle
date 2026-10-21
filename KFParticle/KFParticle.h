@@ -482,7 +482,7 @@ class KFParticle
    ** Each component (Bx, By, Bz) is approximated with the parabola depending on
    *Z coordinate. Is defined in case of #ifdef NonhomogeneousField.
    **/
-  float fieldRegion[10];
+  float fieldRegion[10]{};
 #endif
 
 #if !defined(KFParticleStandalone) && !defined(CBM_ONLINE)

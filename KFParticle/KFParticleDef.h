@@ -32,14 +32,16 @@
 #endif
 
 #include "KFPSimd.h"
+#include "KFPSimdPaddedVector.h"
 
 #define NInputSets 8
 
-using KFP::SIMD::AlignedVector;
 using KFP::SIMD::float_m;
 using KFP::SIMD::float_v;
 using KFP::SIMD::int_m;
 using KFP::SIMD::int_v;
+using KFP::SIMD::PaddedVector;
+using KFP::SIMD::select;
 using KFP::SIMD::SimdLen;
 using KFP::SIMD::SimdSize;
 

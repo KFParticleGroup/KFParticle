@@ -25,6 +25,8 @@
 #include "KFPTrack.h"
 #include "KFParticleDef.h"
 
+#include <cstring>
+
 /** @class KFPTrackVector
  ** @brief A class to store vectors of input tracks in the cartesian
  *parametrisation.
@@ -95,48 +97,48 @@ class KFPTrackVector {
 
   void Resize(const int n);
   void Set(KFPTrackVector& v, int vSize, int offset);
-  void SetTracks(const KFPTrackVector& track, const AlignedVector<int>& trackIndex, const int nIndexes);
+  void SetTracks(const KFPTrackVector& track, const PaddedVector<int_v>& trackIndex, const int nIndexes);
   void GetTrack(KFPTrack& track, const int n);
 
-  const AlignedVector<float>& X() const
+  const PaddedVector<float_v>& X() const
   { return fP[0]; }  ///< Returns constant reference to the vector with X coordinates.
-  const AlignedVector<float>& Y() const
+  const PaddedVector<float_v>& Y() const
   { return fP[1]; }  ///< Returns constant reference to the vector with Y coordinates.
-  const AlignedVector<float>& Z() const
+  const PaddedVector<float_v>& Z() const
   { return fP[2]; }  ///< Returns constant reference to the vector with Z coordinates.
-  const AlignedVector<float>& Px() const
+  const PaddedVector<float_v>& Px() const
   { return fP[3]; }  ///< Returns constant reference to the vector with Px components of
   ///< momentum.
-  const AlignedVector<float>& Py() const
+  const PaddedVector<float_v>& Py() const
   { return fP[4]; }  ///< Returns constant reference to the vector with Py components of
   ///< momentum.
-  const AlignedVector<float>& Pz() const
+  const PaddedVector<float_v>& Pz() const
   { return fP[5]; }  ///< Returns constant reference to the vector with Pz components of
   ///< momentum.
 
-  const AlignedVector<float>& Parameter(const int i) const
+  const PaddedVector<float_v>& Parameter(const int i) const
   { return fP[i]; }  ///< Returns constant reference to the track parameter vector with index
   ///< "i".
-  const AlignedVector<float>& Covariance(const int i) const
+  const PaddedVector<float_v>& Covariance(const int i) const
   { return fC[i]; }  ///< Returns constant reference to the vector of the covariance matrix
   ///< elements with index "i".
 #ifdef NonhomogeneousField
-  const AlignedVector<float>& FieldCoefficient(const int i) const
+  const PaddedVector<float_v>& FieldCoefficient(const int i) const
   { return fField[i]; }  ///< Returns constant reference to the magnetic field coefficient with index
   ///< "i".
 #endif
 
-  const AlignedVector<int>& Id() const { return fId; }  ///< Returns constant reference to the vector with track Id
+  const PaddedVector<int_v>& Id() const { return fId; }  ///< Returns constant reference to the vector with track Id
   ///< KFPTrackVector::fId.
-  const AlignedVector<int>& PDG() const
+  const PaddedVector<int_v>& PDG() const
   { return fPDG; }  ///< Returns constant reference to the vector with assigned PDG hypothesis
   ///< KFPTrackVector::fPDG.
-  const AlignedVector<int>& Q() const { return fQ; }  ///< Returns constant reference to the vector with charge
+  const PaddedVector<int_v>& Q() const { return fQ; }  ///< Returns constant reference to the vector with charge
   ///< KFPTrackVector::fQ.
-  const AlignedVector<int>& PVIndex() const
+  const PaddedVector<int_v>& PVIndex() const
   { return fPVIndex; }  ///< Returns constant reference to the vector with indices of corresponding
   ///< primary vertex KFPTrackVector::fPVIndex.
-  const AlignedVector<int>& NPixelHits() const
+  const PaddedVector<int_v>& NPixelHits() const
   { return fNPixelHits; }  ///< Returns constant reference to the vector with the number of precise
   ///< measurements KFPTrackVector::fNPixelHits.
 
@@ -387,7 +389,8 @@ class KFPTrackVector {
     return *this;
   }
 
-  void SetDataToVector(int* data, int& offset)
+
+  void SetDataToBuffer(int* idata, int& offset) const
   {
     /** Copies entire vector to the provided memory starting form the position
      *"offset".
@@ -402,69 +405,66 @@ class KFPTrackVector {
      *next KFPTrackVector object
      ** can be copied to the "data"
      **/
+
+    const int size = Size();
     for (int iP = 0; iP < 6; iP++) {
-      memcpy(&(data[offset]), &(fP[iP][0]), Size() * sizeof(float));
-      offset += Size();
+      for (int n = 0; n < size; n++) {
+        const float value = fP[iP][n];
+        std::memcpy(&idata[offset + n], &value, sizeof(value));
+      }
+      offset += size;
     }
 
     for (int iC = 0; iC < 21; iC++) {
-      memcpy(&(data[offset]), &(fC[iC][0]), Size() * sizeof(float));
-      offset += Size();
+      for (int n = 0; n < size; n++) {
+        const float value = fC[iC][n];
+        std::memcpy(&idata[offset + n], &value, sizeof(value));
+      }
+      offset += size;
     }
 
-    memcpy(&(data[offset]), &(fId[0]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { idata[offset + n] = fId[n]; }
+    offset += size;
 
-    memcpy(&(data[offset]), &(fPDG[0]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { idata[offset + n] = fPDG[n]; }
+    offset += size;
 
-    memcpy(&(data[offset]), &(fQ[0]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { idata[offset + n] = fQ[n]; }
+    offset += size;
 
-    memcpy(&(data[offset]), &(fPVIndex[0]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { idata[offset + n] = fPVIndex[n]; }
+    offset += size;
 
-    memcpy(&(data[offset]), &(fNPixelHits[0]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { idata[offset + n] = fNPixelHits[n]; }
+    offset += size;
 
 #ifdef NonhomogeneousField
     for (int iF = 0; iF < 10; iF++) {
-      memcpy(&(data[offset]), &(fField[iF][0]), Size() * sizeof(float));
-      offset += Size();
+      for (int n = 0; n < size; n++) {
+        const float value = fField[iF][n];
+        std::memcpy(&idata[offset + n], &value, sizeof(value));
+      }
+      offset += size;
     }
 #endif
 
-    data[offset] = fNE;
-    offset++;
-    data[offset] = fNMu;
-    offset++;
-    data[offset] = fNPi;
-    offset++;
-    data[offset] = fNK;
-    offset++;
-    data[offset] = fNP;
-    offset++;
-    data[offset] = fND;
-    offset++;
-    data[offset] = fNT;
-    offset++;
-    data[offset] = fNHe3;
-    offset++;
-    data[offset] = fNHe4;
-    offset++;
-    data[offset] = fNHe6;
-    offset++;
-    data[offset] = fNLi6;
-    offset++;
-    data[offset] = fNLi7;
-    offset++;
-    data[offset] = fNBe7;
-    offset++;
-    data[offset] = fNSigma;
-    offset++;
+    idata[offset++] = fNE;
+    idata[offset++] = fNMu;
+    idata[offset++] = fNPi;
+    idata[offset++] = fNK;
+    idata[offset++] = fNP;
+    idata[offset++] = fND;
+    idata[offset++] = fNT;
+    idata[offset++] = fNHe3;
+    idata[offset++] = fNHe4;
+    idata[offset++] = fNHe6;
+    idata[offset++] = fNLi6;
+    idata[offset++] = fNLi7;
+    idata[offset++] = fNBe7;
+    idata[offset++] = fNSigma;
   }
 
-  void ReadDataFromVector(int* data, int& offset)
+  void ReadDataFromBuffer(const int* idata, int& offset)
   {
     /** Copies entire vector from the provided memory starting form the position
      *"offset".
@@ -479,80 +479,89 @@ class KFPTrackVector {
      *KFPTrackVector object
      ** can be copied
      **/
+
+    const int size = Size();
+
     for (int iP = 0; iP < 6; iP++) {
-      memcpy(&(fP[iP][0]), &(data[offset]), Size() * sizeof(float));
-      offset += Size();
+      for (int n = 0; n < size; n++) {
+        float value;
+        std::memcpy(&value, &idata[offset + n], sizeof(value));
+        fP[iP][n] = value;
+      }
+      fP[iP].fillPaddingWithLastElement();
+      offset += size;
     }
 
     for (int iC = 0; iC < 21; iC++) {
-      memcpy(&(fC[iC][0]), &(data[offset]), Size() * sizeof(float));
-      offset += Size();
+      for (int n = 0; n < size; n++) {
+        float value;
+        std::memcpy(&value, &idata[offset + n], sizeof(value));
+        fC[iC][n] = value;
+      }
+      fC[iC].fillPaddingWithLastElement();
+      offset += size;
     }
 
-    memcpy(&(fId[0]), &(data[offset]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { fId[n] = idata[offset + n]; }
+    fId.fillPaddingWithLastElement();
+    offset += size;
 
-    memcpy(&(fPDG[0]), &(data[offset]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { fPDG[n] = idata[offset + n]; }
+    fPDG.fillPaddingWithLastElement();
+    offset += size;
 
-    memcpy(&(fQ[0]), &(data[offset]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { fQ[n] = idata[offset + n]; }
+    fQ.fillPaddingWithLastElement();
+    offset += size;
 
-    memcpy(&(fPVIndex[0]), &(data[offset]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { fPVIndex[n] = idata[offset + n]; }
+    fPVIndex.fillPaddingWithLastElement();
+    offset += size;
 
-    memcpy(&(fNPixelHits[0]), &(data[offset]), Size() * sizeof(float));
-    offset += Size();
+    for (int n = 0; n < size; n++) { fNPixelHits[n] = idata[offset + n]; }
+    fNPixelHits.fillPaddingWithLastElement();
+    offset += size;
 
 #ifdef NonhomogeneousField
     for (int iF = 0; iF < 10; iF++) {
-      memcpy(&(fField[iF][0]), &(data[offset]), Size() * sizeof(float));
-      offset += Size();
+      for (int n = 0; n < size; n++) {
+        float value;
+        std::memcpy(&value, &idata[offset + n], sizeof(value));
+        fField[iF][n] = value;
+      }
+      fField[iF].fillPaddingWithLastElement();
+      offset += size;
     }
 #endif
 
-    fNE = data[offset];
-    offset++;
-    fNMu = data[offset];
-    offset++;
-    fNPi = data[offset];
-    offset++;
-    fNK = data[offset];
-    offset++;
-    fNP = data[offset];
-    offset++;
-    fND = data[offset];
-    offset++;
-    fNT = data[offset];
-    offset++;
-    fNHe3 = data[offset];
-    offset++;
-    fNHe4 = data[offset];
-    offset++;
-    fNHe6 = data[offset];
-    offset++;
-    fNLi6 = data[offset];
-    offset++;
-    fNLi7 = data[offset];
-    offset++;
-    fNBe7 = data[offset];
-    offset++;
-    fNSigma = data[offset];
-    offset++;
+    fNE     = idata[offset++];
+    fNMu    = idata[offset++];
+    fNPi    = idata[offset++];
+    fNK     = idata[offset++];
+    fNP     = idata[offset++];
+    fND     = idata[offset++];
+    fNT     = idata[offset++];
+    fNHe3   = idata[offset++];
+    fNHe4   = idata[offset++];
+    fNHe6   = idata[offset++];
+    fNLi6   = idata[offset++];
+    fNLi7   = idata[offset++];
+    fNBe7   = idata[offset++];
+    fNSigma = idata[offset++];
   }
 
  private:
-  AlignedVector<float> fP[6];   ///< Vectors with parameters of the track : X, Y, Z, Px, Py, Pz.
-  AlignedVector<float> fC[21];  ///< Vectors with covariance matrix of the track
-                                ///< parameters stroed in a lower triangular form.
+  PaddedVector<float_v> fP[6];   ///< Vectors with parameters of the track : X, Y, Z, Px, Py, Pz.
+  PaddedVector<float_v> fC[21];  ///< Vectors with covariance matrix of the track
+                                 ///< parameters stroed in a lower triangular form.
 
-  AlignedVector<int> fId;          ///< Vector with the unique Id of tracks.
-  AlignedVector<int> fPDG;         ///< Vector with the PDG hypothesis.
-  AlignedVector<int> fQ;           ///< Vector with the charge of the tracks.
-  AlignedVector<int> fPVIndex;     ///< Vector with the index of the corresponding primary vertex.
-                                   ///< If track is considered secondary "-1" is stored.
-  AlignedVector<int> fNPixelHits;  ///< Vector with the number of hits from precise detectors
-                                   ///< (like MVD in CBM, HFT in STAR, ITS in ALICE, etc.)
+  PaddedVector<int_v> fId;          ///< Vector with the unique Id of tracks.
+  PaddedVector<int_v> fPDG;         ///< Vector with the PDG hypothesis.
+  PaddedVector<int_v> fQ;           ///< Vector with the charge of the tracks.
+  PaddedVector<int_v> fPVIndex;     ///< Vector with the index of the corresponding primary vertex.
+                                    ///< If track is considered secondary "-1" is stored.
+  PaddedVector<int_v> fNPixelHits;  ///< Vector with the number of hits from precise detectors
+                                    ///< (like MVD in CBM, HFT in STAR, ITS in ALICE, etc.)
 
   /** The coefficients of the field approximation of each field component along
    *the track trajectory using parabolas: \n
@@ -568,7 +577,7 @@ class KFPTrackVector {
    ** Bz(z) = cz0 + cz1*(z-z0) + cz2*(z-z0)^2
    **/
 #ifdef NonhomogeneousField
-  AlignedVector<float> fField[10];
+  PaddedVector<float_v> fField[10];
 #endif
 
   int fNE;      ///< Index of the last electron.
@@ -598,15 +607,9 @@ inline void KFPTrackVector::SetParameter(const float_v& value, int iP, int iTr)
    *values should be stored
    **/
 
-  // gather caused errors at XeonPhi, temporarly replaced with the simple
-  // copying
-  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float_v&>(fP[iP][iTr]) = value; }
-  else {
-    for (int i = 0; i < SimdLen; i++) {
-      if (iTr + i >= Size()) { continue; }
-      fP[iP][iTr + i] = value[i];
-    }
-  }
+  assert(iTr >= 0 && iTr < Size() && iTr % SimdLen == 0);
+
+  fP[iP].block(iTr / SimdLen) = value;
 }
 
 inline void KFPTrackVector::SetCovariance(const float_v& value, int iC, int iTr)
@@ -620,15 +623,8 @@ inline void KFPTrackVector::SetCovariance(const float_v& value, int iC, int iTr)
    *values should be stored
    **/
 
-  // gather caused errors at XeonPhi, temporarly replaced with the simple
-  // copying
-  if ((iTr + SimdLen) < Size()) { reinterpret_cast<float_v&>(fC[iC][iTr]) = value; }
-  else {
-    for (int i = 0; i < SimdLen; i++) {
-      if (iTr + i >= Size()) { continue; }
-      fC[iC][iTr + i] = value[i];
-    }
-  }
+  assert(iTr >= 0 && iTr < Size() && iTr % SimdLen == 0);
+  fC[iC].block(iTr / SimdLen) = value;
 }
 
 inline void KFPTrackVector::GetTrack(KFPTrack& track, const int n)

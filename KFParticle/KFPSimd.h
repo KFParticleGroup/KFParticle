@@ -8,9 +8,7 @@ Emails: se.gorbunov@gsi.de
 #ifndef KFPSIMD_H
 #define KFPSIMD_H
 
-#include "KFPSimdPaddedAllocator.h"
-
-#include <boost/align/aligned_allocator.hpp>
+#include "KFPSimdPaddedVector.h"
 
 #include <experimental/simd>
 #include <stdexcept>
@@ -46,34 +44,6 @@ namespace KFP
 
     static_assert(std::is_same<int_v::value_type, int>::value, "[Error]: Invalid value type for SSE int SimdClass.");
 
-    //--- SIMD-aligned vectors of scalars - only for float and int types
-
-    /// @brief default implementation for aligned vector - returns void for unsupported types
-    template<typename T>
-    struct AlignedVectorImpl {
-      using type = void;  // dummy for other types
-    };
-
-    /// @brief vector of floats aligned to float_v
-    template<>
-    struct AlignedVectorImpl<float_v::value_type> {
-      using type =
-        std::vector<float_v::value_type,
-                    boost::alignment::aligned_allocator<float_v::value_type,
-                                                        stdx::memory_alignment_v<float_v, float_v::value_type>>>;
-    };
-
-    /// @brief vector of ints aligned to int_v
-    template<>
-    struct AlignedVectorImpl<int_v::value_type> {
-      using type = std::vector<
-        int_v::value_type,
-        boost::alignment::aligned_allocator<int_v::value_type, stdx::memory_alignment_v<int_v, int_v::value_type>>>;
-    };
-
-    template<typename T>
-    using AlignedVector = typename AlignedVectorImpl<T>::type;
-
 
     //--- Casting between different mask types
 
@@ -103,9 +73,7 @@ namespace KFP
 
     inline const float_v gkIndicesSequenceF([](auto lane) { return static_cast<float_v::value_type>(lane); });
 
-    //--- select() function for pre-C++23 standards
-
-#if __cplusplus < 202302L
+    //--- select() function for std::experimental::simd
 
     template<typename T>
     struct type_identity {
@@ -114,8 +82,6 @@ namespace KFP
 
     template<typename T>
     using type_identity_t = typename type_identity<T>::type;
-
-    // Implement select for pre-C++23 standards
 
     template<typename T, typename Abi>
     KFP_SIMD_INLINE stdx::simd<T, Abi> select(const stdx::simd_mask<T, Abi>& mask,
@@ -126,16 +92,25 @@ namespace KFP
       stdx::where(mask, result) = on_true;
       return result;
     }
-#endif
 
     //-- TODO: SG: replace with std::simd::unchecked_gather_from() when switching to c++26
 
-    KFP_SIMD_INLINE float_v gather(const float_v::value_type* data, const int_v& indices)
+    KFP_SIMD_INLINE float_v gather(const PaddedVector<float_v>& data, const int_v& indices)
     {
       return float_v([&](auto lane) -> float_v::value_type { return data[indices[lane]]; });
     }
 
-    KFP_SIMD_INLINE int_v gather(const int_v::value_type* data, const int_v& indices)
+    KFP_SIMD_INLINE int_v gather(const PaddedVector<int_v>& data, const int_v& indices)
+    {
+      return int_v([&](auto lane) -> int_v::value_type { return data[indices[lane]]; });
+    }
+
+    KFP_SIMD_INLINE float_v gather(const float* data, const int_v& indices)
+    {
+      return float_v([&](auto lane) -> float_v::value_type { return data[indices[lane]]; });
+    }
+
+    KFP_SIMD_INLINE int_v gather(const int* data, const int_v& indices)
     {
       return int_v([&](auto lane) -> int_v::value_type { return data[indices[lane]]; });
     }
@@ -163,7 +138,5 @@ namespace KFP
 
   }  // namespace SIMD
 }  // namespace KFP
-
-using KFP::SIMD::select;
 
 #endif  // !KFPSIMD_H

@@ -50,23 +50,23 @@ class KFPEmcCluster {
 
   void Resize(const int n);
   void Set(KFPEmcCluster& v, int vSize, int offset);
-  void SetTracks(const KFPEmcCluster& track, const AlignedVector<int>& trackIndex, const int nIndexes);
+  void SetTracks(const KFPEmcCluster& track, const PaddedVector<int_v>& trackIndex, const int nIndices);
 
-  const AlignedVector<float>& X() const
+  const PaddedVector<float_v>& X() const
   { return fP[0]; }  ///< Returns constant reference to the vector with X coordinates.
-  const AlignedVector<float>& Y() const
+  const PaddedVector<float_v>& Y() const
   { return fP[1]; }  ///< Returns constant reference to the vector with Y coordinates.
-  const AlignedVector<float>& Z() const
+  const PaddedVector<float_v>& Z() const
   { return fP[2]; }  ///< Returns constant reference to the vector with Z coordinates.
-  const AlignedVector<float>& E() const
+  const PaddedVector<float_v>& E() const
   { return fP[3]; }  ///< Returns constant reference to the vector with energy of the cluster.
 
-  const AlignedVector<float>& Parameter(const int i) const
+  const PaddedVector<float_v>& Parameter(const int i) const
   { return fP[i]; }  ///< Returns constant reference to the parameter vector with index "i".
-  const AlignedVector<float>& Covariance(const int i) const
+  const PaddedVector<float_v>& Covariance(const int i) const
   { return fC[i]; }  ///< Returns constant reference to the vector of the covariance matrix
   ///< elements with index "i".
-  const AlignedVector<int>& Id() const
+  const PaddedVector<int_v>& Id() const
   { return fId; }  ///< Returns constant reference to the vector with unique id of the
   ///< clusters.
 
@@ -127,10 +127,9 @@ class KFPEmcCluster {
   }
 
  private:
-  AlignedVector<float> fP[4];   ///< Coordinates of the cluster and energy: X, Y, Z, E.
-  AlignedVector<float> fC[10];  ///< Covariance matrix of the parameters of the cluster.
-
-  AlignedVector<int> fId;  ///< Vector with unique ids of the clusters.
+  PaddedVector<float_v> fP[4];   ///< Coordinates of the cluster and energy: X, Y, Z, E.
+  PaddedVector<float_v> fC[10];  ///< Covariance matrix of the parameters of the cluster.
+  PaddedVector<int_v> fId;       ///< Vector with unique ids of the clusters.
 };
 
 #endif

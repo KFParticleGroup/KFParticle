@@ -52,7 +52,7 @@ class KFParticleFinder {
   void SetNThreads(short int n)
   { fNThreads = n; }  ///< Sets the number of threads to by run in parallel. Currently not used.
 
-  void FindParticles(KFPTrackVector* vRTracks, AlignedVector<float>* ChiToPrimVtx, std::vector<KFParticle>& Particles,
+  void FindParticles(KFPTrackVector* vRTracks, PaddedVector<float_v>* ChiToPrimVtx, std::vector<KFParticle>& Particles,
                      std::vector<KFParticleSIMD>& PrimVtx, int nPV);
 
   void ExtrapolateToPV(std::vector<KFParticle>& vParticles, KFParticleSIMD& PrimVtx);
@@ -85,7 +85,7 @@ class KFParticleFinder {
                             const float_v& massMotherPDGSigma, std::vector<std::vector<KFParticle>>* vMotherPrim,
                             std::vector<KFParticle>* vMotherSec);
 
-  void Find2DaughterDecay(KFPTrackVector* vTracks, AlignedVector<float>* ChiToPrimVtx,
+  void Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<float_v>* ChiToPrimVtx,
                           std::vector<KFParticle>& Particles, std::vector<KFParticleSIMD>& PrimVtx, const float* cuts,
                           const float* secCuts, std::vector<std::vector<KFParticle>>* vMotherPrim,
                           std::vector<KFParticle>* vMotherSec);
@@ -103,7 +103,7 @@ class KFParticleFinder {
   void FindTrackV0Decay(std::vector<KFParticle>& vV0, const int V0PDG, KFPTrackVector& vTracks, const int q,
                         const int firstTrack, const int lastTrack, std::vector<KFParticle>& Particles,
                         std::vector<KFParticleSIMD>& PrimVtx, int v0PVIndex = -1,
-                        AlignedVector<float>* ChiToPrimVtx = 0, std::vector<std::vector<KFParticle>>* vMotherPrim = 0,
+                        PaddedVector<float_v>* ChiToPrimVtx = 0, std::vector<std::vector<KFParticle>>* vMotherPrim = 0,
                         std::vector<KFParticle>* vMotherSec = 0);
 
   void FindLL(const int motherPDG, const int correctTrackPDG, const std::vector<KFParticle>& vParticles,

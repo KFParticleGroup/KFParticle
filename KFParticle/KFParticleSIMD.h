@@ -475,9 +475,9 @@ class KFParticleSIMD {
   /** Return an element of the covariance matrix with {i,j} indices. */
   float_v Cij(int i, int j) const { return fC[IJ(i, j)]; }
 
-  float_v fP[8]{{0}};          ///< Particle parameters { X, Y, Z, Px, Py, Pz, E,
+  float_v fP[8]{};             ///< Particle parameters { X, Y, Z, Px, Py, Pz, E,
                                ///< S[=DecayLength/P]}.
-  float_v fC[36]{{0}};         ///< Low-triangle covariance matrix of fP.
+  float_v fC[36]{};            ///< Low-triangle covariance matrix of fP.
   int_v fQ{0};                 ///< The charge of the particle in the units of the elementary charge.
   int_v fNDF{0};               ///< Number of degrees of freedom.
   float_v fChi2{0};            ///< Chi^2.
@@ -511,8 +511,8 @@ class KFParticleSIMD {
 
  private:
 #ifdef HomogeneousField
-  static float_v fgBz{0};  ///< Bz compoment of the magnetic field (is defined in
-                           ///< case of #ifdef HomogeneousField)
+  static float_v fgBz;  ///< Bz component of the magnetic field (is defined in
+                        ///< case of #ifdef HomogeneousField)
 #endif
 #ifdef NonhomogeneousField
   /** \brief Approximation of the magnetic field along the track trajectory.
@@ -521,7 +521,7 @@ class KFParticleSIMD {
    **/
   KFParticleFieldRegion fField{};
 #endif
-} __attribute__((aligned(sizeof(float_v))));
+};
 
 inline void KFParticleSIMD::InvertCholetsky3(float_v a[6])
 {
@@ -966,47 +966,24 @@ inline void KFParticleSIMD::Load(const KFPTrackVector& track, int index, const i
    ** starting from the index "index".
    ** \param[in] track - an array with tracks in the KFPTrackVector format
    ** \param[in] index - index of the first track
-   ** \param[in] pdg - a SIMD vector with an individual pdg hypothesis for each
-   *element
+   ** \param[in] pdg - a SIMD vector with an individual pdg hypothesis for each element
    **/
 
-  fP[0] = reinterpret_cast<const float_v&>(track.Parameter(0)[index]);
-  fP[1] = reinterpret_cast<const float_v&>(track.Parameter(1)[index]);
-  fP[2] = reinterpret_cast<const float_v&>(track.Parameter(2)[index]);
-  fP[3] = reinterpret_cast<const float_v&>(track.Parameter(3)[index]);
-  fP[4] = reinterpret_cast<const float_v&>(track.Parameter(4)[index]);
-  fP[5] = reinterpret_cast<const float_v&>(track.Parameter(5)[index]);
+  assert(index >= 0 && index < track.Size() && index % float_v::size() == 0);
+  assert(pdg.size() == float_v::size());
 
-  fC[0]  = reinterpret_cast<const float_v&>(track.Covariance(0)[index]);
-  fC[1]  = reinterpret_cast<const float_v&>(track.Covariance(1)[index]);
-  fC[2]  = reinterpret_cast<const float_v&>(track.Covariance(2)[index]);
-  fC[3]  = reinterpret_cast<const float_v&>(track.Covariance(3)[index]);
-  fC[4]  = reinterpret_cast<const float_v&>(track.Covariance(4)[index]);
-  fC[5]  = reinterpret_cast<const float_v&>(track.Covariance(5)[index]);
-  fC[6]  = reinterpret_cast<const float_v&>(track.Covariance(6)[index]);
-  fC[7]  = reinterpret_cast<const float_v&>(track.Covariance(7)[index]);
-  fC[8]  = reinterpret_cast<const float_v&>(track.Covariance(8)[index]);
-  fC[9]  = reinterpret_cast<const float_v&>(track.Covariance(9)[index]);
-  fC[10] = reinterpret_cast<const float_v&>(track.Covariance(10)[index]);
-  fC[11] = reinterpret_cast<const float_v&>(track.Covariance(11)[index]);
-  fC[12] = reinterpret_cast<const float_v&>(track.Covariance(12)[index]);
-  fC[13] = reinterpret_cast<const float_v&>(track.Covariance(13)[index]);
-  fC[14] = reinterpret_cast<const float_v&>(track.Covariance(14)[index]);
-  fC[15] = reinterpret_cast<const float_v&>(track.Covariance(15)[index]);
-  fC[16] = reinterpret_cast<const float_v&>(track.Covariance(16)[index]);
-  fC[17] = reinterpret_cast<const float_v&>(track.Covariance(17)[index]);
-  fC[18] = reinterpret_cast<const float_v&>(track.Covariance(18)[index]);
-  fC[19] = reinterpret_cast<const float_v&>(track.Covariance(19)[index]);
-  fC[20] = reinterpret_cast<const float_v&>(track.Covariance(20)[index]);
+  int iblock = index / float_v::size();
+
+  for (int i = 0; i < 6; i++) { fP[i] = track.Parameter(i).block(iblock); }
+
+  for (int i = 0; i < 21; i++) { fC[i] = track.Covariance(i).block(iblock); }
 
 #ifdef NonhomogeneousField
-  for (int i = 0; i < 10; i++) {
-    fField.fField[i] = reinterpret_cast<const float_v&>(track.FieldCoefficient(i)[index]);
-  }
+  for (int i = 0; i < 10; i++) { fField.fField[i] = track.FieldCoefficient(i).block(iblock); }
 #endif
 
   //   fPDG.gather(&(track.PDG()[0]), index);
-  fQ = reinterpret_cast<const int_v&>(track.Q()[index]);
+  fQ = track.Q().block(iblock);
 
   float_v mass = KFParticleDatabase::Instance()->GetMass(pdg);
 
@@ -1043,42 +1020,19 @@ inline void KFParticleSIMD::Load(const KFPTrackVector& track, int index)
    ** \param[in] index - index of the first track
    **/
 
-  fP[0] = reinterpret_cast<const float_v&>(track.Parameter(0)[index]);
-  fP[1] = reinterpret_cast<const float_v&>(track.Parameter(1)[index]);
-  fP[2] = reinterpret_cast<const float_v&>(track.Parameter(2)[index]);
-  fP[3] = reinterpret_cast<const float_v&>(track.Parameter(3)[index]);
-  fP[4] = reinterpret_cast<const float_v&>(track.Parameter(4)[index]);
-  fP[5] = reinterpret_cast<const float_v&>(track.Parameter(5)[index]);
+  assert(index >= 0 && index < track.Size() && index % float_v::size() == 0);
 
-  fC[0]  = reinterpret_cast<const float_v&>(track.Covariance(0)[index]);
-  fC[1]  = reinterpret_cast<const float_v&>(track.Covariance(1)[index]);
-  fC[2]  = reinterpret_cast<const float_v&>(track.Covariance(2)[index]);
-  fC[3]  = reinterpret_cast<const float_v&>(track.Covariance(3)[index]);
-  fC[4]  = reinterpret_cast<const float_v&>(track.Covariance(4)[index]);
-  fC[5]  = reinterpret_cast<const float_v&>(track.Covariance(5)[index]);
-  fC[6]  = reinterpret_cast<const float_v&>(track.Covariance(6)[index]);
-  fC[7]  = reinterpret_cast<const float_v&>(track.Covariance(7)[index]);
-  fC[8]  = reinterpret_cast<const float_v&>(track.Covariance(8)[index]);
-  fC[9]  = reinterpret_cast<const float_v&>(track.Covariance(9)[index]);
-  fC[10] = reinterpret_cast<const float_v&>(track.Covariance(10)[index]);
-  fC[11] = reinterpret_cast<const float_v&>(track.Covariance(11)[index]);
-  fC[12] = reinterpret_cast<const float_v&>(track.Covariance(12)[index]);
-  fC[13] = reinterpret_cast<const float_v&>(track.Covariance(13)[index]);
-  fC[14] = reinterpret_cast<const float_v&>(track.Covariance(14)[index]);
-  fC[15] = reinterpret_cast<const float_v&>(track.Covariance(15)[index]);
-  fC[16] = reinterpret_cast<const float_v&>(track.Covariance(16)[index]);
-  fC[17] = reinterpret_cast<const float_v&>(track.Covariance(17)[index]);
-  fC[18] = reinterpret_cast<const float_v&>(track.Covariance(18)[index]);
-  fC[19] = reinterpret_cast<const float_v&>(track.Covariance(19)[index]);
-  fC[20] = reinterpret_cast<const float_v&>(track.Covariance(20)[index]);
+  int iblock = index / float_v::size();
+
+  for (int i = 0; i < 6; i++) { fP[i] = track.Parameter(i).block(iblock); }
+
+  for (int i = 0; i < 21; i++) { fC[i] = track.Covariance(i).block(iblock); }
 
 #ifdef NonhomogeneousField
-  for (int i = 0; i < 10; i++) {
-    fField.fField[i] = reinterpret_cast<const float_v&>(track.FieldCoefficient(i)[index]);
-  }
+  for (int i = 0; i < 10; i++) { fField.fField[i] = track.FieldCoefficient(i).block(iblock); }
 #endif
 
-  fQ = reinterpret_cast<const int_v&>(track.Q()[index]);
+  fQ = track.Q().block(iblock);
 }
 
 #endif

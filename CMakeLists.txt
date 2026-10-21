@@ -137,10 +137,9 @@ Set(NODICT_HEADERS
   KFParticle/KFPTrack.h
   KFParticle/KFParticleFinder.h
   KFParticle/KFParticleSIMD.h
-#  KFParticle/KFParticleBaseSIMD.h
   KFParticle/KFParticleDef.h
   KFParticle/KFPSimd.h
-  KFParticle/KFPSimdPaddedAllocator.h
+  KFParticle/KFPSimdPaddedVector.h
   KFParticle/KFPTrackVector.h
   KFParticle/KFPEmcCluster.h
   KFParticle/KFParticleField.h
