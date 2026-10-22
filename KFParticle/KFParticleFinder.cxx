@@ -2193,8 +2193,12 @@ void KFParticleFinder::ConstructPrimaryBG(KFPTrackVector* vTracks, vector<KFPart
 
       if (nBufEntry > 0) {
         for (int iV = nBufEntry; iV < SimdLen; iV++) {
-          idPosDaughtersArray[iV] = idPosDaughters[0];
-          idNegDaughtersArray[iV] = idNegDaughters[0];
+          idPosDaughtersArray[iV] = idPosDaughtersArray[0];
+          idNegDaughtersArray[iV] = idNegDaughtersArray[0];
+          daughterPosPDGArray[iV] = daughterPosPDGArray[0];
+          daughterNegPDGArray[iV] = daughterNegPDGArray[0];
+          pvIndexMotherArray[iV] = pvIndexMotherArray[0];
+          V0PDGArray[iV] = V0PDGArray[0];
         }
 
         idNegDaughters.copy_from(idNegDaughtersArray, stdx::vector_aligned);
