@@ -28,7 +28,7 @@ namespace KFP
   namespace SIMD
   {
 
-    // TODO: making SIMD size larger than 4 requires changes in TrackVector and using PaddedAllocator in AlignedVector
+    // TODO: try with SIMD size 16
 
     using float_v = stdx::fixed_size_simd<float, 4>;
     using int_v   = stdx::rebind_simd_t<int, float_v>;

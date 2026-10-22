@@ -3946,12 +3946,12 @@ float_v KFParticleSIMD::GetDeviationFromVertex(const float_v v[], const float_v 
    ** \param[in] Cv[6] - covariance matrix of the vertex {Cxx, Cxy, Cyy, Cxz, Czy, Czz}
    **/
 
-  float_v mP[8];
-  float_v mC[36];
+  float_v mP[8]{};
+  float_v mC[36]{};
   float_v dsdr[6]  = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
   const float_v dS = GetDStoPoint(v, dsdr);
   float_v dsdp[6]  = {-dsdr[0], -dsdr[1], -dsdr[2], 0.f, 0.f, 0.f};
-  float_v F1[36];
+  float_v F1[36]{};
   Transport(dS, dsdr, mP, mC, dsdp, nullptr, F1, false);
 
   if (Cv) {
@@ -4542,7 +4542,9 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 6; j++) { F[i * 6 + j] = mJ[i][j]; }
     }
+  }
 
+  if (F1) {
     for (int i1 = 0; i1 < 6; i1++) {
       for (int i2 = 0; i2 < 6; i2++) {
         F1[i1 * 6 + i2] = mJds[i1][3] * px * dsdr1[i2] + mJds[i1][4] * py * dsdr1[i2] + mJds[i1][5] * pz * dsdr1[i2];
@@ -5172,7 +5174,9 @@ void KFParticleSIMD::TransportLine(float_v dS, const float_v* dsdr, float_v P[],
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 6; j++) { F[i * 6 + j] = mJ[i][j]; }
     }
+  }
 
+  if (F1) {
     for (int i1 = 0; i1 < 6; i1++) {
       for (int i2 = 0; i2 < 6; i2++) {
         F1[i1 * 6 + i2] = mJds[i1][3] * px * dsdr1[i2] + mJds[i1][4] * py * dsdr1[i2] + mJds[i1][5] * pz * dsdr1[i2];
