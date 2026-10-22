@@ -21,8 +21,6 @@
 
 #include "KFPTrackVector.h"
 
-#include "KFParticleMath.h"
-
 #include <iostream>
 
 void KFPTrackVector::Resize(const int n)
@@ -69,7 +67,7 @@ void KFPTrackVector::Set(KFPTrackVector& v, int vSize, int offset)
 }
 
 #if 0
-void KFPTrackVector::SetTracks(const KFPTrackVector& track, const kfvector_int& trackIndex, const int nIndexes)
+void KFPTrackVector::SetTracks(const KFPTrackVector& track, const PaddedVector<int_v>& trackIndex, const int nIndexes)
 {
   /** The current object is resised to "nIndexes", tracks with indices "trackIndex" are copied to the current object.
    ** \param[in] track - input vector of tracks
@@ -192,7 +190,7 @@ void KFPTrackVector::SetTracks(const KFPTrackVector& track, const kfvector_int& 
   }
 }
 #else
-void KFPTrackVector::SetTracks(const KFPTrackVector& track, const kfvector_int& trackIndex, const int nIndexes)
+void KFPTrackVector::SetTracks(const KFPTrackVector& track, const PaddedVector<int_v>& trackIndex, const int nIndexes)
 {
   /** The current object is resised to "nIndexes", tracks with indices "trackIndex" are copied to the current object.
    ** \param[in] track - input vector of tracks
@@ -242,61 +240,59 @@ void KFPTrackVector::RotateXY(float_v alpha, int firstElement)
    ** \param[in] firstElement - track index, starting from which SIMD vector of tracks will be rotated
    **/
 
+  assert(firstElement >= 0 && firstElement < Size() && firstElement % float_v::size() == 0);
+  int iblock = firstElement / float_v::size();
+
   float_v sA = sin(alpha);
   float_v cA = cos(alpha);
 
-  const float_v xInit = reinterpret_cast<const float_v&>(fP[0][firstElement]);
-  const float_v yInit = reinterpret_cast<const float_v&>(fP[1][firstElement]);
+  float_v& x = fP[0].block(iblock);
+  float_v& y = fP[1].block(iblock);
 
-  float_v& x = reinterpret_cast<float_v&>(fP[0][firstElement]);
-  float_v& y = reinterpret_cast<float_v&>(fP[1][firstElement]);
+  const float_v xInit = x;
+  const float_v yInit = y;
 
   x = -(xInit * sA + yInit * cA);
   y = xInit * cA - yInit * sA;
 
-  const float_v pxInit = reinterpret_cast<const float_v&>(fP[3][firstElement]);
-  const float_v pyInit = reinterpret_cast<const float_v&>(fP[4][firstElement]);
+  float_v& px = fP[3].block(iblock);
+  float_v& py = fP[4].block(iblock);
 
-  float_v& px = reinterpret_cast<float_v&>(fP[3][firstElement]);
-  float_v& py = reinterpret_cast<float_v&>(fP[4][firstElement]);
+  const float_v pxInit = px;
+  const float_v pyInit = py;
 
   px = -(pxInit * sA + pyInit * cA);
   py = pxInit * cA - pyInit * sA;
 
   float_v cov[21];
-  for (int iC = 0; iC < 21; iC++) { cov[iC] = reinterpret_cast<const float_v&>(fC[iC][firstElement]); }
+  for (int iC = 0; iC < 21; iC++) { cov[iC] = fC[iC].block(iblock); }
 
-  reinterpret_cast<float_v&>(fC[0][firstElement]) = cA * cA * cov[2] + 2 * cA * cov[1] * sA + cov[0] * sA * sA;
+  fC[0].block(iblock) = cA * cA * cov[2] + 2 * cA * cov[1] * sA + cov[0] * sA * sA;
 
-  reinterpret_cast<float_v&>(fC[1][firstElement]) =
-    -(cA * cA * cov[1]) + cA * (-cov[0] + cov[2]) * sA + cov[1] * sA * sA;
-  reinterpret_cast<float_v&>(fC[2][firstElement]) = cA * cA * cov[0] - 2 * cA * cov[1] * sA + cov[2] * sA * sA;
+  fC[1].block(iblock) = -(cA * cA * cov[1]) + cA * (-cov[0] + cov[2]) * sA + cov[1] * sA * sA;
+  fC[2].block(iblock) = cA * cA * cov[0] - 2 * cA * cov[1] * sA + cov[2] * sA * sA;
 
-  reinterpret_cast<float_v&>(fC[3][firstElement]) = -(cA * cov[4]) - cov[3] * sA;
-  reinterpret_cast<float_v&>(fC[4][firstElement]) = cA * cov[3] - cov[4] * sA;
-  //  reinterpret_cast<float_v&>(fC[5][firstElement]) = cov[5];
+  fC[3].block(iblock) = -(cA * cov[4]) - cov[3] * sA;
+  fC[4].block(iblock) = cA * cov[3] - cov[4] * sA;
+  //  fC[5].block(iblock) = cov[5];
 
-  reinterpret_cast<float_v&>(fC[6][firstElement]) = cA * cA * cov[11] + cA * (cov[10] + cov[7]) * sA + cov[6] * sA * sA;
-  reinterpret_cast<float_v&>(fC[7][firstElement]) =
-    -(cA * cA * cov[10]) + cA * (cov[11] - cov[6]) * sA + cov[7] * sA * sA;
-  reinterpret_cast<float_v&>(fC[8][firstElement]) = -(cA * cov[12]) - cov[8] * sA;
-  reinterpret_cast<float_v&>(fC[9][firstElement]) = cA * cA * cov[14] + 2 * cA * cov[13] * sA + cov[9] * sA * sA;
+  fC[6].block(iblock) = cA * cA * cov[11] + cA * (cov[10] + cov[7]) * sA + cov[6] * sA * sA;
+  fC[7].block(iblock) = -(cA * cA * cov[10]) + cA * (cov[11] - cov[6]) * sA + cov[7] * sA * sA;
+  fC[8].block(iblock) = -(cA * cov[12]) - cov[8] * sA;
+  fC[9].block(iblock) = cA * cA * cov[14] + 2 * cA * cov[13] * sA + cov[9] * sA * sA;
 
-  reinterpret_cast<float_v&>(fC[10][firstElement]) =
-    -(cA * cA * cov[7]) + cA * (cov[11] - cov[6]) * sA + cov[10] * sA * sA;
-  reinterpret_cast<float_v&>(fC[11][firstElement]) =
-    cA * cA * cov[6] - cA * (cov[10] + cov[7]) * sA + cov[11] * sA * sA;
-  reinterpret_cast<float_v&>(fC[12][firstElement]) = cA * cov[8] - cov[12] * sA;
-  reinterpret_cast<float_v&>(fC[13][firstElement]) =
-    -(cA * cA * cov[13]) + cA * (cov[14] - cov[9]) * sA + cov[13] * sA * sA;
-  reinterpret_cast<float_v&>(fC[14][firstElement]) = cA * cA * cov[9] - 2 * cA * cov[13] * sA + cov[14] * sA * sA;
+  fC[10].block(iblock) = -(cA * cA * cov[7]) + cA * (cov[11] - cov[6]) * sA + cov[10] * sA * sA;
+  fC[11].block(iblock) = cA * cA * cov[6] - cA * (cov[10] + cov[7]) * sA + cov[11] * sA * sA;
+  fC[12].block(iblock) = cA * cov[8] - cov[12] * sA;
+  fC[13].block(iblock) = -(cA * cA * cov[13]) + cA * (cov[14] - cov[9]) * sA + cov[13] * sA * sA;
+  fC[14].block(iblock) = cA * cA * cov[9] - 2 * cA * cov[13] * sA + cov[14] * sA * sA;
 
-  reinterpret_cast<float_v&>(fC[15][firstElement]) = -(cA * cov[16]) - cov[15] * sA;
-  reinterpret_cast<float_v&>(fC[16][firstElement]) = cA * cov[15] - cov[16] * sA;
-  //  reinterpret_cast<float_v&>(fC[17][firstElement]) = cov[17];
-  reinterpret_cast<float_v&>(fC[18][firstElement]) = -(cA * cov[19]) - cov[18] * sA;
-  reinterpret_cast<float_v&>(fC[19][firstElement]) = cA * cov[18] - cov[19] * sA;
-  //  reinterpret_cast<float_v&>(fC[20][firstElement]) = cov[20];
+  fC[15].block(iblock) = -(cA * cov[16]) - cov[15] * sA;
+  fC[16].block(iblock) = cA * cov[15] - cov[16] * sA;
+  //  fC[17].block(iblock) = cov[17];
+  fC[18].block(iblock) = -(cA * cov[19]) - cov[18] * sA;
+  fC[19].block(iblock) = cA * cov[18] - cov[19] * sA;
+  //  fC[20].block(iblock) = cov[20];
 }  // RotateXY
 
 

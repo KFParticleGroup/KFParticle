@@ -482,7 +482,7 @@ class KFParticle
    ** Each component (Bx, By, Bz) is approximated with the parabola depending on
    *Z coordinate. Is defined in case of #ifdef NonhomogeneousField.
    **/
-  float fieldRegion[10];
+  float fieldRegion[10]{};
 #endif
 
 #if !defined(KFParticleStandalone) && !defined(CBM_ONLINE)
@@ -916,7 +916,7 @@ inline void KFParticle::GetDStoParticle(const KFParticle& p, float dS[2], float 
 }
 
 inline void KFParticle::Transport(float dS, const float* dsdr, float P[], float C[], float* dsdr1, float* F, float* F1,
-                                  const bool fullC) const
+                                  [[maybe_unused]] const bool fullC) const
 {
   /** Transports the parameters and their covariance matrix of the current
    *particle

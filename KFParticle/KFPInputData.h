@@ -26,6 +26,7 @@
 #include "KFParticle.h"
 
 #include <fstream>
+#include <new>
 #include <string>
 #include <vector>
 
@@ -81,10 +82,14 @@ struct KFPTrackIndex {
 class KFPInputData {
  public:
   void* operator new(size_t size)
-  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
+  {
+    return ::operator new(size, std::align_val_t(stdx::memory_alignment_v<float_v>));
+  }  ///< new operator for allocation of the SIMD-alligned dynamic memory
   ///< allocation
   void* operator new[](size_t size)
-  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
+  {
+    return ::operator new[](size, std::align_val_t(stdx::memory_alignment_v<float_v>));
+  }  ///< new operator for allocation of the SIMD-alligned dynamic memory
   ///< allocation
   void* operator new(size_t size, void* ptr)
   { return ::operator new(size, ptr); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
@@ -93,9 +98,13 @@ class KFPInputData {
   { return ::operator new(size, ptr); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
   ///< allocation
   void operator delete(void* ptr, size_t)
-  { _mm_free(ptr); }  ///< delete operator for the SIMD-alligned dynamic memory release
+  {
+    ::operator delete(ptr, std::align_val_t(stdx::memory_alignment_v<float_v>));
+  }  ///< delete operator for the SIMD-alligned dynamic memory release
   void operator delete[](void* ptr, size_t)
-  { _mm_free(ptr); }  ///< delete operator for the SIMD-alligned dynamic memory release
+  {
+    ::operator delete[](ptr, std::align_val_t(stdx::memory_alignment_v<float_v>));
+  }  ///< delete operator for the SIMD-alligned dynamic memory release
 
   KFPInputData() : fPV(0), fBz(0.f) {};
   ~KFPInputData() {}
@@ -178,7 +187,8 @@ class KFPInputData {
     return 1;
   }
 
-  void SetDataToVector(int* data, int& dataSize)
+
+  void SetDataToBuffer(int* data, int& dataSize)
   {
     /** Stores information to the memory under pointer "data".
      ** \param[out] data - memory, where input information will be stored
@@ -197,7 +207,7 @@ class KFPInputData {
 
     int offset = NInputSets + 2;
 
-    for (int iSet = 0; iSet < NInputSets; iSet++) { fTracks[iSet].SetDataToVector(data, offset); }
+    for (int iSet = 0; iSet < NInputSets; iSet++) { fTracks[iSet].SetDataToBuffer(data, offset); }
 
     for (int iP = 0; iP < 3; iP++) {
       for (unsigned int iPV = 0; iPV < fPV.size(); iPV++) {
@@ -216,7 +226,7 @@ class KFPInputData {
     }
   }
 
-  void ReadDataFromVector(int* data)
+  void ReadDataFromBuffer(int* data)
   {
     /** Reads input data from the given memory.
      ** \param[in] data - pointer to the memory with the input data
@@ -224,7 +234,7 @@ class KFPInputData {
     int offset = NInputSets + 2;
     for (int iSet = 0; iSet < NInputSets; iSet++) {
       fTracks[iSet].Resize(data[iSet]);
-      fTracks[iSet].ReadDataFromVector(data, offset);
+      fTracks[iSet].ReadDataFromBuffer(data, offset);
     }
 
     float& field = reinterpret_cast<float&>(data[NInputSets + 1]);
@@ -310,10 +320,10 @@ class KFPInputData {
    ** 7 - positive primary tracks stored at the last point.
    ** \see KFPTrackVector for documentation.
    **/
-  KFPTrackVector fTracks[NInputSets] __attribute__((aligned(sizeof(float_v))));
+  KFPTrackVector fTracks[NInputSets] __attribute__((aligned(stdx::memory_alignment_v<float_v>)));
   std::vector<KFParticle> fPV;  ///< Vector with primary vertices.
   float fBz;                    ///< Constant homogenious one-component magnetic field Bz.
-} __attribute__((aligned(sizeof(float_v))));
+} __attribute__((aligned(stdx::memory_alignment_v<float_v>)));
 
 /** @class KFPInputDataArray
  ** @brief Structure with the set of the input data for KF Particle Finder.
@@ -355,10 +365,14 @@ struct KFPInputDataArray {
 
 struct KFPLinkedList {
   void* operator new(size_t size)
-  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
+  {
+    return ::operator new(size, std::align_val_t(stdx::memory_alignment_v<float_v>));
+  }  ///< new operator for allocation of the SIMD-alligned dynamic memory
   ///< allocation
   void* operator new[](size_t size)
-  { return _mm_malloc(size, sizeof(float_v)); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
+  {
+    return ::operator new[](size, std::align_val_t(stdx::memory_alignment_v<float_v>));
+  }  ///< new operator for allocation of the SIMD-alligned dynamic memory
   ///< allocation
   void* operator new(size_t size, void* ptr)
   { return ::operator new(size, ptr); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
@@ -367,13 +381,17 @@ struct KFPLinkedList {
   { return ::operator new(size, ptr); }  ///< new operator for allocation of the SIMD-alligned dynamic memory
   ///< allocation
   void operator delete(void* ptr, size_t)
-  { _mm_free(ptr); }  ///< delete operator for the SIMD-alligned dynamic memory release
+  {
+    ::operator delete(ptr, std::align_val_t(stdx::memory_alignment_v<float_v>));
+  }  ///< delete operator for the SIMD-alligned dynamic memory release
   void operator delete[](void* ptr, size_t)
-  { _mm_free(ptr); }  ///< delete operator for the SIMD-alligned dynamic memory release
+  {
+    ::operator delete[](ptr, std::align_val_t(stdx::memory_alignment_v<float_v>));
+  }  ///< delete operator for the SIMD-alligned dynamic memory release
 
-  KFPInputData data
-    __attribute__((aligned(sizeof(float_v))));  ///< Input data for KF Particle Finder \see KFPInputData.
-  KFPLinkedList* next;                          ///< Link to the nex object in the linked list.
-} __attribute__((aligned(sizeof(float_v))));
+  KFPInputData data __attribute__((
+    aligned(stdx::memory_alignment_v<float_v>)));  ///< Input data for KF Particle Finder \see KFPInputData.
+  KFPLinkedList* next;                             ///< Link to the nex object in the linked list.
+} __attribute__((aligned(stdx::memory_alignment_v<float_v>)));
 
 #endif

@@ -2,20 +2,20 @@ cmake_minimum_required(VERSION 3.14.0 FATAL_ERROR)
 
 project(KFParticleLibrary)
 
-add_definitions(-DKFP_SIMD_SSE)
-
 add_compile_options(-O3 -Wall -Wextra -Wsign-promo -Wctor-dtor-privacy -Wreorder -Wno-deprecated -Wno-parentheses)
 # add_compile_options(-Weffc++ -Wnon-virtual-dtor -Woverloaded-virtual -Wold-style-cast) # for the future
 If(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wno-pmf-conversions -Wstrict-null-sentinel -Wno-non-template-friend -Wmissing-field-initializers)
 EndIf()
 
+
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-  message(STATUS "===== KFParticle project is built standalone ======")
-  add_compile_options(-msse4.1)
+message(STATUS "===== KFParticle project is built standalone ======")
+  add_compile_options(-msse4.2)
 else()
   message(STATUS "===== KFParticle project is embedded, use SIMD flags from the host ======")
 endif()
+
 
 macro(add_target_property _target _prop _value)
   get_target_property(_oldprop "${_target}" ${_prop})
@@ -26,7 +26,7 @@ macro(add_target_property _target _prop _value)
   endif(NOT _oldprop)
 endmacro(add_target_property)
 
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS} ${ROOTSYS})
@@ -34,24 +34,16 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS} ${ROOTSYS})
 set(FIXTARGET FALSE CACHE BOOL "Compile for fix target geometry.")
 
 find_package(ROOT REQUIRED COMPONENTS Core Hist Matrix Physics EG Gpad Graf Graf3d RIO MathCore)
-If(DEFINED Vc_INCLUDE_DIR AND Vc_LIBRARIES)
-  Message("Vc found")
-Else()
-  find_package(Vc REQUIRED)
-EndIf()
 
 Set(INCLUDE_DIRECTORIES
   ${PROJECT_SOURCE_DIR}/KFParticle
   ${PROJECT_SOURCE_DIR}/KFParticlePerformance
   ${PROJECT_SOURCE_DIR}/KFParticleTest
-  ${PROJECT_SOURCE_DIR}/KFParticle/KFPSimd
-  ${PROJECT_SOURCE_DIR}/KFParticle/KFPSimd/Utils
-  ${PROJECT_SOURCE_DIR}/KFParticle/KFPSimd/SSE
 )
 
 include(${ROOT_USE_FILE})
 set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
-Include_Directories( ${CMAKE_SOURCE_DIR} ${Vc_INCLUDE_DIR} ${INCLUDE_DIRECTORIES} )
+Include_Directories( ${CMAKE_SOURCE_DIR} ${INCLUDE_DIRECTORIES} )
 set(CMAKE_INCLUDE_DIRECTORIES_BEFORE OFF)
 
 set(LINK_DIRECTORIES
@@ -79,25 +71,6 @@ set (SOURCES
   KFParticlePerformance/KFTopoPerformance.cxx
   KFParticlePerformance/KFMCParticle.cxx
   KFParticleTest/KFParticleTest.cxx
-)
-
-set (SIMD_HEADERS
-  KFParticle/KFPSimd/simd.h
-)
-
-set (SIMD_UTILS_HEADERS
-  KFParticle/KFPSimd/Utils/macros.h
-  KFParticle/KFPSimd/Utils/memory.h
-  KFParticle/KFPSimd/Utils/simd_detect.h
-  KFParticle/KFPSimd/Utils/tag.h
-)
-
-set (SIMD_SSE_HEADERS
-  KFParticle/KFPSimd/SSE/constants.h
-  KFParticle/KFPSimd/SSE/float32.h
-  KFParticle/KFPSimd/SSE/int32.h
-  KFParticle/KFPSimd/SSE/mask32.h
-  KFParticle/KFPSimd/SSE/types.h
 )
 
 set (HEADERS
@@ -136,11 +109,8 @@ if(FIXTARGET)
         ${PROJECT_SOURCE_DIR}/KFParticle
         ${PROJECT_SOURCE_DIR}/KFParticlePerformance
         ${PROJECT_SOURCE_DIR}/KFParticleTest
-        ${PROJECT_SOURCE_DIR}/KFParticle/KFPSimd
-        ${PROJECT_SOURCE_DIR}/KFParticle/KFPSimd/Utils
-        ${PROJECT_SOURCE_DIR}/KFParticle/KFPSimd/SSE
 )
-  target_link_libraries(KFParticle ${ROOT_LIBRARIES} ${Vc_LIBRARIES} )
+  target_link_libraries(KFParticle ${ROOT_LIBRARIES} )
   add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DNonhomogeneousField -DCBM -DUSE_TIMERS")
 #  add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DHomogeneousField -DCBM -DUSE_TIMERS")
 
@@ -151,7 +121,7 @@ if(FIXTARGET)
 else(FIXTARGET)
   ROOT_GENERATE_DICTIONARY(G__KFParticle ${HEADERS} LINKDEF KFLinkDef.h OPTIONS "-DDO_TPCCATRACKER_EFF_PERFORMANCE" "-DHomogeneousField" "-DUSE_TIMERS")
   add_library(KFParticle SHARED ${SOURCES} G__KFParticle.cxx)
-  target_link_libraries(KFParticle ${ROOT_LIBRARIES} ${Vc_LIBRARIES} )
+  target_link_libraries(KFParticle ${ROOT_LIBRARIES} )
   add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DHomogeneousField -DUSE_TIMERS")
 endif(FIXTARGET)
 
@@ -167,9 +137,9 @@ Set(NODICT_HEADERS
   KFParticle/KFPTrack.h
   KFParticle/KFParticleFinder.h
   KFParticle/KFParticleSIMD.h
-#  KFParticle/KFParticleBaseSIMD.h
   KFParticle/KFParticleDef.h
-  KFParticle/KFPSimdAllocator.h
+  KFParticle/KFPSimd.h
+  KFParticle/KFPSimdPaddedVector.h
   KFParticle/KFPTrackVector.h
   KFParticle/KFPEmcCluster.h
   KFParticle/KFParticleField.h
@@ -209,10 +179,6 @@ install(DIRECTORY KFParticleTest
 #endif()
 
 #install(FILES ${HEADERS} ${NODICT_HEADERS} DESTINATION include/KFParticle)
-
-#install(FILES ${SIMD_HEADERS} DESTINATION include/KFParticle/KFPSimd)
-#install(FILES ${SIMD_UTILS_HEADERS} DESTINATION include/KFParticle/Utils) 
-#install(FILES ${SIMD_SSE_HEADERS} DESTINATION include/KFParticle/SSE) 
 
 #install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle_rdict.pcm DESTINATION lib OPTIONAL)
 #install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}KFParticle.rootmap DESTINATION lib)

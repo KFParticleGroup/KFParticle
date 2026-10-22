@@ -23,11 +23,14 @@
 #include "KFParticleSIMD.h"
 
 #include "KFParticle.h"
+#include "KFParticleDef.h"
 
 #include <iostream>
 #ifdef HomogeneousField
 float_v KFParticleSIMD::fgBz = -5.f;  //* Bz compoment of the magnetic field
 #endif
+
+using namespace KFP::SIMD;
 
 void KFParticleSIMD::Create(const float_v Param[], const float_v Cov[], int_v Charge, float_v mass /*Int_t PID*/)
 {
@@ -280,7 +283,7 @@ KFParticleSIMD::KFParticleSIMD(KFPTrackVector& track, int_v& index, const int_v&
   Create(track, index, pdg);
 }
 
-void KFParticleSIMD::Create(KFPTrackVector& track, int_v& index, const int_v& pdg)
+void KFParticleSIMD::Create(const KFPTrackVector& track, const int_v& index, const int_v& pdg)
 {
   /** Create a particle from a set of tracks with indices "index" stored in the KFPTrackVector format.
    ** The function should be used in case if indices are random. If they are aligned please use function Load()
@@ -290,14 +293,14 @@ void KFParticleSIMD::Create(KFPTrackVector& track, int_v& index, const int_v& pd
    ** \param[in] pdg - a SIMD vector with an individual pdg hypothesis for each element
    **/
 
-  for (int i = 0; i < 6; i++) { fP[i] = KFP::SIMD::gather(&(track.Parameter(i)[0]), index); }
-  for (int i = 0; i < 21; i++) { fC[i] = KFP::SIMD::gather(&(track.Covariance(i)[0]), index); }
+  for (int i = 0; i < 6; i++) { fP[i] = KFP::SIMD::gather(track.Parameter(i), index); }
+  for (int i = 0; i < 21; i++) { fC[i] = KFP::SIMD::gather(track.Covariance(i), index); }
 #ifdef NonhomogeneousField
-  for (int i = 0; i < 10; i++) { fField.fField[i] = KFP::SIMD::gather(&(track.FieldCoefficient(i)[0]), index); }
+  for (int i = 0; i < 10; i++) { fField.fField[i] = KFP::SIMD::gather(track.FieldCoefficient(i), index); }
 #endif
 
   //   fPDG.gather(&(track.PDG()[0]), index);
-  fQ = KFP::SIMD::gather(&(track.Q()[0]), index);
+  fQ = KFP::SIMD::gather(track.Q(), index);
 
   float_v mass = KFParticleDatabase::Instance()->GetMass(pdg);
   Create(fP, fC, fQ, mass);
@@ -349,14 +352,14 @@ void KFParticleSIMD::Create(KFPEmcCluster& track, int_v& index, const KFParticle
    ** \param[in] vertexGuess - vertex guess for estimation of the momentum of created gamma particles
    **/
 
-  for (int i = 0; i < 3; i++) { fP[i] = KFP::SIMD::gather(&(track.Parameter(i)[0]), index); }
-  fP[6] = KFP::SIMD::gather(&(track.Parameter(3)[0]), index);
+  for (int i = 0; i < 3; i++) { fP[i] = KFP::SIMD::gather(track.Parameter(i), index); }
+  fP[6] = KFP::SIMD::gather(track.Parameter(3), index);
 
-  const float_v& dx  = fP[0] - vertexGuess.fP[0];
-  const float_v& dy  = fP[1] - vertexGuess.fP[1];
-  const float_v& dz  = fP[2] - vertexGuess.fP[2];
-  const float_v& dl2 = dx * dx + dy * dy + dz * dz;
-  const float_v& dl  = sqrt(dl2);
+  const float_v dx  = fP[0] - vertexGuess.fP[0];
+  const float_v dy  = fP[1] - vertexGuess.fP[1];
+  const float_v dz  = fP[2] - vertexGuess.fP[2];
+  const float_v dl2 = dx * dx + dy * dy + dz * dz;
+  const float_v dl  = sqrt(dl2);
 
   fP[0] = vertexGuess.fP[0];
   fP[1] = vertexGuess.fP[1];
@@ -366,13 +369,11 @@ void KFParticleSIMD::Create(KFPEmcCluster& track, int_v& index, const KFParticle
   fP[4] = dy / dl * fP[6];
   fP[5] = dz / dl * fP[6];
 
-  float_v V[10];
-  for (int i = 0; i < 10; i++) { V[i] = KFP::SIMD::gather(&(track.Covariance(i)[0]), index); }
+  float_v V[10]{};
+  for (int i = 0; i < 10; i++) { V[i] = KFP::SIMD::gather(track.Covariance(i), index); }
 
-  float_v J[7][4];
-  for (int i = 0; i < 7; i++) {
-    for (int j = 0; j < 4; j++) { J[i][j] = 0.f; }
-  }
+  float_v J[7][4]{};
+
   J[0][0] = 1.f;
   J[1][1] = 1.f;
   J[2][2] = 1.f;
@@ -390,10 +391,9 @@ void KFParticleSIMD::Create(KFPEmcCluster& track, int_v& index, const KFParticle
   J[5][2] = fP[6] / dl * (1.f - dz * dz / dl2);
   J[5][3] = dz / dl;
 
-  float_v VJT[4][7];  // V*J^T
+  float_v VJT[4][7]{};  // V*J^T
   for (Int_t i = 0; i < 4; i++) {
     for (Int_t j = 0; j < 7; j++) {
-      VJT[i][j] = 0.f;
       for (Int_t k = 0; k < 4; k++) { VJT[i][j] += V[IJ(i, k)] * J[j][k]; }
     }
   }
@@ -407,12 +407,12 @@ void KFParticleSIMD::Create(KFPEmcCluster& track, int_v& index, const KFParticle
   }
   fC[35] = 1.f;
 
-  fQ    = int_v(0);
+  fQ    = 0;
   fNDF  = 0;
   fChi2 = 0;
 
-  SumDaughterMass = float_v(0.f);
-  fMassHypo       = float_v(0.f);
+  SumDaughterMass = 0.f;
+  fMassHypo       = 0.f;
 }
 
 KFParticleSIMD::KFParticleSIMD(KFPEmcCluster& track, int index, const KFParticleSIMD& vertexGuess)
@@ -448,13 +448,16 @@ void KFParticleSIMD::Load(KFPEmcCluster& track, int index, const KFParticleSIMD&
    ** \param[in] vertexGuess - vertex guess for estimation of the momentum of created gamma particles
    **/
 
-  for (int i = 0; i < 3; i++) { fP[i] = reinterpret_cast<const float_v&>(track.Parameter(i)[index]); }
-  fP[6]              = reinterpret_cast<const float_v&>(track.Parameter(3)[index]);
-  const float_v& dx  = fP[0] - vertexGuess.fP[0];
-  const float_v& dy  = fP[1] - vertexGuess.fP[1];
-  const float_v& dz  = fP[2] - vertexGuess.fP[2];
-  const float_v& dl2 = dx * dx + dy * dy + dz * dz;
-  const float_v& dl  = sqrt(dl2);
+  assert(index >= 0 && index < track.Size() && index % float_v::size() == 0);
+  int iblock = index / float_v::size();
+
+  for (int i = 0; i < 3; i++) { fP[i] = track.Parameter(i).block(iblock); }
+  fP[6]             = track.Parameter(3).block(iblock);
+  const float_v dx  = fP[0] - vertexGuess.fP[0];
+  const float_v dy  = fP[1] - vertexGuess.fP[1];
+  const float_v dz  = fP[2] - vertexGuess.fP[2];
+  const float_v dl2 = dx * dx + dy * dy + dz * dz;
+  const float_v dl  = sqrt(dl2);
 
   fP[0] = vertexGuess.fP[0];
   fP[1] = vertexGuess.fP[1];
@@ -464,13 +467,11 @@ void KFParticleSIMD::Load(KFPEmcCluster& track, int index, const KFParticleSIMD&
   fP[4] = dy / dl * fP[6];
   fP[5] = dz / dl * fP[6];
 
-  float_v V[10];
-  for (int i = 0; i < 10; i++) { V[i] = reinterpret_cast<const float_v&>(track.Covariance(i)[index]); }
+  float_v V[10]{};
+  for (int i = 0; i < 10; i++) { V[i] = track.Covariance(i).block(iblock); }
 
-  float_v J[7][4];
-  for (int i = 0; i < 7; i++) {
-    for (int j = 0; j < 4; j++) { J[i][j] = 0.f; }
-  }
+  float_v J[7][4]{};
+
   J[0][0] = 1.f;
   J[1][1] = 1.f;
   J[2][2] = 1.f;
@@ -488,7 +489,7 @@ void KFParticleSIMD::Load(KFPEmcCluster& track, int index, const KFParticleSIMD&
   J[5][2] = fP[6] / dl * (1.f - dz * dz / dl2);
   J[5][3] = dz / dl;
 
-  float_v VJT[4][7];  // V*J^T
+  float_v VJT[4][7]{};  // V*J^T
   for (Int_t i = 0; i < 4; i++) {
     for (Int_t j = 0; j < 7; j++) {
       VJT[i][j] = 0.f;
@@ -505,12 +506,12 @@ void KFParticleSIMD::Load(KFPEmcCluster& track, int index, const KFParticleSIMD&
   }
   fC[35] = 1.f;
 
-  fQ    = int_v(0);
+  fQ    = 0;
   fNDF  = 0;
   fChi2 = 0;
 
-  SumDaughterMass = float_v(0.f);
-  fMassHypo       = float_v(0.f);
+  SumDaughterMass = 0.f;
+  fMassHypo       = 0.f;
 }
 
 KFParticleSIMD::KFParticleSIMD(const KFPVertex& vertex)
@@ -540,7 +541,7 @@ KFParticleSIMD::KFParticleSIMD(const KFPVertex& vertex)
   for (Int_t i = 0; i < 21; i++) { fC[i] = (float_v::value_type) C[i]; }
   fChi2 = vertex.GetChi2();
   fNDF  = 2 * vertex.GetNContributors() - 3;
-  fQ    = int_v(0);
+  fQ    = 0;
 }
 
 void KFParticleSIMD::SetOneEntry(int iEntry, KFParticleSIMD& part, int iEntryPart)
@@ -589,7 +590,7 @@ void KFParticleSIMD::SetOneEntry(int iEntry, KFParticleSIMD& part, int iEntryPar
   intArray[iEntry] = part.GetPDG()[iEntryPart];
   fPDG.copy_from(intArray, stdx::vector_aligned);
 
-  if (iEntry == 0) { fDaughterIds.resize(part.NDaughters(), int_v(-1)); }
+  if (iEntry == 0) { fDaughterIds.resize(part.NDaughters(), -1); }
 
   for (int iD = 0; iD < part.NDaughters(); iD++) {
     fDaughterIds[iD].copy_to(intArray, stdx::vector_aligned);
@@ -643,7 +644,7 @@ KFParticleSIMD::KFParticleSIMD(KFParticle* parts[], const int nPart)
   alignas(SimdSize) int32_t pdgArray[SimdLen]{0};
   alignas(SimdSize) int32_t idArray[SimdLen]{0};
 
-  fDaughterIds.resize((parts[0])->NDaughters(), int_v(-1));
+  fDaughterIds.resize((parts[0])->NDaughters(), -1);
 
   for (int iPart = 0; iPart < SimdLen; iPart++) {
     Int_t iEntry     = (iPart < nPart) ? iPart : 0;
@@ -744,20 +745,14 @@ void KFParticleSIMD::GetMeasurement(const KFParticleSIMD& daughter, float_v m[],
 
   if (fNDF[0] == -1) {
     float_v ds[2] = {0.f, 0.f};
-    float_v dsdr[4][6];
-    float_v F1[36], F2[36], F3[36], F4[36];
-    for (int i1 = 0; i1 < 36; i1++) {
-      F1[i1] = 0;
-      F2[i1] = 0;
-      F3[i1] = 0;
-      F4[i1] = 0;
-    }
+    float_v dsdr[4][6]{};
+    float_v F1[36]{}, F2[36]{}, F3[36]{}, F4[36]{};
     GetDStoParticle(daughter, ds, dsdr);
 
-    float_v V0Tmp[36];
-    float_v V1Tmp[36];
+    float_v V0Tmp[36]{};
+    float_v V1Tmp[36]{};
 
-    float_v C[36];
+    float_v C[36]{};
     for (int iC = 0; iC < 36; iC++) { C[iC] = fC[iC]; }
 
     Transport(ds[0], dsdr[0], fP, fC, dsdr[1], F1, F2);
@@ -771,21 +766,21 @@ void KFParticleSIMD::GetMeasurement(const KFParticleSIMD& daughter, float_v m[],
       V[iC] += V1Tmp[iC];
     }
 
-    float_v C1F1T[6][6];
+    float_v C1F1T[6][6]{};
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 6; j++) {
         C1F1T[i][j] = 0;
         for (int k = 0; k < 6; k++) { C1F1T[i][j] += C[IJ(i, k)] * F1[j * 6 + k]; }
       }
     }
-    float_v F3C1F1T[6][6];
+    float_v F3C1F1T[6][6]{};
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 6; j++) {
         F3C1F1T[i][j] = 0;
         for (int k = 0; k < 6; k++) { F3C1F1T[i][j] += F3[i * 6 + k] * C1F1T[k][j]; }
       }
     }
-    float_v C2F2T[6][6];
+    float_v C2F2T[6][6]{};
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 6; j++) {
         C2F2T[i][j] = 0;
@@ -800,16 +795,12 @@ void KFParticleSIMD::GetMeasurement(const KFParticleSIMD& daughter, float_v m[],
     }
   }
   else {
-    float_v dsdr[6];
+    float_v dsdr[6]{};
     float_v dS = daughter.GetDStoPoint(fP, dsdr);
 
     float_v dsdp[6] = {-dsdr[0], -dsdr[1], -dsdr[2], 0.f, 0.f, 0.f};
 
-    float_v F[36], F1[36];
-    for (int i2 = 0; i2 < 36; i2++) {
-      F[i2]  = 0;
-      F1[i2] = 0;
-    }
+    float_v F[36]{}, F1[36]{};
     daughter.Transport(dS, dsdr, m, V, dsdp, F, F1);
 
     //     float_v V1Tmp[36] = {0.};
@@ -818,7 +809,7 @@ void KFParticleSIMD::GetMeasurement(const KFParticleSIMD& daughter, float_v m[],
     //     for(int iC=0; iC<21; iC++)
     //       V[iC] += V1Tmp[iC];
 
-    float_v VFT[3][6];
+    float_v VFT[3][6]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 6; j++) {
         VFT[i][j] = 0;
@@ -826,7 +817,7 @@ void KFParticleSIMD::GetMeasurement(const KFParticleSIMD& daughter, float_v m[],
       }
     }
 
-    float_v FVFT[6][6];
+    float_v FVFT[6][6]{};
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 6; j++) {
         FVFT[i][j] = 0;
@@ -903,9 +894,9 @@ void KFParticleSIMD::AddDaughterWithEnergyFit(const KFParticleSIMD& Daughter)
 
   for (Int_t iter = 0; iter < maxIter; iter++) {
 
-    float_v m[8], mV[36];
+    float_v m[8]{}, mV[36]{};
 
-    float_v D[3][3];
+    float_v D[3][3]{};
     GetMeasurement(Daughter, m, mV, D);
 
     float_v mS[6] = {fC[0] + mV[0], fC[1] + mV[1], fC[2] + mV[2], fC[3] + mV[3], fC[4] + mV[4], fC[5] + mV[5]};
@@ -914,7 +905,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFit(const KFParticleSIMD& Daughter)
 
     float_v zeta[3] = {m[0] - fP[0], m[1] - fP[1], m[2] - fP[2]};
 
-    float_v K[3][3];
+    float_v K[3][3]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         K[i][j] = 0;
@@ -923,7 +914,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFit(const KFParticleSIMD& Daughter)
     }
 
     //* CHt = CH' - D'
-    float_v mCHt0[7], mCHt1[7], mCHt2[7];
+    float_v mCHt0[7]{}, mCHt1[7]{}, mCHt2[7]{};
 
     mCHt0[0] = fC[0];
     mCHt1[0] = fC[1];
@@ -949,7 +940,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFit(const KFParticleSIMD& Daughter)
 
     //* Kalman gain K = mCH'*S
 
-    float_v k0[7], k1[7], k2[7];
+    float_v k0[7]{}, k1[7]{}, k2[7]{};
 
     for (Int_t i = 0; i < 7; ++i) {
       k0[i] = mCHt0[i] * mS[0] + mCHt1[i] * mS[1] + mCHt2[i] * mS[3];
@@ -986,13 +977,13 @@ void KFParticleSIMD::AddDaughterWithEnergyFit(const KFParticleSIMD& Daughter)
       for (Int_t j = 0; j <= i; ++j, ++k) { fC[k] = fC[k] - (k0[i] * mCHt0[j] + k1[i] * mCHt1[j] + k2[i] * mCHt2[j]); }
     }
 
-    float_v K2[3][3];
+    float_v K2[3][3]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) { K2[i][j] = -K[j][i]; }
       K2[i][i] += 1;
     }
 
-    float_v A[3][3];
+    float_v A[3][3]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         A[i][j] = 0;
@@ -1000,7 +991,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFit(const KFParticleSIMD& Daughter)
       }
     }
 
-    float_v M[3][3];
+    float_v M[3][3]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         M[i][j] = 0;
@@ -1037,9 +1028,9 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
 
   for (Int_t iter = 0; iter < maxIter; iter++) {
 
-    float_v m[8], mV[36];
+    float_v m[8]{}, mV[36]{};
 
-    float_v D[3][3];
+    float_v D[3][3]{};
     GetMeasurement(Daughter, m, mV, D);
 
     float_v mS[6] = {fC[0] + mV[0], fC[1] + mV[1], fC[2] + mV[2], fC[3] + mV[3], fC[4] + mV[4], fC[5] + mV[5]};
@@ -1048,7 +1039,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
 
     float_v zeta[3] = {m[0] - fP[0], m[1] - fP[1], m[2] - fP[2]};
 
-    float_v K[3][6];
+    float_v K[3][6]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         K[i][j] = 0;
@@ -1059,7 +1050,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
 
     //* CHt = CH'
 
-    float_v mCHt0[7], mCHt1[7], mCHt2[7];
+    float_v mCHt0[7]{}, mCHt1[7]{}, mCHt2[7]{};
 
     mCHt0[0] = fC[0];
     mCHt1[0] = fC[1];
@@ -1085,7 +1076,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
 
     //* Kalman gain K = mCH'*S
 
-    float_v k0[7], k1[7], k2[7];
+    float_v k0[7]{}, k1[7]{}, k2[7]{};
 
     for (Int_t i = 0; i < 7; ++i) {
       k0[i] = mCHt0[i] * mS[0] + mCHt1[i] * mS[1] + mCHt2[i] * mS[3];
@@ -1097,7 +1088,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
 
     //* VHt = VH'
 
-    float_v mVHt0[7], mVHt1[7], mVHt2[7];
+    float_v mVHt0[7]{}, mVHt1[7]{}, mVHt2[7]{};
 
     mVHt0[0] = mV[0];
     mVHt1[0] = mV[1];
@@ -1123,7 +1114,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
 
     //* Kalman gain Km = mCH'*S
 
-    float_v km0[7], km1[7], km2[7];
+    float_v km0[7]{}, km1[7]{}, km2[7]{};
 
     for (Int_t i = 0; i < 7; ++i) {
       km0[i] = mVHt0[i] * mS[0] + mVHt1[i] * mS[1] + mVHt2[i] * mS[3];
@@ -1145,19 +1136,13 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
       }
     }
 
-    float_v mDf[7][7];
+    float_v mDf[7][7]{};
 
     for (Int_t i = 0; i < 7; ++i) {
       for (Int_t j = 0; j < 7; ++j) { mDf[i][j] = (km0[i] * mCHt0[j] + km1[i] * mCHt1[j] + km2[i] * mCHt2[j]); }
     }
 
-    float_v mJ1[7][7], mJ2[7][7];
-    for (Int_t iPar1 = 0; iPar1 < 7; iPar1++) {
-      for (Int_t iPar2 = 0; iPar2 < 7; iPar2++) {
-        mJ1[iPar1][iPar2] = 0;
-        mJ2[iPar1][iPar2] = 0;
-      }
-    }
+    float_v mJ1[7][7]{}, mJ2[7][7]{};
 
     float_v mMassParticle = fP[6] * fP[6] - (fP[3] * fP[3] + fP[4] * fP[4] + fP[5] * fP[5]);
     float_v mMassDaughter = m[6] * m[6] - (m[3] * m[3] + m[4] * m[4] + m[5] * m[5]);
@@ -1176,7 +1161,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
     SetMassConstraint(m, mV, mJ2, Daughter.fMassHypo, mask3);
     SetMassConstraint(m, mV, mJ2, Daughter.SumDaughterMass, mask4);
 
-    float_v mDJ[7][7];
+    float_v mDJ[7][7]{};
 
     for (Int_t i = 0; i < 7; i++) {
       for (Int_t j = 0; j < 7; j++) {
@@ -1235,13 +1220,13 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
     fC[27] += mDf[6][6] + mDf[6][6];
 
 
-    float_v K2[3][3];
+    float_v K2[3][3]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) { K2[i][j] = -K[j][i]; }
       K2[i][i] += 1;
     }
 
-    float_v A[3][3];
+    float_v A[3][3]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         A[i][j] = 0.f;
@@ -1249,7 +1234,7 @@ void KFParticleSIMD::AddDaughterWithEnergyFitMC(const KFParticleSIMD& Daughter)
       }
     }
 
-    float_v M[3][3];
+    float_v M[3][3]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         M[i][j] = 0.f;
@@ -1283,9 +1268,9 @@ void KFParticleSIMD::SubtractDaughter(const KFParticleSIMD& Daughter)
 
   AddDaughterId(Daughter.Id());
 
-  float_v m[8], mV[36];
+  float_v m[8]{}, mV[36]{};
 
-  float_v D[3][3];
+  float_v D[3][3]{};
   GetMeasurement(Daughter, m, mV, D);
 
   float_v mS[6] = {fC[0] + mV[0], fC[1] + mV[1], fC[2] + mV[2], fC[3] + mV[3], fC[4] + mV[4], fC[5] + mV[5]};
@@ -1294,7 +1279,7 @@ void KFParticleSIMD::SubtractDaughter(const KFParticleSIMD& Daughter)
 
   float_v zeta[3] = {m[0] - fP[0], m[1] - fP[1], m[2] - fP[2]};
 
-  float_v K[3][3];
+  float_v K[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       K[i][j] = 0;
@@ -1303,7 +1288,7 @@ void KFParticleSIMD::SubtractDaughter(const KFParticleSIMD& Daughter)
   }
 
   //* CHt = CH' - D'
-  float_v mCHt0[7], mCHt1[7], mCHt2[7];
+  float_v mCHt0[7]{}, mCHt1[7]{}, mCHt2[7]{};
 
   mCHt0[0] = fC[0];
   mCHt1[0] = fC[1];
@@ -1329,7 +1314,7 @@ void KFParticleSIMD::SubtractDaughter(const KFParticleSIMD& Daughter)
 
   //* Kalman gain K = mCH'*S
 
-  float_v k0[7], k1[7], k2[7];
+  float_v k0[7]{}, k1[7]{}, k2[7]{};
 
   for (Int_t i = 0; i < 7; ++i) {
     k0[i] = mCHt0[i] * mS[0] + mCHt1[i] * mS[1] + mCHt2[i] * mS[3];
@@ -1366,13 +1351,13 @@ void KFParticleSIMD::SubtractDaughter(const KFParticleSIMD& Daughter)
     for (Int_t j = 0; j <= i; ++j, ++k) { fC[k] = fC[k] - (k0[i] * mCHt0[j] + k1[i] * mCHt1[j] + k2[i] * mCHt2[j]); }
   }
 
-  float_v K2[3][3];
+  float_v K2[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) { K2[i][j] = -K[j][i]; }
     K2[i][i] += 1;
   }
 
-  float_v A[3][3];
+  float_v A[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       A[i][j] = 0;
@@ -1380,7 +1365,7 @@ void KFParticleSIMD::SubtractDaughter(const KFParticleSIMD& Daughter)
     }
   }
 
-  float_v M[3][3];
+  float_v M[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       M[i][j] = 0;
@@ -1407,7 +1392,7 @@ void KFParticleSIMD::SubtractDaughter(const KFParticleSIMD& Daughter)
 void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFParticleSIMD& MotherFiltered,
                                             KFParticleSIMD& cDaughterFiltered, float_v neutralmasshypo)
 {
-  float_v mothermasshypo, cdaughtermasshypo, massErr;
+  float_v mothermasshypo{}, cdaughtermasshypo{}, massErr{};
   GetMass(mothermasshypo, massErr);
   Daughter.GetMass(cdaughtermasshypo, massErr);
 
@@ -1415,9 +1400,9 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
   //* Energy considered as an independent variable, fitted independently from momentum, without any constraints on mass
   //* Add daughter
 
-  float_v m[8], mV[36];
+  float_v m[8]{}, mV[36]{};
 
-  float_v D[3][3];
+  float_v D[3][3]{};
   GetMeasurement(Daughter, m, mV, D);
 
   //     std::cout << "X: " << fC[0] << " " << mV[0] << " Y: " << fC[2] << " "<< mV[2] << " Z: "<< fC[5] << " "<< mV[5] << std::endl;
@@ -1428,7 +1413,7 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
 
   float_v zeta[3] = {m[0] - fP[0], m[1] - fP[1], m[2] - fP[2]};
 
-  float_v K[3][3];
+  float_v K[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       K[i][j] = 0;
@@ -1437,7 +1422,7 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
   }
   //////////////////////
   //////////////////////
-  float_v mCHt0[6], mCHt1[6], mCHt2[6];
+  float_v mCHt0[6]{}, mCHt1[6]{}, mCHt2[6]{};
 
   mCHt0[0] = fC[0];
   mCHt1[0] = fC[1];
@@ -1460,7 +1445,7 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
 
   //* Kalman gain K = mCH'*S
 
-  float_v kmf0[6], kmf1[6], kmf2[6];
+  float_v kmf0[6]{}, kmf1[6]{}, kmf2[6]{};
 
   for (Int_t i = 0; i < 6; ++i) {
     kmf0[i] = mCHt0[i] * mS[0] + mCHt1[i] * mS[1] + mCHt2[i] * mS[3];
@@ -1472,7 +1457,7 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
 
   //* VHt = VH'
 
-  float_v mVHt0[6], mVHt1[6], mVHt2[6];
+  float_v mVHt0[6]{}, mVHt1[6]{}, mVHt2[6]{};
 
   mVHt0[0] = mV[0];
   mVHt1[0] = mV[1];
@@ -1495,7 +1480,7 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
 
   //* Kalman gain Km = mCH'*S
 
-  float_v kcdm0[6], kcdm1[6], kcdm2[6];
+  float_v kcdm0[6]{}, kcdm1[6]{}, kcdm2[6]{};
 
   for (Int_t i = 0; i < 6; ++i) {
     kcdm0[i] = mVHt0[i] * mS[0] + mVHt1[i] * mS[1] + mVHt2[i] * mS[3];
@@ -1551,7 +1536,7 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
 
   //* Kalman gain K = mCH'*S
 
-  float_v k0[6], k1[6], k2[6];
+  float_v k0[6]{}, k1[6]{}, k2[6]{};
 
   for (Int_t i = 0; i < 6; ++i) {
     k0[i] = mCHt0[i] * mS[0] + mCHt1[i] * mS[1] + mCHt2[i] * mS[3];
@@ -1588,13 +1573,13 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
     for (Int_t j = 0; j <= i; ++j, ++k) { fC[k] = fC[k] - (k0[i] * mCHt0[j] + k1[i] * mCHt1[j] + k2[i] * mCHt2[j]); }
   }
 
-  float_v K2[3][3];
+  float_v K2[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) { K2[i][j] = -K[j][i]; }
     K2[i][i] += 1;
   }
 
-  float_v A[3][3];
+  float_v A[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       A[i][j] = 0;
@@ -1602,7 +1587,7 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
     }
   }
 
-  float_v M[3][3];
+  float_v M[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       M[i][j] = 0;
@@ -1644,7 +1629,7 @@ void KFParticleSIMD::ReconstructMissingMass(const KFParticleSIMD& Daughter, KFPa
   cDaughterFiltered.NDF()  = fNDF;
 
   ////////energy calculations/////////
-  float_v neutralenergytemp, motherenergytemp, cdaughterenergytemp;
+  float_v neutralenergytemp{}, motherenergytemp{}, cdaughterenergytemp{};
 
   motherenergytemp = sqrt(mothermasshypo * mothermasshypo + MotherFiltered.fP[3] * MotherFiltered.fP[3]
                           + MotherFiltered.fP[4] * MotherFiltered.fP[4] + MotherFiltered.fP[5] * MotherFiltered.fP[5]);
@@ -1675,25 +1660,19 @@ void KFParticleSIMD::SetProductionVertex(const KFParticleSIMD& Vtx)
   float_v decayPoint[3]    = {fP[0], fP[1], fP[2]};
   float_v decayPointCov[6] = {fC[0], fC[1], fC[2], fC[3], fC[4], fC[5]};
 
-  float_v D[6][6];
-  for (int iD1 = 0; iD1 < 6; iD1++) {
-    for (int iD2 = 0; iD2 < 6; iD2++) { D[iD1][iD2] = 0.f; }
-  }
+  float_v D[6][6]{};
 
   {
-    float_v dsdr[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
-    float_v dS      = GetDStoPoint(Vtx.fP, dsdr);
+    float_v dsdr[6]{0};
+    float_v dS = GetDStoPoint(Vtx.fP, dsdr);
 
     float_v dsdp[6] = {-dsdr[0], -dsdr[1], -dsdr[2], 0.f, 0.f, 0.f};
 
-    float_v F[36], F1[36];
-    for (int i2 = 0; i2 < 36; i2++) {
-      F[i2]  = 0.f;
-      F1[i2] = 0.f;
-    }
+    float_v F[36]{}, F1[36]{};
+
     Transport(dS, dsdr, fP, fC, dsdp, F, F1);
 
-    float_v CTmp[36];
+    float_v CTmp[36]{};
     MultQSQt(F1, mV, CTmp, 6);
 
     for (int iC = 0; iC < 21; iC++) { fC[iC] += CTmp[iC]; }
@@ -1711,7 +1690,7 @@ void KFParticleSIMD::SetProductionVertex(const KFParticleSIMD& Vtx)
 
   float_v res[3] = {m[0] - X(), m[1] - Y(), m[2] - Z()};
 
-  float_v K[3][6];
+  float_v K[3][6]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       K[i][j] = 0;
@@ -1719,7 +1698,8 @@ void KFParticleSIMD::SetProductionVertex(const KFParticleSIMD& Vtx)
     }
   }
 
-  float_v mCHt0[7], mCHt1[7], mCHt2[7];
+  float_v mCHt0[7]{}, mCHt1[7]{}, mCHt2[7]{};
+
   mCHt0[0] = fC[0];
   mCHt1[0] = fC[1];
   mCHt2[0] = fC[3];
@@ -1742,7 +1722,7 @@ void KFParticleSIMD::SetProductionVertex(const KFParticleSIMD& Vtx)
   mCHt1[6] = fC[22];
   mCHt2[6] = fC[23];
 
-  float_v k0[7], k1[7], k2[7];
+  float_v k0[7]{}, k1[7]{}, k2[7]{};
   for (Int_t i = 0; i < 7; ++i) {
     k0[i] = mCHt0[i] * mS[0] + mCHt1[i] * mS[1] + mCHt2[i] * mS[3];
     k1[i] = mCHt0[i] * mS[1] + mCHt1[i] * mS[2] + mCHt2[i] * mS[4];
@@ -1755,13 +1735,13 @@ void KFParticleSIMD::SetProductionVertex(const KFParticleSIMD& Vtx)
     for (Int_t j = 0; j <= i; ++j, ++k) { fC[k] = fC[k] - (k0[i] * mCHt0[j] + k1[i] * mCHt1[j] + k2[i] * mCHt2[j]); }
   }
 
-  float_v K2[3][3];
+  float_v K2[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) { K2[i][j] = -K[j][i]; }
     K2[i][i] += 1;
   }
 
-  float_v A[3][3];
+  float_v A[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       A[i][j] = 0;
@@ -1769,7 +1749,7 @@ void KFParticleSIMD::SetProductionVertex(const KFParticleSIMD& Vtx)
     }
   }
 
-  float_v M[3][3];
+  float_v M[3][3]{};
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       M[i][j] = 0;
@@ -1790,17 +1770,14 @@ void KFParticleSIMD::SetProductionVertex(const KFParticleSIMD& Vtx)
   fNDF += 2;
 
   {
-    float_v dsdr[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
-    fP[7]           = GetDStoPoint(decayPoint, dsdr);
+    float_v dsdr[6]{0};
+    fP[7] = GetDStoPoint(decayPoint, dsdr);
 
     float_v dsdp[6] = {-dsdr[0], -dsdr[1], -dsdr[2], 0.f, 0.f, 0.f};
 
-    float_v F[36], F1[36];
-    for (int i2 = 0; i2 < 36; i2++) {
-      F[i2]  = 0.f;
-      F1[i2] = 0.f;
-    }
-    float_v tmpP[8], tmpC[36];
+    float_v F[36]{}, F1[36]{};
+
+    float_v tmpP[8]{}, tmpC[36]{};
     Transport(fP[7], dsdr, tmpP, tmpC, dsdp, F, F1);
 
     fC[35] = 0.f;
@@ -1894,7 +1871,7 @@ void KFParticleSIMD::SetMassConstraint(float_v* mP, float_v* mC, float_v mJ[7][7
   for (Int_t i = 3; i < 6; i++) { mJ[i][i] += lmi; }
   mJ[6][6] += lpi;
 
-  float_v mCJ[7][7];
+  float_v mCJ[7][7]{};
 
   for (Int_t i = 0; i < 7; i++) {
     for (Int_t j = 0; j < 7; j++) {
@@ -1928,16 +1905,16 @@ void KFParticleSIMD::SetNonlinearMassConstraint(float_v mass)
   const float_v& energy = fP[6];
 
   const float_v residual = (energy * energy - px * px - py * py - pz * pz) - mass * mass;
-  const float_v dm2      = float_v(4.f)
+  const float_v dm2      = 4.f
                            * (fC[9] * px * px + fC[14] * py * py + fC[20] * pz * pz + fC[27] * energy * energy
-                              + float_v(2.f)
+                              + 2.f
                                   * ((fC[13] * py + fC[18] * pz - fC[24] * energy) * px
                                      + (fC[19] * pz - fC[25] * energy) * py - fC[26] * pz * energy));
   const float_v dChi2    = residual * residual / dm2;
   fChi2 += dChi2;
   fNDF += 1;
 
-  float_v mJ[7][7];
+  float_v mJ[7][7]{};
 
   float_m trueMask(true);
 
@@ -1963,18 +1940,19 @@ void KFParticleSIMD::SetMassConstraint(float_v Mass, float_v SigmaMass)
   float_v p2 = fP[3] * fP[3] + fP[4] * fP[4] + fP[5] * fP[5];
   float_v e0 = sqrt(m2 + p2);
 
-  float_v mH[8];
-  mH[0] = mH[1] = mH[2] = 0.f;
-  mH[3]                 = -2.f * fP[3];
-  mH[4]                 = -2.f * fP[4];
-  mH[5]                 = -2.f * fP[5];
-  mH[6]                 = 2.f * fP[6];  //e0;
-  mH[7]                 = 0.f;
+  float_v mH[8] = {0.f,           //
+                   0.f,           //
+                   0.f,           //
+                   -2.f * fP[3],  //
+                   -2.f * fP[4],  //
+                   -2.f * fP[5],  //
+                   2.f * fP[6],   //
+                   0.f};
 
   float_v zeta = e0 * e0 - e0 * fP[6];
   zeta         = m2 - (fP[6] * fP[6] - p2);
 
-  float_v mCHt[8], s2_est = 0.f;
+  float_v mCHt[8]{}, s2_est = 0.f;
   for (Int_t i = 0; i < 8; ++i) {
     mCHt[i] = 0.0f;
     for (Int_t j = 0; j < 8; ++j) { mCHt[i] += Cij(i, j) * mH[j]; }
@@ -2015,7 +1993,7 @@ void KFParticleSIMD::Construct(const KFParticleSIMD* vDaughters[], Int_t nDaught
     CleanDaughtersId();
     SetNDaughters(nDaughters);
 
-    SumDaughterMass = float_v(0.f);
+    SumDaughterMass = 0.f;
 
     for (Int_t i = 0; i < 36; ++i) { fC[i] = 0.f; }
     fC[35] = 1.f;
@@ -2037,9 +2015,9 @@ void KFParticleSIMD::SubtractFromVertex(KFParticleSIMD& Vtx) const
    ** \param[in] Vtx - vertex from which particle should be subtracted
    **/
 
-  float_v m[8];
-  float_v mCm[36];
-  float_v D[3][3];
+  float_v m[8]{};
+  float_v mCm[36]{};
+  float_v D[3][3]{};
   Vtx.GetMeasurement(*this, m, mCm, D);
   //*
 
@@ -2054,7 +2032,7 @@ void KFParticleSIMD::SubtractFromVertex(KFParticleSIMD& Vtx) const
 
   //* mCHt = mCH' - D'
 
-  float_v mCHt0[3], mCHt1[3], mCHt2[3];
+  float_v mCHt0[3]{}, mCHt1[3]{}, mCHt2[3]{};
 
   mCHt0[0] = Vtx.fC[0];
   mCHt1[0] = Vtx.fC[1];
@@ -2068,7 +2046,7 @@ void KFParticleSIMD::SubtractFromVertex(KFParticleSIMD& Vtx) const
 
   //* Kalman gain K = mCH'*S
 
-  float_v k0[3], k1[3], k2[3];
+  float_v k0[3]{}, k1[3]{}, k2[3]{};
 
   for (Int_t i = 0; i < 3; ++i) {
     k0[i] = mCHt0[i] * mS[0] + mCHt1[i] * mS[1] + mCHt2[i] * mS[3];
@@ -2103,10 +2081,10 @@ void KFParticleSIMD::SubtractFromParticle(KFParticleSIMD& Vtx) const
    ** \param[in] Vtx - particle from which the current particle should be subtracted
    **/
 
-  float_v m[8];
-  float_v mV[36];
+  float_v m[8]{};
+  float_v mV[36]{};
 
-  float_v D[3][3];
+  float_v D[3][3]{};
   Vtx.GetMeasurement(*this, m, mV, D);
 
   float_v mS[6] = {mV[0] - Vtx.fC[0] + (D[0][0] + D[0][0]), mV[1] - Vtx.fC[1] + (D[1][0] + D[0][1]),
@@ -2120,7 +2098,7 @@ void KFParticleSIMD::SubtractFromParticle(KFParticleSIMD& Vtx) const
 
   //* CHt = CH' - D'
 
-  float_v mCHt0[7], mCHt1[7], mCHt2[7];
+  float_v mCHt0[7]{}, mCHt1[7]{}, mCHt2[7]{};
 
   mCHt0[0] = mV[0];
   mCHt1[0] = mV[1];
@@ -2146,7 +2124,7 @@ void KFParticleSIMD::SubtractFromParticle(KFParticleSIMD& Vtx) const
 
   //* Kalman gain K = mCH'*S
 
-  float_v k0[7], k1[7], k2[7];
+  float_v k0[7]{}, k1[7]{}, k2[7]{};
 
   for (Int_t i = 0; i < 7; ++i) {
     k0[i] = mCHt0[i] * mS[0] + mCHt1[i] * mS[1] + mCHt2[i] * mS[3];
@@ -2222,11 +2200,11 @@ void KFParticleSIMD::GetDistanceToVertexLine(const KFParticleSIMD& Vertex, float
   dl = c[0] * dx * dx + c[2] * dy * dy + c[5] * dz * dz + 2 * (c[1] * dx * dy + c[3] * dx * dz + c[4] * dy * dz);
 
   l          = select(abs(l) < 1.e-8f, 1.e-8f, l);
-  float_m ok = float_v(0.f) <= dl;
+  float_m ok = (0.f <= dl);
   dl         = select(ok, sqrt(dl) / l, 1.e8f);
 
   if (isParticleFromVertex) {
-    *isParticleFromVertex = ok && (l < float_v(3.f * dl));
+    *isParticleFromVertex = ok && (l < 3.f * dl);
     float_v cosV          = dx * fP[3] + dy * fP[4] + dz * fP[5];
     //     float_v dCos = dy*dy*fC[14] + dz*dz*fC[20] + dx*dx*fC[9] + 2*dz*fC[15]*fP[3] + c[0]* fP[3]*fP[3] +
     //             2*dz*fC[16]* fP[4] + 2 *c[1] *fP[3] *fP[4] + c[2] *fP[4]*fP[4] + 2 *dz *fC[17]* fP[5] +
@@ -2252,15 +2230,15 @@ float_v KFParticleSIMD::GetDStoPointLine(const float_v xyz[3], float_v dsdr[6]) 
    **/
 
   float_v p2 = fP[3] * fP[3] + fP[4] * fP[4] + fP[5] * fP[5];
-  p2         = select(p2 < float_v(1.e-4f), 1.f, p2);
+  p2         = select(p2 < 1.e-4f, 1.f, p2);
 
-  const float_v& a = fP[3] * (xyz[0] - fP[0]) + fP[4] * (xyz[1] - fP[1]) + fP[5] * (xyz[2] - fP[2]);
-  dsdr[0]          = -fP[3] / p2;
-  dsdr[1]          = -fP[4] / p2;
-  dsdr[2]          = -fP[5] / p2;
-  dsdr[3]          = ((xyz[0] - fP[0]) * p2 - 2.f * fP[3] * a) / (p2 * p2);
-  dsdr[4]          = ((xyz[1] - fP[1]) * p2 - 2.f * fP[4] * a) / (p2 * p2);
-  dsdr[5]          = ((xyz[2] - fP[2]) * p2 - 2.f * fP[5] * a) / (p2 * p2);
+  const float_v a = fP[3] * (xyz[0] - fP[0]) + fP[4] * (xyz[1] - fP[1]) + fP[5] * (xyz[2] - fP[2]);
+  dsdr[0]         = -fP[3] / p2;
+  dsdr[1]         = -fP[4] / p2;
+  dsdr[2]         = -fP[5] / p2;
+  dsdr[3]         = ((xyz[0] - fP[0]) * p2 - 2.f * fP[3] * a) / (p2 * p2);
+  dsdr[4]         = ((xyz[1] - fP[1]) * p2 - 2.f * fP[4] * a) / (p2 * p2);
+  dsdr[5]         = ((xyz[2] - fP[2]) * p2 - 2.f * fP[5] * a) / (p2 * p2);
 
   return a / p2;
 }
@@ -2290,7 +2268,7 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
   const float_v& pz = param[5];
 
   const float_v kCLight = 0.000299792458f;
-  float_v bq            = B * toFloat(fQ) * kCLight;
+  float_v bq            = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
   float_v pt2           = param[3] * param[3] + param[4] * param[4];
   float_v p2            = pt2 + param[5] * param[5];
 
@@ -2357,13 +2335,13 @@ float_v KFParticleSIMD::GetDStoPointBz(float_v B, const float_v xyz[3], float_v 
   s  = sin(bs);
   c  = cos(bs);
 
-  float_v sB, cB;
+  float_v sB{}, cB{};
   const float_v kOvSqr6 = 1.f / sqrt(float_v(6.f));
 
   sB = select(LocalSmall < abs(bs), s / bq, (1.f - bs * kOvSqr6) * (1.f + bs * kOvSqr6) * dS);
   cB = select(LocalSmall < abs(bs), (1.f - c) / bq, .5f * sB * bs);
 
-  float_v p[5];
+  float_v p[5]{};
   p[0] = x + sB * px + cB * py;
   p[1] = y - cB * px + sB * py;
   p[2] = z + dS * pz;
@@ -2428,7 +2406,7 @@ float_v KFParticleSIMD::GetDStoPointCBM(const float_v xyz[3], float_v dsdr[6]) c
 
   float_v dS(0.f);
 
-  float_v fld[3];
+  float_v fld[3]{};
   GetFieldValue(fP, fld);
   dS = GetDStoPointBy(fld[1], xyz, dsdr);
 
@@ -2457,7 +2435,7 @@ float_v KFParticleSIMD::GetDStoPointXYBz(float_v B, const float_v xyz[2]) const
   const float_v& py = fP[4];
 
   const float_v kCLight = 0.000299792458f;
-  float_v bq            = B * toFloat(fQ) * kCLight;
+  float_v bq            = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
   float_v pt2           = fP[3] * fP[3] + fP[4] * fP[4];
 
   float_v dx = xyz[0] - fP[0];
@@ -2497,41 +2475,41 @@ void KFParticleSIMD::GetDStoCylinderBz(const float_v B, const float_v R, float_v
 
   //in XY plane
   //first root
-  const float_v& bq1 = B * toFloat(fQ) * kCLight;
-  const float_v& bq2 = B * kCLight;
+  const float_v bq1 = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
+  const float_v bq2 = B * kCLight;
 
-  const float_m& isStraight = abs(bq1) < float_v(1.e-8f);
+  const float_m isStraight = abs(bq1) < float_v(1.e-8f);
 
-  const float_v& px1 = fP[3];
-  const float_v& py1 = fP[4];
+  const float_v px1 = fP[3];
+  const float_v py1 = fP[4];
 
-  const float_v& px2 = R * bq2;
-  const float_v& py2 = 0.f;
+  const float_v px2 = R * bq2;
+  const float_v py2 = 0.f;
 
-  const float_v& pt12 = px1 * px1 + py1 * py1;
-  const float_v& pt22 = px2 * px2 + py2 * py2;
+  const float_v pt12 = px1 * px1 + py1 * py1;
+  const float_v pt22 = px2 * px2 + py2 * py2;
 
-  const float_v& x01 = fP[0];
-  const float_v& y01 = fP[1];
+  const float_v x01 = fP[0];
+  const float_v y01 = fP[1];
 
-  const float_v& x02 = 0.f;
-  const float_v& y02 = R;
+  const float_v x02 = 0.f;
+  const float_v y02 = R;
 
-  const float_v& dx0   = (x01 - x02);
-  const float_v& dy0   = (y01 - y02);
-  const float_v& dr02  = dx0 * dx0 + dy0 * dy0;
-  const float_v& drp1  = dx0 * px1 + dy0 * py1;
-  const float_v& dxyp1 = dx0 * py1 - dy0 * px1;
-  const float_v& dxyp2 = dx0 * py2 - dy0 * px2;
-  const float_v& p1p2  = px1 * px2 + py1 * py2;
-  const float_v& dp1p2 = px1 * py2 - px2 * py1;
+  const float_v dx0   = (x01 - x02);
+  const float_v dy0   = (y01 - y02);
+  const float_v dr02  = dx0 * dx0 + dy0 * dy0;
+  const float_v drp1  = dx0 * px1 + dy0 * py1;
+  const float_v dxyp1 = dx0 * py1 - dy0 * px1;
+  const float_v dxyp2 = dx0 * py2 - dy0 * px2;
+  const float_v p1p2  = px1 * px2 + py1 * py2;
+  const float_v dp1p2 = px1 * py2 - px2 * py1;
 
-  const float_v& k11 = (bq2 * drp1 - dp1p2);
-  const float_v& k21 = (bq1 * (bq2 * dxyp1 - p1p2) + bq2 * pt12);
+  const float_v k11 = (bq2 * drp1 - dp1p2);
+  const float_v k21 = (bq1 * (bq2 * dxyp1 - p1p2) + bq2 * pt12);
 
-  const float_v& kp = (dxyp1 * bq2 - dxyp2 * bq1 - p1p2);
-  const float_v& kd = dr02 / 2.f * bq1 * bq2 + kp;
-  const float_v& c1 = -(bq1 * kd + pt12 * bq2);
+  const float_v kp = (dxyp1 * bq2 - dxyp2 * bq1 - p1p2);
+  const float_v kd = dr02 / 2.f * bq1 * bq2 + kp;
+  const float_v c1 = -(bq1 * kd + pt12 * bq2);
 
   float_v d1 = pt12 * pt22 - kd * kd;
   d1         = select(d1 < 0.f, 0.f, d1);
@@ -2587,57 +2565,57 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   //in XY plane
   //first root
-  const float_v& bq1 = B * toFloat(fQ) * kCLight;
-  const float_v& bq2 = B * toFloat(p.fQ) * kCLight;
+  const float_v bq1 = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
+  const float_v bq2 = B * stdx::static_simd_cast<float_v>(p.fQ) * kCLight;
 
-  const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
-  const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
+  const float_m isStraight1 = (abs(bq1) < 1.e-8f);
+  const float_m isStraight2 = (abs(bq2) < 1.e-8f);
 
   if (all_of(isStraight1) && all_of(isStraight2)) {
     GetDStoParticleLine(p, dS, dsdr);
     return;
   }
 
-  const float_v& px1 = param1[3];
-  const float_v& py1 = param1[4];
-  const float_v& pz1 = param1[5];
+  const float_v px1 = param1[3];
+  const float_v py1 = param1[4];
+  const float_v pz1 = param1[5];
 
-  const float_v& px2 = param2[3];
-  const float_v& py2 = param2[4];
-  const float_v& pz2 = param2[5];
+  const float_v px2 = param2[3];
+  const float_v py2 = param2[4];
+  const float_v pz2 = param2[5];
 
-  const float_v& pt12 = px1 * px1 + py1 * py1;
-  const float_v& pt22 = px2 * px2 + py2 * py2;
+  const float_v pt12 = px1 * px1 + py1 * py1;
+  const float_v pt22 = px2 * px2 + py2 * py2;
 
-  const float_v& x01 = param1[0];
-  const float_v& y01 = param1[1];
-  const float_v& z01 = param1[2];
+  const float_v x01 = param1[0];
+  const float_v y01 = param1[1];
+  const float_v z01 = param1[2];
 
-  const float_v& x02 = param2[0];
-  const float_v& y02 = param2[1];
-  const float_v& z02 = param2[2];
+  const float_v x02 = param2[0];
+  const float_v y02 = param2[1];
+  const float_v z02 = param2[2];
 
   float_v dS1[2] = {0.f, 0.f}, dS2[2] = {0.f, 0.f};
 
-  const float_v& dx0   = (x01 - x02);
-  const float_v& dy0   = (y01 - y02);
-  const float_v& dr02  = dx0 * dx0 + dy0 * dy0;
-  const float_v& drp1  = dx0 * px1 + dy0 * py1;
-  const float_v& dxyp1 = dx0 * py1 - dy0 * px1;
-  const float_v& drp2  = dx0 * px2 + dy0 * py2;
-  const float_v& dxyp2 = dx0 * py2 - dy0 * px2;
-  const float_v& p1p2  = px1 * px2 + py1 * py2;
-  const float_v& dp1p2 = px1 * py2 - px2 * py1;
+  const float_v dx0   = (x01 - x02);
+  const float_v dy0   = (y01 - y02);
+  const float_v dr02  = dx0 * dx0 + dy0 * dy0;
+  const float_v drp1  = dx0 * px1 + dy0 * py1;
+  const float_v dxyp1 = dx0 * py1 - dy0 * px1;
+  const float_v drp2  = dx0 * px2 + dy0 * py2;
+  const float_v dxyp2 = dx0 * py2 - dy0 * px2;
+  const float_v p1p2  = px1 * px2 + py1 * py2;
+  const float_v dp1p2 = px1 * py2 - px2 * py1;
 
-  const float_v& k11 = (bq2 * drp1 - dp1p2);
-  const float_v& k21 = (bq1 * (bq2 * dxyp1 - p1p2) + bq2 * pt12);
-  const float_v& k12 = ((bq1 * drp2 - dp1p2));
-  const float_v& k22 = (bq2 * (bq1 * dxyp2 + p1p2) - bq1 * pt22);
+  const float_v k11 = (bq2 * drp1 - dp1p2);
+  const float_v k21 = (bq1 * (bq2 * dxyp1 - p1p2) + bq2 * pt12);
+  const float_v k12 = ((bq1 * drp2 - dp1p2));
+  const float_v k22 = (bq2 * (bq1 * dxyp2 + p1p2) - bq1 * pt22);
 
-  const float_v& kp = (dxyp1 * bq2 - dxyp2 * bq1 - p1p2);
-  const float_v& kd = dr02 / 2.f * bq1 * bq2 + kp;
-  const float_v& c1 = -(bq1 * kd + pt12 * bq2);
-  const float_v& c2 = bq2 * kd + pt22 * bq1;
+  const float_v kp = (dxyp1 * bq2 - dxyp2 * bq1 - p1p2);
+  const float_v kd = dr02 / 2.f * bq1 * bq2 + kp;
+  const float_v c1 = -(bq1 * kd + pt12 * bq2);
+  const float_v c2 = bq2 * kd + pt22 * bq1;
 
   float_v d1 = pt12 * pt22 - kd * kd;
   d1         = select(d1 < 0.f, 0.f, d1);
@@ -2646,11 +2624,11 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   d2         = select(d2 < 0.f, 0.f, d2);
   d2         = sqrt(d2);
 
-  float_v dS1dR1[2][6];
-  float_v dS2dR2[2][6];
+  float_v dS1dR1[2][6]{};
+  float_v dS2dR2[2][6]{};
 
-  float_v dS1dR2[2][6];
-  float_v dS2dR1[2][6];
+  float_v dS1dR2[2][6]{};
+  float_v dS2dR1[2][6]{};
 
   float_v dk11dr1[6] = {bq2 * px1, bq2 * py1, 0.f, bq2 * dx0 - py2, bq2 * dy0 + px2, 0.f};
   float_v dk11dr2[6] = {-bq2 * px1, -bq2 * py1, 0.f, py1, -px1, 0.f};
@@ -2684,9 +2662,13 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
                        -bq1 * dx0 - py1,
                        0.f};
 
-  float_v dc1dr1[6] = {
-    -(bq1 * (bq1 * bq2 * dx0 + bq2 * py1 - bq1 * py2)), -(bq1 * (bq1 * bq2 * dy0 - bq2 * px1 + bq1 * px2)), 0.f,
-    -2.f * bq2 * px1 - bq1 * (-(bq2 * dy0) - px2),      -2.f * bq2 * py1 - bq1 * (bq2 * dx0 - py2),         0.f};
+  float_v dc1dr1[6] = {-(bq1 * (bq1 * bq2 * dx0 + bq2 * py1 - bq1 * py2)),  //
+                       -(bq1 * (bq1 * bq2 * dy0 - bq2 * px1 + bq1 * px2)),  //
+                       0.f,                                                 //
+                       -2.f * bq2 * px1 - bq1 * (-(bq2 * dy0) - px2),       //
+                       -2.f * bq2 * py1 - bq1 * (bq2 * dx0 - py2),          //
+                       0.f};
+
   float_v dc1dr2[6] = {-(bq1 * (-(bq1 * bq2 * dx0) - bq2 * py1 + bq1 * py2)),
                        -(bq1 * (-(bq1 * bq2 * dy0) + bq2 * px1 - bq1 * px2)),
                        0.f,
@@ -2700,9 +2682,13 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
                        bq2 * (-(bq2 * dy0) - px2),
                        bq2 * (bq2 * dx0 - py2),
                        0.f};
-  float_v dc2dr2[6] = {
-    bq2 * (-(bq1 * bq2 * dx0) - bq2 * py1 + bq1 * py2), bq2 * (-(bq1 * bq2 * dy0) + bq2 * px1 - bq1 * px2), 0.f,
-    bq2 * (bq1 * dy0 - px1) + 2.f * bq1 * px2,          bq2 * (-(bq1 * dx0) - py1) + 2.f * bq1 * py2,       0.f};
+
+  float_v dc2dr2[6] = {bq2 * (-(bq1 * bq2 * dx0) - bq2 * py1 + bq1 * py2),  //
+                       bq2 * (-(bq1 * bq2 * dy0) + bq2 * px1 - bq1 * px2),  //
+                       0.f,                                                 //
+                       bq2 * (bq1 * dy0 - px1) + 2.f * bq1 * px2,           //
+                       bq2 * (-(bq1 * dx0) - py1) + 2.f * bq1 * py2,        //
+                       0.f};
 
   float_v dd1dr1[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
   float_v dd1dr2[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
@@ -2837,26 +2823,27 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   //select a point which is close to the primary vertex (with the smallest r)
 
-  float_v dr2[2];
+  float_v dr2[2]{0.f, 0.f};
   for (int iP = 0; iP < 2; iP++) {
-    const float_v& bs1 = bq1 * dS1[iP];
-    const float_v& bs2 = bq2 * dS2[iP];
+    const float_v bs1 = bq1 * dS1[iP];
+    const float_v bs2 = bq2 * dS2[iP];
 
     float_v sss = sin(bs1);
     float_v ccc = cos(bs1);
 
-    const float_m& bs1Big = abs(bs1) > 1.e-8f;
-    const float_m& bs2Big = abs(bs2) > 1.e-8f;
+    const float_m bs1Big = (abs(bs1) > 1.e-8f);
+    const float_m bs2Big = (abs(bs2) > 1.e-8f);
 
     float_v sB(0.f), cB(0.f);
+
     sB = select(bs1Big, sss / bq1, sB);
     sB = select(!bs1Big, (1.f - bs1 * kOvSqr6) * (1.f + bs1 * kOvSqr6) * dS1[iP], sB);
     cB = select(bs1Big, (1.f - ccc) / bq1, cB);
     cB = select(!bs1Big, 0.5f * sB * bs1, cB);
 
-    const float_v& x1 = param1[0] + sB * px1 + cB * py1;
-    const float_v& y1 = param1[1] - cB * px1 + sB * py1;
-    const float_v& z1 = param1[2] + dS1[iP] * param1[5];
+    const float_v x1 = param1[0] + sB * px1 + cB * py1;
+    const float_v y1 = param1[1] - cB * px1 + sB * py1;
+    const float_v z1 = param1[2] + dS1[iP] * param1[5];
 
     sss = sin(bs2);
     ccc = cos(bs2);
@@ -2866,9 +2853,9 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     cB = select(bs2Big, (1.f - ccc) / bq2, cB);
     cB = select(!bs2Big, 0.5f * sB * bs2, cB);
 
-    const float_v& x2 = param2[0] + sB * px2 + cB * py2;
-    const float_v& y2 = param2[1] - cB * px2 + sB * py2;
-    const float_v& z2 = param2[2] + dS2[iP] * param2[5];
+    const float_v x2 = param2[0] + sB * px2 + cB * py2;
+    const float_v y2 = param2[1] - cB * px2 + sB * py2;
+    const float_v z2 = param2[2] + dS2[iP] * param2[5];
 
     float_v dx = (x1 - x2);
     float_v dy = (y1 - y2);
@@ -2877,8 +2864,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     dr2[iP] = dx * dx + dy * dy + dz * dz;
   }
 
-  float_v pointParam[2][8];
-  float_v pointCov[2][36];
+  float_v pointParam[2][8]{};
+  float_v pointCov[2][36]{};
 
   float_v dsdrM1[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
   for (int iP = 0; iP < 6; iP++) { dsdrM1[iP] = (dS1dR1[0][iP] + dS1dR1[1][iP]) / 2.f; }
@@ -2887,19 +2874,24 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   for (int iP = 0; iP < 6; iP++) { dsdrM2[iP] = (dS2dR2[0][iP] + dS2dR2[1][iP]) / 2.f; }
   p.Transport((dS2[0] + dS2[1]) / 2.f, dsdrM2, pointParam[1], pointCov[1]);
 
-  const float_v drPoint[3]  = {pointParam[0][0] - pointParam[1][0], pointParam[0][1] - pointParam[1][1],
-                               pointParam[0][2] - pointParam[1][2]};
+  const float_v drPoint[3] = {pointParam[0][0] - pointParam[1][0], pointParam[0][1] - pointParam[1][1],
+                              pointParam[0][2] - pointParam[1][2]};
+
   const float_v covPoint[6] = {pointCov[0][0] + pointCov[1][0], pointCov[0][1] + pointCov[1][1],
                                pointCov[0][2] + pointCov[1][2], pointCov[0][3] + pointCov[1][3],
                                pointCov[0][4] + pointCov[1][4], pointCov[0][5] + pointCov[1][5]};
-  float_v dr2Points         = drPoint[0] * drPoint[0] + drPoint[1] * drPoint[1] + drPoint[2] * drPoint[2];
-  float_v dr2PointCov       = drPoint[0] * drPoint[0] * covPoint[0] + drPoint[1] * drPoint[1] * covPoint[2]
-                              + drPoint[2] * drPoint[2] * covPoint[5]
-                              + 2.f
-                                  * (drPoint[0] * drPoint[1] * covPoint[1] + drPoint[0] * drPoint[2] * covPoint[3]
-                                     + drPoint[1] * drPoint[2] * covPoint[4]);
+
+  float_v dr2Points = drPoint[0] * drPoint[0] + drPoint[1] * drPoint[1] + drPoint[2] * drPoint[2];
+
+  float_v dr2PointCov = drPoint[0] * drPoint[0] * covPoint[0] + drPoint[1] * drPoint[1] * covPoint[2]
+                        + drPoint[2] * drPoint[2] * covPoint[5]
+                        + 2.f
+                            * (drPoint[0] * drPoint[1] * covPoint[1] + drPoint[0] * drPoint[2] * covPoint[3]
+                               + drPoint[1] * drPoint[2] * covPoint[4]);
+
   const float_m isMiddlePoint =
     (dr2Points * dr2Points < 25.f * dr2PointCov);  // && (abs(fPDG)==int_v(11)) && (abs(p.fPDG)==int_v(11));
+
   const float_m isFirstRoot = (dr2[0] < dr2[1]) && (!isMiddlePoint);
 
   // if(!(isFirstRoot.isEmpty()))
@@ -2940,8 +2932,9 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   }
 
   //find correct parts of helices
-  int_v n1(0);
-  int_v n2(0);
+  int_v n1{0};
+  int_v n2{0};
+
   //  float_v dzMin = abs( (z01-z02) + dS[0]*pz1 - dS[1]*pz2 );
   const float_v pi2(6.283185307f);
 
@@ -3144,14 +3137,14 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   //Line correction
   {
-    const float_v& bs1 = bq1 * dS[0];
-    const float_v& bs2 = bq2 * dS[1];
+    const float_v bs1 = bq1 * dS[0];
+    const float_v bs2 = bq2 * dS[1];
 
     float_v sss = sin(bs1);
     float_v ccc = cos(bs1);
 
-    const float_m& bs1Big = abs(bs1) > 1.e-8f;
-    const float_m& bs2Big = abs(bs2) > 1.e-8f;
+    const float_m bs1Big = abs(bs1) > 1.e-8f;
+    const float_m bs2Big = abs(bs2) > 1.e-8f;
 
     float_v sB(0.f), cB(0.f);
     sB = select(bs1Big, sss / bq1, sB);
@@ -3159,12 +3152,12 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     sB = select(!bs1Big, ((1.f - bs1 * kOvSqr6) * (1.f + bs1 * kOvSqr6) * dS[0]), sB);
     cB = select(!bs1Big, .5f * sB * bs1, cB);
 
-    const float_v& x1   = x01 + sB * px1 + cB * py1;
-    const float_v& y1   = y01 - cB * px1 + sB * py1;
-    const float_v& z1   = z01 + dS[0] * pz1;
-    const float_v& ppx1 = ccc * px1 + sss * py1;
-    const float_v& ppy1 = -sss * px1 + ccc * py1;
-    const float_v& ppz1 = pz1;
+    const float_v x1   = x01 + sB * px1 + cB * py1;
+    const float_v y1   = y01 - cB * px1 + sB * py1;
+    const float_v z1   = z01 + dS[0] * pz1;
+    const float_v ppx1 = ccc * px1 + sss * py1;
+    const float_v ppy1 = -sss * px1 + ccc * py1;
+    const float_v ppz1 = pz1;
 
     float_v sss1 = sin(bs2);
     float_v ccc1 = cos(bs2);
@@ -3175,23 +3168,23 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     sB1 = select(!bs2Big, ((1.f - bs2 * kOvSqr6) * (1.f + bs2 * kOvSqr6) * dS[1]), sB1);
     cB1 = select(!bs2Big, .5f * sB1 * bs2, cB1);
 
-    const float_v& x2   = x02 + sB1 * px2 + cB1 * py2;
-    const float_v& y2   = y02 - cB1 * px2 + sB1 * py2;
-    const float_v& z2   = z02 + dS[1] * pz2;
-    const float_v& ppx2 = ccc1 * px2 + sss1 * py2;
-    const float_v& ppy2 = -sss1 * px2 + ccc1 * py2;
-    const float_v& ppz2 = pz2;
+    const float_v x2   = x02 + sB1 * px2 + cB1 * py2;
+    const float_v y2   = y02 - cB1 * px2 + sB1 * py2;
+    const float_v z2   = z02 + dS[1] * pz2;
+    const float_v ppx2 = ccc1 * px2 + sss1 * py2;
+    const float_v ppy2 = -sss1 * px2 + ccc1 * py2;
+    const float_v ppz2 = pz2;
 
-    const float_v& p12   = ppx1 * ppx1 + ppy1 * ppy1 + ppz1 * ppz1;
-    const float_v& p22   = ppx2 * ppx2 + ppy2 * ppy2 + ppz2 * ppz2;
-    const float_v& lp1p2 = ppx1 * ppx2 + ppy1 * ppy2 + ppz1 * ppz2;
+    const float_v p12   = ppx1 * ppx1 + ppy1 * ppy1 + ppz1 * ppz1;
+    const float_v p22   = ppx2 * ppx2 + ppy2 * ppy2 + ppz2 * ppz2;
+    const float_v lp1p2 = ppx1 * ppx2 + ppy1 * ppy2 + ppz1 * ppz2;
 
-    const float_v& dx = (x2 - x1);
-    const float_v& dy = (y2 - y1);
-    const float_v& dz = (z2 - z1);
+    const float_v dx = (x2 - x1);
+    const float_v dy = (y2 - y1);
+    const float_v dz = (z2 - z1);
 
-    const float_v& ldrp1 = ppx1 * dx + ppy1 * dy + ppz1 * dz;
-    const float_v& ldrp2 = ppx2 * dx + ppy2 * dy + ppz2 * dz;
+    const float_v ldrp1 = ppx1 * dx + ppy1 * dy + ppz1 * dz;
+    const float_v ldrp2 = ppx2 * dx + ppy2 * dy + ppz2 * dz;
 
     float_v detp = lp1p2 * lp1p2 - p12 * p22;
     detp         = select(abs(detp) < 1.e-4f, 1.f, detp);  //TODO correct!!!
@@ -3217,7 +3210,7 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     const float_v dsl2ds0 = a2_ds0 / detp - a2 * detp_ds0 / (detp * detp);
     const float_v dsl2ds1 = a2_ds1 / detp - a2 * detp_ds1 / (detp * detp);
 
-    float_v dsldr[4][6];
+    float_v dsldr[4][6]{};
     for (int iP = 0; iP < 6; iP++) {
       dsldr[0][iP] = dsl1ds0 * dsdr[0][iP] + dsl1ds1 * dsdr[2][iP];
       dsldr[1][iP] = dsl1ds0 * dsdr[1][iP] + dsl1ds1 * dsdr[3][iP];
@@ -3247,7 +3240,9 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
                                   dz + dS[1] * pz2};
     const float_v p12_dr0[6]   = {0.f, 0.f, 0.f, 2.f * px1, 2.f * py1, 2.f * pz1};
     const float_v p22_dr1[6]   = {0.f, 0.f, 0.f, 2.f * px2, 2.f * py2, 2.f * pz2};
-    float_v a1_dr0[6], a1_dr1[6], a2_dr0[6], a2_dr1[6], detp_dr0[6], detp_dr1[6];
+
+    float_v a1_dr0[6]{}, a1_dr1[6]{}, a2_dr0[6]{}, a2_dr1[6]{}, detp_dr0[6]{}, detp_dr1[6]{};
+
     for (int iP = 0; iP < 6; iP++) {
       a1_dr0[iP]   = ldrp2_dr0[iP] * lp1p2 + ldrp2 * lp1p2_dr0[iP] - ldrp1_dr0[iP] * p22;
       a1_dr1[iP]   = ldrp2_dr1[iP] * lp1p2 + ldrp2 * lp1p2_dr1[iP] - ldrp1_dr1[iP] * p22 - ldrp1 * p22_dr1[iP];
@@ -3296,57 +3291,57 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   //in XY plane
   //first root
-  const float_v& bq1 = B * toFloat(fQ) * kCLight;
-  const float_v& bq2 = B * toFloat(p.fQ) * kCLight;
+  const float_v bq1 = B * stdx::static_simd_cast<float_v>(fQ) * kCLight;
+  const float_v bq2 = B * stdx::static_simd_cast<float_v>(p.fQ) * kCLight;
 
-  const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
-  const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
+  const float_m isStraight1 = (abs(bq1) < 1.e-8f);
+  const float_m isStraight2 = (abs(bq2) < 1.e-8f);
 
   if (all_of(isStraight1) && all_of(isStraight2)) {
     GetDStoParticleLine(p, dS);
     return;
   }
 
-  const float_v& px1 = param1[3];
-  const float_v& py1 = param1[4];
-  const float_v& pz1 = param1[5];
+  const float_v px1 = param1[3];
+  const float_v py1 = param1[4];
+  const float_v pz1 = param1[5];
 
-  const float_v& px2 = param2[3];
-  const float_v& py2 = param2[4];
-  const float_v& pz2 = param2[5];
+  const float_v px2 = param2[3];
+  const float_v py2 = param2[4];
+  const float_v pz2 = param2[5];
 
-  const float_v& pt12 = px1 * px1 + py1 * py1;
-  const float_v& pt22 = px2 * px2 + py2 * py2;
+  const float_v pt12 = px1 * px1 + py1 * py1;
+  const float_v pt22 = px2 * px2 + py2 * py2;
 
-  const float_v& x01 = param1[0];
-  const float_v& y01 = param1[1];
-  const float_v& z01 = param1[2];
+  const float_v x01 = param1[0];
+  const float_v y01 = param1[1];
+  const float_v z01 = param1[2];
 
-  const float_v& x02 = param2[0];
-  const float_v& y02 = param2[1];
-  const float_v& z02 = param2[2];
+  const float_v x02 = param2[0];
+  const float_v y02 = param2[1];
+  const float_v z02 = param2[2];
 
   float_v dS1[2] = {0.f, 0.f}, dS2[2] = {0.f, 0.f};
 
-  const float_v& dx0   = (x01 - x02);
-  const float_v& dy0   = (y01 - y02);
-  const float_v& dr02  = dx0 * dx0 + dy0 * dy0;
-  const float_v& drp1  = dx0 * px1 + dy0 * py1;
-  const float_v& dxyp1 = dx0 * py1 - dy0 * px1;
-  const float_v& drp2  = dx0 * px2 + dy0 * py2;
-  const float_v& dxyp2 = dx0 * py2 - dy0 * px2;
-  const float_v& p1p2  = px1 * px2 + py1 * py2;
-  const float_v& dp1p2 = px1 * py2 - px2 * py1;
+  const float_v dx0   = (x01 - x02);
+  const float_v dy0   = (y01 - y02);
+  const float_v dr02  = dx0 * dx0 + dy0 * dy0;
+  const float_v drp1  = dx0 * px1 + dy0 * py1;
+  const float_v dxyp1 = dx0 * py1 - dy0 * px1;
+  const float_v drp2  = dx0 * px2 + dy0 * py2;
+  const float_v dxyp2 = dx0 * py2 - dy0 * px2;
+  const float_v p1p2  = px1 * px2 + py1 * py2;
+  const float_v dp1p2 = px1 * py2 - px2 * py1;
 
-  const float_v& k11 = (bq2 * drp1 - dp1p2);
-  const float_v& k21 = (bq1 * (bq2 * dxyp1 - p1p2) + bq2 * pt12);
-  const float_v& k12 = ((bq1 * drp2 - dp1p2));
-  const float_v& k22 = (bq2 * (bq1 * dxyp2 + p1p2) - bq1 * pt22);
+  const float_v k11 = (bq2 * drp1 - dp1p2);
+  const float_v k21 = (bq1 * (bq2 * dxyp1 - p1p2) + bq2 * pt12);
+  const float_v k12 = ((bq1 * drp2 - dp1p2));
+  const float_v k22 = (bq2 * (bq1 * dxyp2 + p1p2) - bq1 * pt22);
 
-  const float_v& kp = (dxyp1 * bq2 - dxyp2 * bq1 - p1p2);
-  const float_v& kd = dr02 / 2.f * bq1 * bq2 + kp;
-  const float_v& c1 = -(bq1 * kd + pt12 * bq2);
-  const float_v& c2 = bq2 * kd + pt22 * bq1;
+  const float_v kp = (dxyp1 * bq2 - dxyp2 * bq1 - p1p2);
+  const float_v kd = dr02 / 2.f * bq1 * bq2 + kp;
+  const float_v c1 = -(bq1 * kd + pt12 * bq2);
+  const float_v c2 = bq2 * kd + pt22 * bq1;
 
   float_v d1 = pt12 * pt22 - kd * kd;
   d1         = select(d1 < 0.f, 0.f, d1);
@@ -3379,16 +3374,16 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   //select a point which is close to the primary vertex (with the smallest r)
 
-  float_v dr2[2];
+  float_v dr2[2]{};
   for (int iP = 0; iP < 2; iP++) {
-    const float_v& bs1 = bq1 * dS1[iP];
-    const float_v& bs2 = bq2 * dS2[iP];
+    const float_v bs1 = bq1 * dS1[iP];
+    const float_v bs2 = bq2 * dS2[iP];
 
     float_v sss = sin(bs1);
     float_v ccc = cos(bs1);
 
-    const float_m& bs1Big = abs(bs1) > 1.e-8f;
-    const float_m& bs2Big = abs(bs2) > 1.e-8f;
+    const float_m bs1Big = (abs(bs1) > 1.e-8f);
+    const float_m bs2Big = (abs(bs2) > 1.e-8f);
 
     float_v sB(0.f), cB(0.f);
     sB = select(bs1Big, sss / bq1, sB);
@@ -3396,9 +3391,9 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     cB = select(bs1Big, (1.f - ccc) / bq1, cB);
     cB = select(!bs1Big, .5f * sB * bs1, cB);
 
-    const float_v& x1 = param1[0] + sB * px1 + cB * py1;
-    const float_v& y1 = param1[1] - cB * px1 + sB * py1;
-    const float_v& z1 = param1[2] + dS1[iP] * param1[5];
+    const float_v x1 = param1[0] + sB * px1 + cB * py1;
+    const float_v y1 = param1[1] - cB * px1 + sB * py1;
+    const float_v z1 = param1[2] + dS1[iP] * param1[5];
 
     sss = sin(bs2);
     ccc = cos(bs2);
@@ -3408,9 +3403,9 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     cB = select(bs2Big, (1.f - ccc) / bq2, cB);
     cB = select(!bs2Big, .5f * sB * bs2, cB);
 
-    const float_v& x2 = param2[0] + sB * px2 + cB * py2;
-    const float_v& y2 = param2[1] - cB * px2 + sB * py2;
-    const float_v& z2 = param2[2] + dS2[iP] * param2[5];
+    const float_v x2 = param2[0] + sB * px2 + cB * py2;
+    const float_v y2 = param2[1] - cB * px2 + sB * py2;
+    const float_v z2 = param2[2] + dS2[iP] * param2[5];
 
     float_v dx = (x1 - x2);
     float_v dy = (y1 - y2);
@@ -3434,8 +3429,8 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
   }
 
   //find correct parts of helices
-  int_v n1(0);
-  int_v n2(0);
+  int_v n1{0};
+  int_v n2{0};
   //  float_v dzMin = abs( (z01-z02) + dS[0]*pz1 - dS[1]*pz2 );
   const float_v pi2(6.283185307f);
 
@@ -3467,14 +3462,14 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
 
   //Line correction
   {
-    const float_v& bs1 = bq1 * dS[0];
-    const float_v& bs2 = bq2 * dS[1];
+    const float_v bs1 = bq1 * dS[0];
+    const float_v bs2 = bq2 * dS[1];
 
     float_v sss = sin(bs1);
     float_v ccc = cos(bs1);
 
-    const float_m& bs1Big = abs(bs1) > 1.e-8f;
-    const float_m& bs2Big = abs(bs2) > 1.e-8f;
+    const float_m bs1Big = abs(bs1) > 1.e-8f;
+    const float_m bs2Big = abs(bs2) > 1.e-8f;
 
     float_v sB(0.f), cB(0.f);
     sB = select(bs1Big, sss / bq1, sB);
@@ -3482,12 +3477,12 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     sB = select(!bs1Big, ((1.f - bs1 * kOvSqr6) * (1.f + bs1 * kOvSqr6) * dS[0]), sB);
     cB = select(!bs1Big, .5f * sB * bs1, cB);
 
-    const float_v& x1   = x01 + sB * px1 + cB * py1;
-    const float_v& y1   = y01 - cB * px1 + sB * py1;
-    const float_v& z1   = z01 + dS[0] * pz1;
-    const float_v& ppx1 = ccc * px1 + sss * py1;
-    const float_v& ppy1 = -sss * px1 + ccc * py1;
-    const float_v& ppz1 = pz1;
+    const float_v x1   = x01 + sB * px1 + cB * py1;
+    const float_v y1   = y01 - cB * px1 + sB * py1;
+    const float_v z1   = z01 + dS[0] * pz1;
+    const float_v ppx1 = ccc * px1 + sss * py1;
+    const float_v ppy1 = -sss * px1 + ccc * py1;
+    const float_v ppz1 = pz1;
 
     float_v sss1 = sin(bs2);
     float_v ccc1 = cos(bs2);
@@ -3498,23 +3493,23 @@ void KFParticleSIMD::GetDStoParticleBz(float_v B, const KFParticleSIMD& p, float
     sB1 = select(!bs2Big, ((1.f - bs2 * kOvSqr6) * (1.f + bs2 * kOvSqr6) * dS[1]), sB1);
     cB1 = select(!bs2Big, .5f * sB1 * bs2, cB1);
 
-    const float_v& x2   = x02 + sB1 * px2 + cB1 * py2;
-    const float_v& y2   = y02 - cB1 * px2 + sB1 * py2;
-    const float_v& z2   = z02 + dS[1] * pz2;
-    const float_v& ppx2 = ccc1 * px2 + sss1 * py2;
-    const float_v& ppy2 = -sss1 * px2 + ccc1 * py2;
-    const float_v& ppz2 = pz2;
+    const float_v x2   = x02 + sB1 * px2 + cB1 * py2;
+    const float_v y2   = y02 - cB1 * px2 + sB1 * py2;
+    const float_v z2   = z02 + dS[1] * pz2;
+    const float_v ppx2 = ccc1 * px2 + sss1 * py2;
+    const float_v ppy2 = -sss1 * px2 + ccc1 * py2;
+    const float_v ppz2 = pz2;
 
-    const float_v& p12   = ppx1 * ppx1 + ppy1 * ppy1 + ppz1 * ppz1;
-    const float_v& p22   = ppx2 * ppx2 + ppy2 * ppy2 + ppz2 * ppz2;
-    const float_v& lp1p2 = ppx1 * ppx2 + ppy1 * ppy2 + ppz1 * ppz2;
+    const float_v p12   = ppx1 * ppx1 + ppy1 * ppy1 + ppz1 * ppz1;
+    const float_v p22   = ppx2 * ppx2 + ppy2 * ppy2 + ppz2 * ppz2;
+    const float_v lp1p2 = ppx1 * ppx2 + ppy1 * ppy2 + ppz1 * ppz2;
 
-    const float_v& dx = (x2 - x1);
-    const float_v& dy = (y2 - y1);
-    const float_v& dz = (z2 - z1);
+    const float_v dx = (x2 - x1);
+    const float_v dy = (y2 - y1);
+    const float_v dz = (z2 - z1);
 
-    const float_v& ldrp1 = ppx1 * dx + ppy1 * dy + ppz1 * dz;
-    const float_v& ldrp2 = ppx2 * dx + ppy2 * dy + ppz2 * dz;
+    const float_v ldrp1 = ppx1 * dx + ppy1 * dy + ppz1 * dz;
+    const float_v ldrp2 = ppx2 * dx + ppy2 * dy + ppz2 * dz;
 
     float_v detp = lp1p2 * lp1p2 - p12 * p22;
     detp         = select(abs(detp) < 1.e-4f, 1.f, detp);  //TODO correct!!!
@@ -3550,10 +3545,7 @@ void KFParticleSIMD::GetDStoParticleBy(float_v B, const KFParticleSIMD& p, float
   const float_v param1[6] = {fP[0], -fP[2], fP[1], fP[3], -fP[5], fP[4]};
   const float_v param2[6] = {p.fP[0], -p.fP[2], p.fP[1], p.fP[3], -p.fP[5], p.fP[4]};
 
-  float_v dsdrBz[4][6];
-  for (int i1 = 0; i1 < 4; i1++) {
-    for (int i2 = 0; i2 < 6; i2++) { dsdrBz[i1][i2] = 0.f; }
-  }
+  float_v dsdrBz[4][6]{};
 
   GetDStoParticleBz(B, p, dS, dsdrBz, param1, param2);
 
@@ -3614,8 +3606,8 @@ void KFParticleSIMD::GetDStoParticleB(float_v B[3], const KFParticleSIMD& p, flo
   const float_v& By = B[1];
   const float_v& Bz = B[2];
 
-  const float_v& Bxz = sqrt(Bx * Bx + Bz * Bz);
-  const float_v& Br  = sqrt(Bx * Bx + By * By + Bz * Bz);
+  const float_v Bxz = sqrt(Bx * Bx + Bz * Bz);
+  const float_v Br  = sqrt(Bx * Bx + By * By + Bz * Bz);
 
   float_v cosA = 1.f;
   float_v sinA = 0.f;
@@ -3623,8 +3615,8 @@ void KFParticleSIMD::GetDStoParticleB(float_v B[3], const KFParticleSIMD& p, flo
   cosA = select(abs(Bxz) > 1.e-8f, Bz / Bxz, cosA);
   sinA = select(abs(Bxz) > 1.e-8f, Bx / Bxz, sinA);
 
-  const float_v& sinP = By / Br;
-  const float_v& cosP = Bxz / Br;
+  const float_v sinP = By / Br;
+  const float_v cosP = Bxz / Br;
 
 
   const float_v param1[6] = {cosA * fP[0] - sinA * fP[2],
@@ -3633,6 +3625,7 @@ void KFParticleSIMD::GetDStoParticleB(float_v B[3], const KFParticleSIMD& p, flo
                              cosA * fP[3] - sinA * fP[5],
                              -sinA * sinP * fP[3] + cosP * fP[4] - cosA * sinP * fP[5],
                              cosP * sinA * fP[3] + sinP * fP[4] + cosA * cosP * fP[5]};
+
   const float_v param2[6] = {cosA * p.fP[0] - sinA * p.fP[2],
                              -sinA * sinP * p.fP[0] + cosP * p.fP[1] - cosA * sinP * p.fP[2],
                              cosP * sinA * p.fP[0] + sinP * p.fP[1] + cosA * cosP * p.fP[2],
@@ -3640,10 +3633,7 @@ void KFParticleSIMD::GetDStoParticleB(float_v B[3], const KFParticleSIMD& p, flo
                              -sinA * sinP * p.fP[3] + cosP * p.fP[4] - cosA * sinP * p.fP[5],
                              cosP * sinA * p.fP[3] + sinP * p.fP[4] + cosA * cosP * p.fP[5]};
 
-  float_v dsdrBz[4][6];
-  for (int i1 = 0; i1 < 4; i1++) {
-    for (int i2 = 0; i2 < 6; i2++) { dsdrBz[i1][i2] = 0.f; }
-  }
+  float_v dsdrBz[4][6]{};
 
   GetDStoParticleBz(Br, p, dS, dsdrBz, param1, param2);
 
@@ -3675,8 +3665,8 @@ void KFParticleSIMD::GetDStoParticleB(float_v B[3], const KFParticleSIMD& p, flo
   const float_v& By = B[1];
   const float_v& Bz = B[2];
 
-  const float_v& Bxz = sqrt(Bx * Bx + Bz * Bz);
-  const float_v& Br  = sqrt(Bx * Bx + By * By + Bz * Bz);
+  const float_v Bxz = sqrt(Bx * Bx + Bz * Bz);
+  const float_v Br  = sqrt(Bx * Bx + By * By + Bz * Bz);
 
   float_v cosA = 1.f;
   float_v sinA = 0.f;
@@ -3684,8 +3674,8 @@ void KFParticleSIMD::GetDStoParticleB(float_v B[3], const KFParticleSIMD& p, flo
   cosA = select(abs(Bxz) > 1.e-8f, Bz / Bxz, cosA);
   sinA = select(abs(Bxz) > 1.e-8f, Bx / Bxz, sinA);
 
-  const float_v& sinP = By / Br;
-  const float_v& cosP = Bxz / Br;
+  const float_v sinP = By / Br;
+  const float_v cosP = Bxz / Br;
 
 
   const float_v param1[6] = {cosA * fP[0] - sinA * fP[2],
@@ -3694,6 +3684,7 @@ void KFParticleSIMD::GetDStoParticleB(float_v B[3], const KFParticleSIMD& p, flo
                              cosA * fP[3] - sinA * fP[5],
                              -sinA * sinP * fP[3] + cosP * fP[4] - cosA * sinP * fP[5],
                              cosP * sinA * fP[3] + sinP * fP[4] + cosA * cosP * fP[5]};
+
   const float_v param2[6] = {cosA * p.fP[0] - sinA * p.fP[2],
                              -sinA * sinP * p.fP[0] + cosP * p.fP[1] - cosA * sinP * p.fP[2],
                              cosP * sinA * p.fP[0] + sinP * p.fP[1] + cosA * cosP * p.fP[2],
@@ -3841,13 +3832,13 @@ void KFParticleSIMD::GetDStoParticleCBM(const KFParticleSIMD& p, float_v dS[2], 
    ** \param[out] dsdr[4][6] - partial derivatives of the parameters dS[0] and dS[1] over the state vectors of the both particles
    **/
 
-  float_v fld[3];
+  float_v fld[3]{};
   GetFieldValue(fP, fld);
 
-  const float_v& bq1         = fld[1] * toFloat(fQ);
-  const float_v& bq2         = fld[1] * toFloat(p.fQ);
-  const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
-  const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
+  const float_v bq1         = fld[1] * stdx::static_simd_cast<float_v>(fQ);
+  const float_v bq2         = fld[1] * stdx::static_simd_cast<float_v>(p.fQ);
+  const float_m isStraight1 = abs(bq1) < 1.e-8f;
+  const float_m isStraight2 = abs(bq2) < 1.e-8f;
 
   if (all_of(isStraight1) && all_of(isStraight2)) { GetDStoParticleLine(p, dS, dsdr); }
   else {
@@ -3870,13 +3861,13 @@ void KFParticleSIMD::GetDStoParticleCBM(const KFParticleSIMD& p, float_v dS[2]) 
    ** \param[out] dS[2] - transport parameters dS for the current particle (dS[0]) and the second particle "p" (dS[1])
    **/
 
-  float_v fld[3];
+  float_v fld[3]{};
   GetFieldValue(fP, fld);
 
-  const float_v& bq1         = fld[1] * toFloat(fQ);
-  const float_v& bq2         = fld[1] * toFloat(p.fQ);
-  const float_m& isStraight1 = abs(bq1) < float_v(1.e-8f);
-  const float_m& isStraight2 = abs(bq2) < float_v(1.e-8f);
+  const float_v bq1         = fld[1] * stdx::static_simd_cast<float_v>(fQ);
+  const float_v bq2         = fld[1] * stdx::static_simd_cast<float_v>(p.fQ);
+  const float_m isStraight1 = abs(bq1) < 1.e-8f;
+  const float_m isStraight2 = abs(bq2) < 1.e-8f;
 
   if (all_of(isStraight1) && all_of(isStraight2)) { GetDStoParticleLine(p, dS); }
   else {
@@ -3899,7 +3890,7 @@ float_v KFParticleSIMD::GetDistanceFromVertex(const float_v vtx[]) const
    ** \param[in] vtx[3] - the vertex coordinates {X, Y, Z}
    **/
 
-  float_v mP[8], mC[36];
+  float_v mP[8]{}, mC[36]{};
   float_v dsdr[6]  = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
   const float_v dS = GetDStoPoint(vtx, dsdr);
   Transport(dS, dsdr, mP, mC);
@@ -3913,9 +3904,9 @@ float_v KFParticleSIMD::GetDistanceFromParticle(const KFParticleSIMD& p) const
    ** \param[in] p - the second particle
    **/
 
-  float_v dS[2];
+  float_v dS[2]{};
   GetDStoParticleFast(p, dS);
-  float_v mP[8], mP1[8];
+  float_v mP[8]{}, mP1[8]{};
   TransportFast(dS[0], mP);
   p.TransportFast(dS[1], mP1);
   float_v dx = mP[0] - mP1[0];
@@ -3940,16 +3931,17 @@ float_v KFParticleSIMD::GetDeviationFromVertex(const float_v v[], const float_v 
    ** \param[in] Cv[6] - covariance matrix of the vertex {Cxx, Cxy, Cyy, Cxz, Czy, Czz}
    **/
 
-  float_v mP[8];
-  float_v mC[36];
+  float_v mP[8]{};
+  float_v mC[36]{};
   float_v dsdr[6]  = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
   const float_v dS = GetDStoPoint(v, dsdr);
   float_v dsdp[6]  = {-dsdr[0], -dsdr[1], -dsdr[2], 0.f, 0.f, 0.f};
-  float_v F1[36];
+  float_v F1[36]{};
   Transport(dS, dsdr, mP, mC, dsdp, nullptr, F1, false);
 
   if (Cv) {
-    float_v VFT[3][3];
+    float_v VFT[3][3]{};
+
     VFT[0][0] = Cv[0] * F1[0] + Cv[1] * F1[1] + Cv[3] * F1[2];
     VFT[0][1] = Cv[0] * F1[6] + Cv[1] * F1[7] + Cv[3] * F1[8];
     VFT[0][2] = Cv[0] * F1[12] + Cv[1] * F1[13] + Cv[3] * F1[14];
@@ -3962,7 +3954,7 @@ float_v KFParticleSIMD::GetDeviationFromVertex(const float_v v[], const float_v 
     VFT[2][1] = Cv[3] * F1[6] + Cv[4] * F1[7] + Cv[5] * F1[8];
     VFT[2][2] = Cv[3] * F1[12] + Cv[4] * F1[13] + Cv[5] * F1[14];
 
-    float_v FVFT[6];
+    float_v FVFT[6]{};
     FVFT[0] = F1[0] * VFT[0][0] + F1[1] * VFT[1][0] + F1[2] * VFT[2][0];
     FVFT[1] = F1[6] * VFT[0][0] + F1[7] * VFT[1][0] + F1[8] * VFT[2][0];
     FVFT[2] = F1[6] * VFT[0][1] + F1[7] * VFT[1][1] + F1[8] * VFT[2][1];
@@ -3993,22 +3985,16 @@ float_v KFParticleSIMD::GetDeviationFromParticle(const KFParticleSIMD& p) const
    **/
 
   float_v ds[2] = {0.f, 0.f};
-  float_v dsdr[4][6];
-  float_v F1[36], F2[36], F3[36], F4[36];
-  for (int i1 = 0; i1 < 36; i1++) {
-    F1[i1] = 0;
-    F2[i1] = 0;
-    F3[i1] = 0;
-    F4[i1] = 0;
-  }
+  float_v dsdr[4][6]{};
+  float_v F1[36]{}, F2[36]{}, F3[36]{}, F4[36]{};
   GetDStoParticle(p, ds, dsdr);
 
-  float_v V0Tmp[36];
-  float_v V1Tmp[36];
+  float_v V0Tmp[36]{};
+  float_v V1Tmp[36]{};
 
 
-  float_v mP1[8], mC1[36];
-  float_v mP2[8], mC2[36];
+  float_v mP1[8]{}, mC1[36]{};
+  float_v mP2[8]{}, mC2[36]{};
 
   Transport(ds[0], dsdr[0], mP1, mC1, dsdr[1], F1, F2);
   p.Transport(ds[1], dsdr[3], mP2, mC2, dsdr[2], F4, F3);
@@ -4037,8 +4023,8 @@ float_m KFParticleSIMD::GetDistanceFromVertexXY(const float_v vtx[], const float
    ** \param[out] err - the error of the calculated distance, takes into account errors of the particle and vertex
    **/
 
-  float_v mP[8];
-  float_v mC[36];
+  float_v mP[8]{};
+  float_v mC[36]{};
 
   float_v dsdr[6]  = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
   const float_v dS = GetDStoPoint(vtx, dsdr);
@@ -4050,12 +4036,12 @@ float_m KFParticleSIMD::GetDistanceFromVertexXY(const float_v vtx[], const float
   float_v py = mP[4];
   float_v pt = sqrt(px * px + py * py);
   float_v ex(0.f), ey(0.f);
-  float_m mask = (pt < float_v(1.e-4f));
+  float_m mask = (pt < 1.e-4f);
 
   pt  = select(mask, 1.f, pt);
   ex  = select(!mask, px / pt, ex);
   ey  = select(!mask, py / pt, ey);
-  val = select(mask, float_v(1.e4f), val);
+  val = select(mask, 1.e4f, val);
   val = select(!mask, dy * ex - dx * ey, val);
 
   float_v h0 = -ey;
@@ -4119,7 +4105,7 @@ float_v KFParticleSIMD::GetDistanceFromVertexXY(const float_v vtx[]) const
    ** \param[in] vtx[2] - { X, Y } coordinates of the vertex
    **/
 
-  float_v val, err;
+  float_v val{}, err{};
   GetDistanceFromVertexXY(vtx, 0, val, err);
   return val;
 }
@@ -4150,10 +4136,11 @@ float_v KFParticleSIMD::GetDistanceFromParticleXY(const KFParticleSIMD& p) const
    ** \param[in] p - the second particle
    **/
 
-  float_v dS[2];
-  float_v dsdr[4][6];
+  float_v dS[2]{};
+  float_v dsdr[4][6]{};
   GetDStoParticle(p, dS, dsdr);
-  float_v mP[8], mC[36], mP1[8], mC1[36];
+
+  float_v mP[8]{}, mC[36]{}, mP1[8]{}, mC1[36]{};
   Transport(dS[0], dsdr[0], mP, mC);
   p.Transport(dS[1], dsdr[3], mP1, mC1);
   float_v dx = mP[0] - mP1[0];
@@ -4167,23 +4154,17 @@ float_v KFParticleSIMD::GetDeviationFromParticleXY(const KFParticleSIMD& p) cons
    ** \param[in] p - the second particle
    **/
 
-  float_v ds[2] = {0.f, 0.f};
-  float_v dsdr[4][6];
-  float_v F1[36], F2[36], F3[36], F4[36];
-  for (int i1 = 0; i1 < 36; i1++) {
-    F1[i1] = 0;
-    F2[i1] = 0;
-    F3[i1] = 0;
-    F4[i1] = 0;
-  }
+  float_v ds[2]{};
+  float_v dsdr[4][6]{};
+  float_v F1[36]{}, F2[36]{}, F3[36]{}, F4[36]{};
   GetDStoParticle(p, ds, dsdr);
 
-  float_v V0Tmp[36];
-  float_v V1Tmp[36];
+  float_v V0Tmp[36]{};
+  float_v V1Tmp[36]{};
 
 
-  float_v mP1[8], mC1[36];
-  float_v mP2[8], mC2[36];
+  float_v mP1[8]{}, mC1[36]{};
+  float_v mP2[8]{}, mC2[36]{};
 
   Transport(ds[0], dsdr[0], mP1, mC1, dsdr[1], F1, F2);
   p.Transport(ds[1], dsdr[3], mP2, mC2, dsdr[2], F4, F3);
@@ -4205,20 +4186,17 @@ float_v KFParticleSIMD::GetDeviationFromVertexXY(const float_v vtx[], const floa
    ** \param[in] Cv[3] - lower-triangular part of the covariance matrix of the vertex
    **/
 
-  float_v mP[8];
-  float_v mC[36];
+  float_v mP[8]{};
+  float_v mC[36]{};
   float_v dsdr[6]  = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
   const float_v dS = GetDStoPoint(vtx, dsdr);
   float_v dsdp[6]  = {-dsdr[0], -dsdr[1], -dsdr[2], 0.f, 0.f, 0.f};
-  float_v F[36], F1[36];
-  for (int i2 = 0; i2 < 36; i2++) {
-    F[i2]  = 0.f;
-    F1[i2] = 0.f;
-  }
+  float_v F[36]{}, F1[36]{};
+
   Transport(dS, dsdr, mP, mC, dsdp, F, F1);
 
   if (Cv) {
-    float_v VFT[3][6];
+    float_v VFT[3][6]{};
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 6; j++) {
         VFT[i][j] = 0;
@@ -4226,7 +4204,7 @@ float_v KFParticleSIMD::GetDeviationFromVertexXY(const float_v vtx[], const floa
       }
     }
 
-    float_v FVFT[6][6];
+    float_v FVFT[6][6]{};
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 6; j++) {
         FVFT[i][j] = 0;
@@ -4318,14 +4296,14 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
    ** with the state vector r1, to which the current particle is being transported, F1 = d(fP new)/d(r1)
    **/
 
-  if (all_of(fQ == int_v(0))) {
+  if (all_of(fQ == 0)) {
     TransportLine(dS, dsdr, P, C, dsdr1, F, F1);
     return;
   }
 
   const float_v kCLight = 0.000299792458f;
 
-  float_v c = toFloat(fQ) * kCLight;
+  float_v c = stdx::static_simd_cast<float_v>(fQ) * kCLight;
 
   // construct coefficients
 
@@ -4336,8 +4314,8 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
 
   {  // get field integrals
 
-    float_v fld[3][3];
-    float_v p0[3], p1[3], p2[3];
+    float_v fld[3][3]{};
+    float_v p0[3]{}, p1[3]{}, p2[3]{};
 
     // line track approximation
 
@@ -4400,9 +4378,10 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
     syyy = syy * syy * syy / 1296.f;
     syy  = syy * syy / 72.f;
 
-    ssyy  = (fld[0][1] * (38.f * fld[0][1] + 156.f * fld[1][1] - fld[2][1])
-             + fld[1][1] * (208.f * fld[1][1] + 16.f * fld[2][1]) + fld[2][1] * (3.f * fld[2][1]))
-            * dS * dS * dS * c * c / 2520.f;
+    ssyy = (fld[0][1] * (38.f * fld[0][1] + 156.f * fld[1][1] - fld[2][1])
+            + fld[1][1] * (208.f * fld[1][1] + 16.f * fld[2][1]) + fld[2][1] * (3.f * fld[2][1]))
+           * dS * dS * dS * c * c / 2520.f;
+
     ssyyy = (fld[0][1]
                * (fld[0][1] * (85.f * fld[0][1] + 526.f * fld[1][1] - 7.f * fld[2][1])
                   + fld[1][1] * (1376.f * fld[1][1] + 84.f * fld[2][1]) + fld[2][1] * (19.f * fld[2][1]))
@@ -4438,10 +4417,7 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
   //
   //   multQSQt1( mJ, C);
 
-  float_v mJ[8][8];
-  for (Int_t i = 0; i < 8; i++) {
-    for (Int_t j = 0; j < 8; j++) { mJ[i][j] = 0; }
-  }
+  float_v mJ[8][8]{};
 
   mJ[0][0] = 1;
   mJ[0][1] = 0;
@@ -4491,10 +4467,7 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
   P[6] = fP[6];
   P[7] = fP[7];
 
-  float_v mJds[6][6];
-  for (Int_t i = 0; i < 6; i++) {
-    for (Int_t j = 0; j < 6; j++) { mJds[i][j] = 0; }
-  }
+  float_v mJds[6][6]{};
 
   mJds[0][3] = 1.f;
   mJds[1][4] = 1.f;
@@ -4536,7 +4509,9 @@ void KFParticleSIMD::TransportCBM(float_v dS, const float_v* dsdr, float_v P[], 
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 6; j++) { F[i * 6 + j] = mJ[i][j]; }
     }
+  }
 
+  if (F1) {
     for (int i1 = 0; i1 < 6; i1++) {
       for (int i2 = 0; i2 < 6; i2++) {
         F1[i1 * 6 + i2] = mJds[i1][3] * px * dsdr1[i2] + mJds[i1][4] * py * dsdr1[i2] + mJds[i1][5] * pz * dsdr1[i2];
@@ -4555,14 +4530,14 @@ void KFParticleSIMD::TransportCBM(float_v dS, float_v P[]) const
    ** \param[in] dS - transport parameter which defines the distance to which particle should be transported
    ** \param[out] P[8] - array, where transported parameters should be stored
    **/
-  if (all_of(fQ == int_v(0))) {
+  if (all_of(fQ == 0)) {
     TransportLine(dS, P);
     return;
   }
 
   const float_v kCLight = 0.000299792458f;
 
-  float_v c = toFloat(fQ) * kCLight;
+  float_v c = stdx::static_simd_cast<float_v>(fQ) * kCLight;
 
   // construct coefficients
 
@@ -4573,8 +4548,8 @@ void KFParticleSIMD::TransportCBM(float_v dS, float_v P[]) const
 
   {  // get field integrals
 
-    float_v fld[3][3];
-    float_v p0[3], p1[3], p2[3];
+    float_v fld[3][3]{};
+    float_v p0[3]{}, p1[3]{}, p2[3]{};
 
     // line track approximation
 
@@ -4637,9 +4612,10 @@ void KFParticleSIMD::TransportCBM(float_v dS, float_v P[]) const
     syyy = syy * syy * syy / 1296.f;
     syy  = syy * syy / 72.f;
 
-    ssyy  = (fld[0][1] * (38.f * fld[0][1] + 156.f * fld[1][1] - fld[2][1])
-             + fld[1][1] * (208.f * fld[1][1] + 16.f * fld[2][1]) + fld[2][1] * (3.f * fld[2][1]))
-            * dS * dS * dS * c * c / 2520.f;
+    ssyy = (fld[0][1] * (38.f * fld[0][1] + 156.f * fld[1][1] - fld[2][1])
+            + fld[1][1] * (208.f * fld[1][1] + 16.f * fld[2][1]) + fld[2][1] * (3.f * fld[2][1]))
+           * dS * dS * dS * c * c / 2520.f;
+
     ssyyy = (fld[0][1]
                * (fld[0][1] * (85.f * fld[0][1] + 526.f * fld[1][1] - 7.f * fld[2][1])
                   + fld[1][1] * (1376.f * fld[1][1] + 84.f * fld[2][1]) + fld[2][1] * (19.f * fld[2][1]))
@@ -4648,10 +4624,7 @@ void KFParticleSIMD::TransportCBM(float_v dS, float_v P[]) const
             * dS * dS * dS * dS * c * c * c / 90720.f;
   }
 
-  float_v mJ[8][8];
-  for (Int_t i = 0; i < 8; i++) {
-    for (Int_t j = 0; j < 8; j++) { mJ[i][j] = 0; }
-  }
+  float_v mJ[8][8]{};
 
   mJ[0][0] = 1;
   mJ[0][1] = 0;
@@ -4729,7 +4702,7 @@ void KFParticleSIMD::TransportBz(float_v Bz, float_v dS, const float_v* dsdr, fl
 
   const float_v kCLight = 0.000299792458f;
 
-  Bz         = Bz * toFloat(fQ) * kCLight;
+  Bz         = Bz * stdx::static_simd_cast<float_v>(fQ) * kCLight;
   float_v bs = Bz * dS;
   float_v s  = sin(bs);
   float_v c  = cos(bs);
@@ -4758,7 +4731,7 @@ void KFParticleSIMD::TransportBz(float_v Bz, float_v dS, const float_v* dsdr, fl
   P[6] = fP[6];
   P[7] = fP[7];
 
-  float_v mJ[6][6];
+  float_v mJ[6][6]{};
 
   const float_v cPx = c * px;
   const float_v sPy = s * py;
@@ -4785,7 +4758,7 @@ void KFParticleSIMD::TransportBz(float_v Bz, float_v dS, const float_v* dsdr, fl
   mJ[2][4] = pz * dsdr[4];
   mJ[2][5] = pz * dsdr[5] + dS;
 
-  float_v CJt[6][5];
+  float_v CJt[6][5]{};
 
   CJt[0][0] =
     fC[0] * mJ[0][0] + fC[1] * mJ[0][1] + fC[3] * mJ[0][2] + fC[6] * mJ[0][3] + fC[10] * mJ[0][4] + fC[15] * mJ[0][5];
@@ -5037,7 +5010,7 @@ void KFParticleSIMD::TransportBz(float_v Bz, float_v dS, float_v P[]) const
 
   const float_v kCLight = 0.000299792458f;
 
-  Bz         = Bz * toFloat(fQ) * kCLight;
+  Bz         = Bz * stdx::static_simd_cast<float_v>(fQ) * kCLight;
   float_v bs = Bz * dS;
   float_v s  = sin(bs);
   float_v c  = cos(bs);
@@ -5091,10 +5064,7 @@ void KFParticleSIMD::TransportLine(float_v dS, const float_v* dsdr, float_v P[],
    ** with the state vector r1, to which the current particle is being transported, F1 = d(fP new)/d(r1)
    **/
 
-  float_v mJ[8][8];
-  for (Int_t i = 0; i < 8; i++) {
-    for (Int_t j = 0; j < 8; j++) { mJ[i][j] = 0; }
-  }
+  float_v mJ[8][8]{};
 
   mJ[0][0] = 1;
   mJ[0][1] = 0;
@@ -5146,10 +5116,7 @@ void KFParticleSIMD::TransportLine(float_v dS, const float_v* dsdr, float_v P[],
   P[6] = fP[6];
   P[7] = fP[7];
 
-  float_v mJds[6][6];
-  for (Int_t i = 0; i < 6; i++) {
-    for (Int_t j = 0; j < 6; j++) { mJds[i][j] = 0; }
-  }
+  float_v mJds[6][6]{};
 
   mJds[0][3] = 1;
   mJds[1][4] = 1;
@@ -5166,7 +5133,9 @@ void KFParticleSIMD::TransportLine(float_v dS, const float_v* dsdr, float_v P[],
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 6; j++) { F[i * 6 + j] = mJ[i][j]; }
     }
+  }
 
+  if (F1) {
     for (int i1 = 0; i1 < 6; i1++) {
       for (int i2 = 0; i2 < 6; i2++) {
         F1[i1 * 6 + i2] = mJds[i1][3] * px * dsdr1[i2] + mJds[i1][4] * py * dsdr1[i2] + mJds[i1][5] * pz * dsdr1[i2];
@@ -5316,7 +5285,7 @@ float_m KFParticleSIMD::GetR(float_v& r, float_v& error) const
   float_v x2 = x * x;
   float_v y2 = y * y;
   r          = sqrt(x2 + y2);
-  error      = (x2 * fC[0] + y2 * fC[2] - float_v(2.f) * x * y * fC[1]);
+  error      = (x2 * fC[0] + y2 * fC[2] - 2.f * x * y * fC[1]);
 
   float_m mask = (0.f < error) && (1.e-4f < r);
   error        = select(mask, sqrt(error) / r, error);
@@ -5376,9 +5345,8 @@ float_m KFParticleSIMD::GetDecayLength(float_v& l, float_v& error) const
 
   error =
     p2 * fC[35]
-    + t * t / p2
-        * (x2 * fC[9] + y2 * fC[14] + z2 * fC[20] + float_v(2.f) * (x * y * fC[13] + x * z * fC[18] + y * z * fC[19]))
-    + float_v(2.f) * t * (x * fC[31] + y * fC[32] + z * fC[33]);
+    + t * t / p2 * (x2 * fC[9] + y2 * fC[14] + z2 * fC[20] + 2.f * (x * y * fC[13] + x * z * fC[18] + y * z * fC[19]))
+    + 2.f * t * (x * fC[31] + y * fC[32] + z * fC[33]);
 
   float_m mask = ((1.e-4f) < p2);
   error        = select(mask, sqrt(abs(error)), error);
@@ -5405,9 +5373,9 @@ float_m KFParticleSIMD::GetDecayLengthXY(float_v& l, float_v& error) const
   float_v pt2       = x2 + y2;
   l                 = t * sqrt(pt2);
 
-  error        = pt2 * fC[35] + t * t / pt2 * (x2 * fC[9] + y2 * fC[14] + 2 * x * y * fC[13])
-                 + float_v(2.f) * t * (x * fC[31] + y * fC[32]);
-  float_m mask = ((1.e-4f) < pt2);
+  error =
+    pt2 * fC[35] + t * t / pt2 * (x2 * fC[9] + y2 * fC[14] + 2 * x * y * fC[13]) + 2.f * t * (x * fC[31] + y * fC[32]);
+  float_m mask = (1.e-4f < pt2);
   error        = select(mask, sqrt(abs(error)), error);
   error        = select(!mask, BIG, error);
   return !mask;
@@ -5425,7 +5393,7 @@ float_m KFParticleSIMD::GetLifeTime(float_v& tauC, float_v& error) const
 
   const float_v BIG = 1.e20f;
 
-  float_v m, dm;
+  float_v m{}, dm{};
   GetMass(m, dm);
   float_v cTM  = (-fP[3] * fC[31] - fP[4] * fC[32] - fP[5] * fC[33] + fP[6] * fC[34]);
   tauC         = fP[7] * m;
@@ -5443,9 +5411,10 @@ float_v KFParticleSIMD::GetAngle(const KFParticleSIMD& p) const
    **/
 
   float_v ds[2] = {0.f, 0.f};
-  float_v dsdr[4][6];
+  float_v dsdr[4][6]{};
   GetDStoParticle(p, ds, dsdr);
-  float_v mP[8], mC[36], mP1[8], mC1[36];
+
+  float_v mP[8]{}, mC[36]{}, mP1[8]{}, mC1[36]{};
   Transport(ds[0], dsdr[0], mP, mC);
   p.Transport(ds[1], dsdr[3], mP1, mC1);
   float_v n  = sqrt(mP[3] * mP[3] + mP[4] * mP[4] + mP[5] * mP[5]);
@@ -5469,11 +5438,13 @@ float_v KFParticleSIMD::GetAngleXY(const KFParticleSIMD& p) const
    **/
 
   float_v ds[2] = {0.f, 0.f};
-  float_v dsdr[4][6];
+  float_v dsdr[4][6]{};
   GetDStoParticle(p, ds, dsdr);
-  float_v mP[8], mC[36], mP1[8], mC1[36];
+
+  float_v mP[8]{}, mC[36]{}, mP1[8]{}, mC1[36]{};
   Transport(ds[0], dsdr[0], mP, mC);
   p.Transport(ds[1], dsdr[3], mP1, mC1);
+
   float_v n  = sqrt(mP[3] * mP[3] + mP[4] * mP[4]);
   float_v n1 = sqrt(mP1[3] * mP1[3] + mP1[4] * mP1[4]);
   n *= n1;
@@ -5496,11 +5467,13 @@ float_v KFParticleSIMD::GetAngleRZ(const KFParticleSIMD& p) const
    **/
 
   float_v ds[2] = {0.f, 0.f};
-  float_v dsdr[4][6];
+  float_v dsdr[4][6]{};
   GetDStoParticle(p, ds, dsdr);
-  float_v mP[8], mC[36], mP1[8], mC1[36];
+
+  float_v mP[8]{}, mC[36]{}, mP1[8]{}, mC1[36]{};
   Transport(ds[0], dsdr[0], mP, mC);
   p.Transport(ds[1], dsdr[3], mP1, mC1);
+
   float_v nr  = sqrt(mP[3] * mP[3] + mP[4] * mP[4]);
   float_v n1r = sqrt(mP1[3] * mP1[3] + mP1[4] * mP1[4]);
   float_v n   = sqrt(nr * nr + mP[5] * mP[5]);
@@ -5630,7 +5603,7 @@ void KFParticleSIMD::GetArmenterosPodolanski(KFParticleSIMD& positive, KFParticl
   float_v spy  = positive.GetPy() + negative.GetPy();
   float_v spz  = positive.GetPz() + negative.GetPz();
   float_v sp   = sqrt(spx * spx + spy * spy + spz * spz);
-  float_m mask = float_m(abs(sp) < float_v(1.e-10f));
+  float_m mask = float_m(abs(sp) < 1.e-10f);
   float_v pn, pp, pln, plp;
 
   pn  = sqrt(negative.GetPx() * negative.GetPx() + negative.GetPy() * negative.GetPy()
@@ -5640,7 +5613,8 @@ void KFParticleSIMD::GetArmenterosPodolanski(KFParticleSIMD& positive, KFParticl
   pln = (negative.GetPx() * spx + negative.GetPy() * spy + negative.GetPz() * spz) / sp;
   plp = (positive.GetPx() * spx + positive.GetPy() * spy + positive.GetPz() * spz) / sp;
 
-  mask        = float_m(mask && float_m(abs(pn) < float_v(1.E-10f)));
+  mask = mask && (abs(pn) < 1.E-10f);
+
   float_v ptm = (1.f - ((pln / pn) * (pln / pn)));
   qt          = select(ptm >= 0.f, pn * sqrt(ptm), qt);
   alpha       = (plp - pln) / (plp + pln);
@@ -5665,10 +5639,8 @@ void KFParticleSIMD::RotateXY(float_v angle, float_v Vtx[3])
   float_v s = sin(angle);
   float_v c = cos(angle);
 
-  float_v mA[8][8];
-  for (Int_t i = 0; i < 8; i++) {
-    for (Int_t j = 0; j < 8; j++) { mA[i][j] = 0; }
-  }
+  float_v mA[8][8]{};
+
   for (int i = 0; i < 8; i++) { mA[i][i] = 1; }
   mA[0][0] = c;
   mA[0][1] = s;
@@ -5679,8 +5651,8 @@ void KFParticleSIMD::RotateXY(float_v angle, float_v Vtx[3])
   mA[4][3] = -s;
   mA[4][4] = c;
 
-  float_v mAC[8][8];
-  float_v mAp[8];
+  float_v mAC[8][8]{};
+  float_v mAp[8]{};
 
   for (Int_t i = 0; i < 8; i++) {
     mAp[i] = 0;
@@ -5718,7 +5690,7 @@ void KFParticleSIMD::MultQSQt(const float_v Q[], const float_v S[], float_v SOut
    ** \param[in] kN - dimensionality of the matrices
    **/
 
-  float_v* mA = new float_v[kN * kN];
+  float_v mA[kN * kN]{};
 
   for (Int_t i = 0, ij = 0; i < kN; i++) {
     for (Int_t j = 0; j < kN; j++, ++ij) {
@@ -5736,6 +5708,4 @@ void KFParticleSIMD::MultQSQt(const float_v Q[], const float_v S[], float_v SOut
       for (Int_t k = 0; k < kN; k++) { SOut[ij] += Q[i * kN + k] * mA[k * kN + j]; }
     }
   }
-
-  if (mA) { delete[] mA; }
 }

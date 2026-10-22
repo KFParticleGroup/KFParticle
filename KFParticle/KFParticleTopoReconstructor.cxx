@@ -84,7 +84,7 @@ void KFParticleTopoReconstructor::Init(AliHLTTPCCAGBTracker* tracker, vector<int
   fParticles.clear();
   int iOTr = 0;  // index in out array
 
-  float_v alpha(Vc::Zero);
+  float_v alpha(0.f);
   int nElements = 0;
 
   for (int iTr = 0; iTr < nTracks; iTr++) {
@@ -434,7 +434,7 @@ void KFParticleTopoReconstructor::SortTracks()
     int Size = fTracks[0].Size();
 
     vector<KFPTrackIndex> sortedTracks(Size);
-    kfvector_int trackIndex[4];
+    PaddedVector<int_v> trackIndex[4];
     for (int iTV = 0; iTV < 4; iTV++) { trackIndex[iTV].resize(Size); }
     int nTracks[4] = {0, 0, 0, 0};
 
@@ -543,8 +543,9 @@ void KFParticleTopoReconstructor::TransportPVTracksToPrimVertex()
   for (int iTV = 2; iTV < 4; iTV++) {
     unsigned int NTr = fTracks[iTV].Size();
     for (unsigned int iTr = 0; iTr < NTr; iTr += SimdLen) {
-      const int_v& pdg     = reinterpret_cast<const int_v&>(fTracks[iTV].PDG()[iTr]);
-      const int_v& pvIndex = reinterpret_cast<const int_v&>(fTracks[iTV].PVIndex()[iTr]);
+      int iBlock           = iTr / SimdLen;
+      const int_v& pdg     = fTracks[iTV].PDG().block(iBlock);
+      const int_v& pvIndex = fTracks[iTV].PVIndex().block(iBlock);
 
       tmpPart.Load(fTracks[iTV], iTr, pdg);
 
@@ -578,20 +579,23 @@ void KFParticleTopoReconstructor::GetChiToPrimVertex(KFParticleSIMD* pv, const i
   KFParticleSIMD tmpPart;
 
   for (int iTV = 0; iTV < 2; iTV++) {
-    unsigned int NTr = fTracks[iTV].Size();
-    for (unsigned int iTr = 0; iTr < NTr; iTr += SimdLen) {
-      int_v trackIndex = int_v(iTr) + KFP::SIMD::gkIndicesSequenceI;
-      const int_v& pdg = reinterpret_cast<const int_v&>(fTracks[iTV].PDG()[iTr]);
-      tmpPart.Create(fTracks[iTV], trackIndex, pdg);
+    int NTr = fTracks[iTV].Size();
+    for (int iTr = 0; iTr < NTr; iTr += SimdLen) {
+      int iblock       = iTr / SimdLen;
+      const int_v& pdg = fTracks[iTV].PDG().block(iblock);
+      tmpPart.Load(fTracks[iTV], iTr, pdg);
 
-      float_v& chi2 = reinterpret_cast<float_v&>(fChiToPrimVtx[iTV][iTr]);
-      chi2          = select(trackIndex < NTr, 10000.f, chi2);
+      // TODO: SG: no need to check the valid index. There is no danger in initializing the rest of the simd vector with 10000.f
+      int_v trackIndex       = KFP::SIMD::gkIndicesSequenceI + iTr;
+      float_m validIndexMask = KFP::SIMD::mask_cast<float_m>(trackIndex < NTr);
+      float_v& chi2          = fChiToPrimVtx[iTV].block(iblock);
+      chi2                   = select(validIndexMask, 10000.f, chi2);
 
       for (int iPV = 0; iPV < nPV; iPV++) {
         const float_v point[3] = {pv[iPV].X(), pv[iPV].Y(), pv[iPV].Z()};
         tmpPart.TransportToPoint(point);
-        const float_v& chiVec = tmpPart.GetDeviationFromVertex(pv[iPV]);
-        chi2                  = select((chi2 > chiVec) && (trackIndex < NTr), chiVec, chi2);
+        const float_v chiVec = tmpPart.GetDeviationFromVertex(pv[iPV]);
+        chi2                 = select((chi2 > chiVec) && validIndexMask, chiVec, chi2);
       }
     }
   }
@@ -1043,7 +1047,7 @@ void KFParticleTopoReconstructor::SendDataToXeonPhi(int iHLT, scif_epd_t& endpoi
 
   int offset = NInputSets + 2;
 
-  for (int iSet = 0; iSet < NInputSets; iSet++) { fTracks[iSet].SetDataToVector(data, offset); }
+  for (int iSet = 0; iSet < NInputSets; iSet++) { fTracks[iSet].SetDataToBuffer(data, offset); }
 
   for (int iP = 0; iP < 3; iP++) {
     for (unsigned int iPV = 0; iPV < fPV.size(); iPV++) {

@@ -208,7 +208,7 @@ class KFParticleFieldRegion {
    ** By(z) = cy0 + cy1*(z-z0) + cy2*(z-z0)^2 \n
    ** Bz(z) = cz0 + cz1*(z-z0) + cz2*(z-z0)^2
    **/
-  float_v fField[10];
+  float_v fField[10]{};
 };
 
 #endif
