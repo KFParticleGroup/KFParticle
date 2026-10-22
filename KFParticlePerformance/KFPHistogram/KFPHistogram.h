@@ -73,14 +73,14 @@ class KFPHistogram {
 
   void SetOutFileName(std::string name) { fOutFileName = name; }  ///< Set the name of the output file.
 
-  inline void Fill(const KFParticle& particle)
+  inline void Fill(const kfp::KFParticle& particle)
   {
     std::map<int, int>::iterator it;
     it = fPdgToIndex.find(particle.GetPDG());
     if (it != fPdgToIndex.end()) { fKFPHistogramSet[it->second].Fill(particle); }
   }  ///< Fills histograms using parameters of the given particle.
 
-  inline void Fill(const KFParticleTopoReconstructor& topoReconstructor)
+  inline void Fill(const kfp::KFParticleTopoReconstructor& topoReconstructor)
   {
     for (unsigned int iParticle = 0; iParticle < topoReconstructor.GetParticles().size(); iParticle++) {
       Fill(topoReconstructor.GetParticles()[iParticle]);

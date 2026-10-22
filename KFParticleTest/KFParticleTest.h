@@ -22,8 +22,11 @@
 #ifndef KFParticleTest_H
 #define KFParticleTest_H
 
-class KFParticle;
-class KFParticleSIMD;
+namespace kfp
+{
+  class KFParticle;
+  class KFParticleSIMD;
+}  // namespace kfp
 
 class KFParticleTest {
  public:
@@ -38,8 +41,8 @@ class KFParticleTest {
   void RunTestSIMD();
   void CompareSingleAndSIMDResults();
 
-  KFParticle* fMotherSingle;
-  KFParticleSIMD* fMotherSIMD;
+  kfp::KFParticle* fMotherSingle;
+  kfp::KFParticleSIMD* fMotherSIMD;
 
 #ifndef KFParticleStandalone
   ClassDef(KFParticleTest, 1)

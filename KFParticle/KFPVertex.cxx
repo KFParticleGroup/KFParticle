@@ -21,6 +21,8 @@
 
 #include "KFPVertex.h"
 
+using namespace kfp;
+
 KFPVertex::KFPVertex() : fChi2(-1.f), fNContributors(0), fNDF(-1)
 {
   for (int iP = 0; iP < 3; iP++) { fP[iP] = 0; }

@@ -23,9 +23,8 @@
 #include "KFVertex.h"
 
 #include <iostream>
-#if !defined(KFParticleStandalone) && !defined(CBM_ONLINE)
-ClassImp(KFVertex);
-#endif
+
+using namespace kfp;
 
 KFVertex::KFVertex(const KFPVertex& vertex) : fIsConstrained(0)
 {

@@ -30,11 +30,9 @@
 #include <iomanip>
 #include <iostream>
 
-#ifndef KFParticleStandalone
-ClassImp(KFParticleTest)
-#endif
+using namespace kfp;
 
-  std::ostream& operator<<(std::ostream& os, const KFParticle& particle)
+std::ostream& operator<<(std::ostream& os, const KFParticle& particle)
 {
   static const char* vn[14] = {"x", "y", "z", "px", "py", "pz", "E", "S", "M", "t", "p", "Q", "Chi2", "NDF"};
 

@@ -5,8 +5,8 @@
 #pragma link off all functions;
 
 // KFParticle
-#pragma link C++ class KFParticle + ;
-#pragma link C++ class KFVertex + ;
+#pragma link C++ class kfp::KFParticle + ;
+#pragma link C++ class kfp::KFVertex + ;
 #pragma link C++ class KFPartEfficiencies + ;
 #pragma link C++ class KFMCParticle + ;
 //#pragma link C++ class  KFParticle+;

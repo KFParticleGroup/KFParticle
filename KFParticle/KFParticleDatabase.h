@@ -24,7 +24,10 @@
 
 #include "KFParticleDef.h"
 
-/** @class KFParticleDatabase
+namespace kfp
+{
+
+  /** @class KFParticleDatabase
  ** @brief The class stores information about particle masses and expected width
  *of the peacks.
  ** @author  M.Zyzak, I.Kisel
@@ -39,81 +42,81 @@
  ** - expected widths of the peaks.
  **/
 
-class KFParticleDatabase {
- public:
-  KFParticleDatabase();
+  class KFParticleDatabase {
+   public:
+    KFParticleDatabase();
 
-  ~KFParticleDatabase() {}
+    ~KFParticleDatabase() {}
 
-  float GetMass(const int pdg) const
-  {
-    /** Returns scalar float variable with the mass of the stable particle with
+    float GetMass(const int pdg) const
+    {
+      /** Returns scalar float variable with the mass of the stable particle with
      *the given PDG code.
      ** If the given PDG code is not the list of the current database mass of
      *the pion is returned.
      ** \param[in] pdg - the input PDG code
      **/
-    int pdgIndex = 2;
-    switch (abs(pdg)) {
-      case 11: pdgIndex = 0; break;
-      case 13: pdgIndex = 1; break;
-      case 19: pdgIndex = 1; break;
-      case 211: pdgIndex = 2; break;
-      case 321: pdgIndex = 3; break;
-      case 2212: pdgIndex = 4; break;
-      case 1000010020: pdgIndex = 5; break;
-      case 1000010030: pdgIndex = 6; break;
-      case 1000020030: pdgIndex = 7; break;
-      case 1000020040: pdgIndex = 8; break;
-      case 1000020060: pdgIndex = 9; break;
-      case 1000030060: pdgIndex = 10; break;
-      case 1000030070: pdgIndex = 11; break;
-      case 1000040070: pdgIndex = 12; break;
-      case 3112: pdgIndex = 13; break;
-      case 3222: pdgIndex = 14; break;
-      case 3312: pdgIndex = 15; break;
-      case 3334: pdgIndex = 16; break;
-      default: pdgIndex = 2; break;
+      int pdgIndex = 2;
+      switch (abs(pdg)) {
+        case 11: pdgIndex = 0; break;
+        case 13: pdgIndex = 1; break;
+        case 19: pdgIndex = 1; break;
+        case 211: pdgIndex = 2; break;
+        case 321: pdgIndex = 3; break;
+        case 2212: pdgIndex = 4; break;
+        case 1000010020: pdgIndex = 5; break;
+        case 1000010030: pdgIndex = 6; break;
+        case 1000020030: pdgIndex = 7; break;
+        case 1000020040: pdgIndex = 8; break;
+        case 1000020060: pdgIndex = 9; break;
+        case 1000030060: pdgIndex = 10; break;
+        case 1000030070: pdgIndex = 11; break;
+        case 1000040070: pdgIndex = 12; break;
+        case 3112: pdgIndex = 13; break;
+        case 3222: pdgIndex = 14; break;
+        case 3312: pdgIndex = 15; break;
+        case 3334: pdgIndex = 16; break;
+        default: pdgIndex = 2; break;
+      }
+
+      return fMass[pdgIndex];
     }
 
-    return fMass[pdgIndex];
-  }
-
-  float_v GetMass(const int_v& pdg) const
-  {
-    /** Returns vector float variable with the mass of the stable particles with
+    float_v GetMass(const int_v& pdg) const
+    {
+      /** Returns vector float variable with the mass of the stable particles with
      *the given PDG codes.
      ** If the given PDG code is not in the list of the current database mass of
      *the pion is returned.
      ** \param[in] pdg - the input PDG codes of a set of particles in the
      *SIMD-vector format
      **/
-    int_v pdgIndex(2);
-    pdgIndex     = select(abs(pdg) == 11, 0, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 13, 1, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 19, 1, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 211, 2, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 321, 3, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 2212, 4, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 1000010020, 5, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 1000010030, 6, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 1000020030, 7, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 1000020040, 8, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 1000020060, 9, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 1000030060, 10, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 1000030070, 11, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 1000040070, 12, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 3112, 13, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 3222, 14, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 3312, 15, pdgIndex);
-    pdgIndex     = select(abs(pdg) == 3334, 16, pdgIndex);
-    float_v mass = KFP::SIMD::gather(fMass, pdgIndex);
-    return mass;
-  }
+      int_v pdgIndex(2);
+      pdgIndex     = select(abs(pdg) == 11, 0, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 13, 1, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 19, 1, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 211, 2, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 321, 3, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 2212, 4, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 1000010020, 5, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 1000010030, 6, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 1000020030, 7, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 1000020040, 8, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 1000020060, 9, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 1000030060, 10, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 1000030070, 11, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 1000040070, 12, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 3112, 13, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 3222, 14, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 3312, 15, pdgIndex);
+      pdgIndex     = select(abs(pdg) == 3334, 16, pdgIndex);
+      float_v mass = kfp::simd::gather(fMass, pdgIndex);
+      return mass;
+    }
 
-  void GetMotherMass(const int_v& pdg, float_v& massMotherPDG, float_v& massMotherPDGSigma) const
-  {
-    /** Returns vector float variable with the mass of the short-lived particles
+    void GetMotherMass(const int_v& pdg, float_v& massMotherPDG, float_v& massMotherPDGSigma) const
+    {
+      /** Returns vector float variable with the mass of the short-lived particles
      *with the given PDG codes
      ** and the expected widths of the corresponding peaks.
      ** If the given PDG code is not in the list of the current database mass of
@@ -124,23 +127,23 @@ class KFParticleDatabase {
      *peak
      **/
 
-    int_v pdgIndex(0);
-    // pdgIndex = select(pdg ==  310     , 0, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3122, 1, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3312, 2, pdgIndex);
-    pdgIndex = select(pdg == 22, 3, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3334, 4, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3004, 5, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3006, 6, pdgIndex);
-    pdgIndex = select(abs(pdg) == 3007, 7, pdgIndex);
+      int_v pdgIndex(0);
+      // pdgIndex = select(pdg ==  310     , 0, pdgIndex);
+      pdgIndex = select(abs(pdg) == 3122, 1, pdgIndex);
+      pdgIndex = select(abs(pdg) == 3312, 2, pdgIndex);
+      pdgIndex = select(pdg == 22, 3, pdgIndex);
+      pdgIndex = select(abs(pdg) == 3334, 4, pdgIndex);
+      pdgIndex = select(abs(pdg) == 3004, 5, pdgIndex);
+      pdgIndex = select(abs(pdg) == 3006, 6, pdgIndex);
+      pdgIndex = select(abs(pdg) == 3007, 7, pdgIndex);
 
-    massMotherPDG      = KFP::SIMD::gather(fMassSecPDG, pdgIndex);
-    massMotherPDGSigma = KFP::SIMD::gather(fMassSecPDGSigma, pdgIndex);
-  }
+      massMotherPDG      = kfp::simd::gather(fMassSecPDG, pdgIndex);
+      massMotherPDGSigma = kfp::simd::gather(fMassSecPDGSigma, pdgIndex);
+    }
 
-  void GetMotherMass(const int pdg, float& massMotherPDG, float& massMotherPDGSigma) const
-  {
-    /** Returns scalar float variables with the mass of the short-lived particle
+    void GetMotherMass(const int pdg, float& massMotherPDG, float& massMotherPDGSigma) const
+    {
+      /** Returns scalar float variables with the mass of the short-lived particle
      *with the given PDG code
      ** and the expected width of the corresponding peak.
      ** If the given PDG code is not in the list of the current database mass of
@@ -151,62 +154,64 @@ class KFParticleDatabase {
      *peak
      **/
 
-    int pdgIndex = 2;
-    switch (abs(pdg)) {
-      case 310: pdgIndex = 0; break;
-      case 3122: pdgIndex = 1; break;
-      case 3312: pdgIndex = 2; break;
-      case 22: pdgIndex = 3; break;
-      case 3334: pdgIndex = 4; break;
-      case 3004: pdgIndex = 5; break;
-      case 3006: pdgIndex = 6; break;
-      case 3007: pdgIndex = 7; break;
-      default: pdgIndex = 0; break;
+      int pdgIndex = 2;
+      switch (abs(pdg)) {
+        case 310: pdgIndex = 0; break;
+        case 3122: pdgIndex = 1; break;
+        case 3312: pdgIndex = 2; break;
+        case 22: pdgIndex = 3; break;
+        case 3334: pdgIndex = 4; break;
+        case 3004: pdgIndex = 5; break;
+        case 3006: pdgIndex = 6; break;
+        case 3007: pdgIndex = 7; break;
+        default: pdgIndex = 0; break;
+      }
+
+      massMotherPDG      = fMassSecPDG[pdgIndex];
+      massMotherPDGSigma = fMassSecPDGSigma[pdgIndex];
     }
 
-    massMotherPDG      = fMassSecPDG[pdgIndex];
-    massMotherPDGSigma = fMassSecPDGSigma[pdgIndex];
-  }
+    const float& GetPi0Mass() const { return fMassPi0PDG; }                ///< Returns the table PDG pi0 mass.
+    const float& GetPi0MassSigma() const { return fMassPi0PDGSigma; }      ///< Returns expected width of the pi0 peak.
+    const float& GetD0Mass() const { return fMassD0PDG; }                  ///< Returns the table PDG D0 mass.
+    const float& GetD0MassSigma() const { return fMassD0PDGSigma; }        ///< Returns expected width of the D0 peak.
+    const float& GetDPlusMass() const { return fMassDPlusPDG; }            ///< Returns the table PDG D+ mass.
+    const float& GetDPlusMassSigma() const { return fMassDPlusPDGSigma; }  ///< Returns expected width of the D+ peak.
 
-  const float& GetPi0Mass() const { return fMassPi0PDG; }                ///< Returns the table PDG pi0 mass.
-  const float& GetPi0MassSigma() const { return fMassPi0PDGSigma; }      ///< Returns expected width of the pi0 peak.
-  const float& GetD0Mass() const { return fMassD0PDG; }                  ///< Returns the table PDG D0 mass.
-  const float& GetD0MassSigma() const { return fMassD0PDGSigma; }        ///< Returns expected width of the D0 peak.
-  const float& GetDPlusMass() const { return fMassDPlusPDG; }            ///< Returns the table PDG D+ mass.
-  const float& GetDPlusMassSigma() const { return fMassDPlusPDGSigma; }  ///< Returns expected width of the D+ peak.
+    static const KFParticleDatabase* Instance() { return fDatabase; }  ///< Returns a pointer to the singleton object.
 
-  static const KFParticleDatabase* Instance() { return fDatabase; }  ///< Returns a pointer to the singleton object.
-
- private:
-  /** Table PDG masses of particles, which can be registered by the tracking
+   private:
+    /** Table PDG masses of particles, which can be registered by the tracking
    *detector directly: \n
    ** [ 0] - electron; \n [ 1] - muon; \n [ 2] - pion; \n [ 3] - kaon; \n [ 4] -
    *proton; \n
    ** [ 5] - deutron; \n [ 6] - triton; \n [ 7] - He3; \n [ 8] - He4;
    ** [ 9] - He6; \n [10] - Li6; \n [11] - Li7; \n [12] - Be7; \n
    ** \n [13] - Sigma-; \n [14] - Sigma+; \n [15] - Xi; \n [16] - Omega. */
-  float fMass[17];
+    float fMass[17];
 
-  /** Table PDG masses of short-lived particles, which are used for
+    /** Table PDG masses of short-lived particles, which are used for
    *reconstruction of the decay trees: \n
    ** [ 0] - K0s; \n [ 1] - Lambda; \n [ 2] - Xi; \n [ 3] - gamma; \n [ 4] -
    *Omega; \n [ 5] - H3Lambda; \n [ 6] - He4Lambda; \n [ 7] - He5Lambda. */
-  float fMassSecPDG[8];
-  /** Expected widths of peaks of short-lived particles, which are used for
+    float fMassSecPDG[8];
+    /** Expected widths of peaks of short-lived particles, which are used for
    *reconstruction of the decay trees: \n
    ** [ 0] - K0s; \n [ 1] - Lambda; \n [ 2] - Xi; \n [ 3] - gamma; \n [ 4] -
    *Omega; \n [ 5] - H3Lambda; \n [ 6] - He4Lambda; \n [ 7] - He5Lambda. */
-  float fMassSecPDGSigma[8];
+    float fMassSecPDGSigma[8];
 
-  float fMassPi0PDG;       ///< Table mass of pi0
-  float fMassPi0PDGSigma;  ///< Expected width of the pi0 peak
+    float fMassPi0PDG;       ///< Table mass of pi0
+    float fMassPi0PDGSigma;  ///< Expected width of the pi0 peak
 
-  float fMassD0PDG;          ///< Table mass of D0
-  float fMassD0PDGSigma;     ///< Expected width of the D0 peak
-  float fMassDPlusPDG;       ///< Table mass of D+
-  float fMassDPlusPDGSigma;  ///< Expected width of the D+ peak
+    float fMassD0PDG;          ///< Table mass of D0
+    float fMassD0PDGSigma;     ///< Expected width of the D0 peak
+    float fMassDPlusPDG;       ///< Table mass of D+
+    float fMassDPlusPDGSigma;  ///< Expected width of the D+ peak
 
-  static KFParticleDatabase* fDatabase;  ///< A singleton object.
-};
+    static KFParticleDatabase* fDatabase;  ///< A singleton object.
+  };
+
+}  // namespace kfp
 
 #endif

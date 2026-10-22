@@ -25,6 +25,7 @@
 #include "KFParticle.h"
 
 using std::vector;
+using namespace kfp;
 
 void KFParticlePVReconstructor::Init(KFPTrackVector* tracks, int nParticles)
 {

@@ -42,7 +42,7 @@ class KFPHistogramSet {
   KFPHistogramSet(int iPart = 0);
   ~KFPHistogramSet() {}
 
-  void Fill(const KFParticle& particle);
+  void Fill(const kfp::KFParticle& particle);
 
   inline int GetNHisto1D() const { return NHisto1D; }  ///< Returns a number of one dimensional histograms in the set.
   inline int DataSize() const

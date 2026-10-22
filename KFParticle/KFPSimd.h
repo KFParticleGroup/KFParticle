@@ -21,12 +21,13 @@ namespace stdx
   using namespace std::experimental::__proposed;
 }  // namespace stdx
 
-#define KFP_SIMD_INLINE inline __attribute__((always_inline))
 
-namespace KFP
+namespace kfp
 {
-  namespace SIMD
+  namespace simd
   {
+
+#define KFP_SIMD_INLINE inline __attribute__((always_inline))
 
     // TODO: try with SIMD size 16
 
@@ -136,7 +137,7 @@ namespace KFP
       }
     }
 
-  }  // namespace SIMD
-}  // namespace KFP
+  }  // namespace simd
+}  // namespace kfp
 
 #endif  // !KFPSIMD_H

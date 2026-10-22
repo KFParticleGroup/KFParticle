@@ -23,6 +23,8 @@
 
 #include <iostream>
 
+using namespace kfp;
+
 void KFPTrackVector::Resize(const int n)
 {
   /** Resizes all vectors in the class to a given value.

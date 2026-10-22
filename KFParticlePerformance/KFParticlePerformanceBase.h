@@ -46,8 +46,6 @@ class TH3F;
 class TProfile;
 class TProfile2D;
 
-class KFParticle;
-
 /** @class KFParticlePerformanceBase
  ** @brief The base class for KFTopoPerformance.
  ** @author  M.Zyzak, I.Kisel

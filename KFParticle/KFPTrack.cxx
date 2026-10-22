@@ -27,6 +27,8 @@
 #include "TString.h"
 #endif
 
+using namespace kfp;
+
 void KFPTrack::RotateXY(float alpha)
 {
   /** Rotates the parameters of the track on an angle alpha in the XY plane.

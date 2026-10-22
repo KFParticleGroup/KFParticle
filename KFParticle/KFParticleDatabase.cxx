@@ -21,6 +21,8 @@
 
 #include "KFParticleDatabase.h"
 
+using namespace kfp;
+
 KFParticleDatabase* KFParticleDatabase::fDatabase = 0;
 
 KFParticleDatabase::KFParticleDatabase()

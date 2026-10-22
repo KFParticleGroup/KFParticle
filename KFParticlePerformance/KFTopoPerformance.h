@@ -33,7 +33,12 @@
 
 class AliHLTTPCCAGBTracker;
 
-class KFParticleTopoReconstructor;
+namespace kfp
+{
+  class KFParticleTopoReconstructor;
+  class KFParticle;
+}  // namespace kfp
+
 class KFPHistogram;
 
 class TFile;
@@ -67,8 +72,8 @@ class KFTopoPerformance : public KFParticlePerformanceBase {
                    AliHLTResizableArray<AliHLTTPCCAMCTrack>* mcTracks,
                    AliHLTResizableArray<AliHLTTPCCALocalMCPoint>* localMCPoints);
 #endif
-  void SetTopoReconstructor(const KFParticleTopoReconstructor* const TopoReconstructor);
-  const KFParticleTopoReconstructor* GetTopoReconstructor() const
+  void SetTopoReconstructor(const kfp::KFParticleTopoReconstructor* const TopoReconstructor);
+  const kfp::KFParticleTopoReconstructor* GetTopoReconstructor() const
   { return fTopoReconstructor; }  ///< Returns pointer to the KFParticleTopoReconstructor object.
 
   // Check if MC track is reconstructable. Calculate set of MC track. Etc.
@@ -133,7 +138,7 @@ class KFTopoPerformance : public KFParticlePerformanceBase {
   void FindReconstructableMCParticles();
   void CheckMCParticleIsReconstructable(KFMCParticle& part);
   void FindReconstructableMCVertices();
-  void FillParticleParameters(KFParticle& TempPart, int iParticle, int iP, int iPV,
+  void FillParticleParameters(kfp::KFParticle& TempPart, int iParticle, int iP, int iPV,
                               TH1F* histoParameters[4][KFPartEfficiencies::nParticles][nHistoPartParam],
                               TH2F* histoParameters2D[4][KFPartEfficiencies::nParticles][nHistoPartParam2D],
                               TH3F* histoParameters3D[1][KFPartEfficiencies::nParticles][nHistoPartParam3D],
@@ -144,8 +149,8 @@ class KFTopoPerformance : public KFParticlePerformanceBase {
   float GetAcceptanceWeight(const double* point, const int iParticle);
   float GetCutsEffWeight(const double* point, const int iParticle);
 
-  const KFParticleTopoReconstructor* fTopoReconstructor;  ///< Pointer to the KFParticleTopoReconstructor object
-                                                          ///< with particles and vertices to be analysed.
+  const kfp::KFParticleTopoReconstructor* fTopoReconstructor;  ///< Pointer to the KFParticleTopoReconstructor object
+                                                               ///< with particles and vertices to be analysed.
 
   std::vector<KFMCVertex> fPrimVertices;  ///< Monte Carlo primary vertices.
   std::vector<int> fMCTrackToMCPVMatch;   ///< Matching of Monte Carlo tracks and

@@ -29,10 +29,7 @@
 
 #include <iostream>
 
-#if !defined(KFParticleStandalone) && !defined(CBM_ONLINE)
-ClassImp(KFParticle);
-#endif
-
+using namespace kfp;
 
 #ifdef HomogeneousField
 float KFParticle::fgBz = -5.;  //* Bz compoment of the magnetic field

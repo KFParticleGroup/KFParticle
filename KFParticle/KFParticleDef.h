@@ -36,14 +36,17 @@
 
 #define NInputSets 8
 
-using KFP::SIMD::float_m;
-using KFP::SIMD::float_v;
-using KFP::SIMD::int_m;
-using KFP::SIMD::int_v;
-using KFP::SIMD::PaddedVector;
-using KFP::SIMD::select;
-using KFP::SIMD::SimdLen;
-using KFP::SIMD::SimdSize;
+namespace kfp
+{
+  using kfp::simd::float_m;
+  using kfp::simd::float_v;
+  using kfp::simd::int_m;
+  using kfp::simd::int_v;
+  using kfp::simd::PaddedVector;
+  using kfp::simd::select;
+  using kfp::simd::SimdLen;
+  using kfp::simd::SimdSize;
+}  // namespace kfp
 
 #if defined(HLTCA_STANDALONE)
 typedef unsigned char UChar_t;
