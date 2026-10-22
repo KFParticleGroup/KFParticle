@@ -594,8 +594,8 @@ void KFParticleTopoReconstructor::GetChiToPrimVertex(KFParticleSIMD* pv, const i
       for (int iPV = 0; iPV < nPV; iPV++) {
         const float_v point[3] = {pv[iPV].X(), pv[iPV].Y(), pv[iPV].Z()};
         tmpPart.TransportToPoint(point);
-        const float_v& chiVec = tmpPart.GetDeviationFromVertex(pv[iPV]);
-        chi2                  = select((chi2 > chiVec) && validIndexMask, chiVec, chi2);
+        const float_v chiVec = tmpPart.GetDeviationFromVertex(pv[iPV]);
+        chi2                 = select((chi2 > chiVec) && validIndexMask, chiVec, chi2);
       }
     }
   }
