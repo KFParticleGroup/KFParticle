@@ -14,9 +14,9 @@ Emails: se.gorbunov@gsi.de
 #include <experimental/simd>
 #include <vector>
 
-namespace KFP
+namespace kfp
 {
-  namespace SIMD
+  namespace simd
   {
 
     /// @brief SIMD-aligned amd padded vector of scalars - supports efficient access and manipulation of elements in SIMD blocks
@@ -173,8 +173,8 @@ namespace KFP
         false};  ///< Indicates whether the padding of the last block has been filled with reasonable values (typically the last logical element).
     };
 
-  }  // namespace SIMD
-}  // namespace KFP
+  }  // namespace simd
+}  // namespace kfp
 
 
 #endif  // !KFPSIMD_PADDED_VECTOR_H

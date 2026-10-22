@@ -39,6 +39,8 @@ using std::vector;
 
 #include "KFPInputData.h"
 
+using namespace kfp;
+
 KFParticleTopoReconstructor::~KFParticleTopoReconstructor()
 {
   /** The default destructor. Deallocates memory for all pointers if objects exist. **/
@@ -586,8 +588,8 @@ void KFParticleTopoReconstructor::GetChiToPrimVertex(KFParticleSIMD* pv, const i
       tmpPart.Load(fTracks[iTV], iTr, pdg);
 
       // TODO: SG: no need to check the valid index. There is no danger in initializing the rest of the simd vector with 10000.f
-      int_v trackIndex       = KFP::SIMD::gkIndicesSequenceI + iTr;
-      float_m validIndexMask = KFP::SIMD::mask_cast<float_m>(trackIndex < NTr);
+      int_v trackIndex       = kfp::simd::gkIndicesSequenceI + iTr;
+      float_m validIndexMask = kfp::simd::mask_cast<float_m>(trackIndex < NTr);
       float_v& chi2          = fChiToPrimVtx[iTV].block(iblock);
       chi2                   = select(validIndexMask, 10000.f, chi2);
 

@@ -41,6 +41,8 @@
 
 class KFParticleFieldValue {
  public:
+  using float_v = kfp::simd::float_v;
+
   KFParticleFieldValue() : x(0.f), y(0.f), z(0.f) {};
 
   float_v x;  ///< Bx component of the magnetic field
@@ -86,6 +88,8 @@ class KFParticleFieldValue {
 
 class KFParticleFieldRegion {
  public:
+  using float_v = kfp::simd::float_v;
+
   KFParticleFieldRegion() {};
   KFParticleFieldRegion(const float field[10])
   {

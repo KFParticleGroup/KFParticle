@@ -81,6 +81,9 @@ struct KFPTrackIndex {
 
 class KFPInputData {
  public:
+  using int_v   = kfp::simd::int_v;
+  using float_v = kfp::simd::float_v;
+
   void* operator new(size_t size)
   {
     return ::operator new(size, std::align_val_t(stdx::memory_alignment_v<float_v>));
@@ -364,6 +367,9 @@ struct KFPInputDataArray {
  **/
 
 struct KFPLinkedList {
+  using int_v   = kfp::simd::int_v;
+  using float_v = kfp::simd::float_v;
+
   void* operator new(size_t size)
   {
     return ::operator new(size, std::align_val_t(stdx::memory_alignment_v<float_v>));
@@ -391,7 +397,8 @@ struct KFPLinkedList {
 
   KFPInputData data __attribute__((
     aligned(stdx::memory_alignment_v<float_v>)));  ///< Input data for KF Particle Finder \see KFPInputData.
-  KFPLinkedList* next;                             ///< Link to the nex object in the linked list.
+
+  KFPLinkedList* next;  ///< Link to the nex object in the linked list.
 } __attribute__((aligned(stdx::memory_alignment_v<float_v>)));
 
 #endif

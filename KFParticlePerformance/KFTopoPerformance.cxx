@@ -44,8 +44,11 @@
 
 #include <algorithm>
 #include <map>
+
 using std::sort;
 using std::vector;
+
+using namespace kfp;
 
 KFTopoPerformance::KFTopoPerformance()
   : KFParticlePerformanceBase()
