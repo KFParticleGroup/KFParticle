@@ -45,6 +45,11 @@ class KFPEmcCluster;
 
 class KFParticleFinder {
  public:
+  using int_v   = kfp::simd::int_v;
+  using float_v = kfp::simd::float_v;
+  template<typename T>
+  using PaddedVector = kfp::simd::PaddedVector<T>;
+
   KFParticleFinder();
   ~KFParticleFinder() {}
 

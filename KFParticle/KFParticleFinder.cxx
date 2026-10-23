@@ -28,7 +28,7 @@ using std::vector;
 #include "KFParticleDatabase.h"
 #include "KFParticleDef.h"
 
-using namespace KFP::SIMD;
+using namespace kfp;
 
 KFParticleFinder::KFParticleFinder()
   : fNPV(-1)
@@ -901,14 +901,14 @@ inline void KFParticleFinder::ConstructV0(
    ** \param[out] vMotherPrim - array with output primary candidates if any.
    ** \param[out] vMotherSec - array with output secondary candidates if any.
    **/
-  float_m isPrimary = KFP::SIMD::mask_cast<float_m>(pvIndex > -1);
+  float_m isPrimary = kfp::simd::mask_cast<float_m>(pvIndex > -1);
   int_v trackId{};
   KFParticleSIMD posDaughter(vTracks[iTrTypePos], idPosDaughters, daughterPosPDG);
-  trackId = KFP::SIMD::gather(vTracks[iTrTypePos].Id(), idPosDaughters);
+  trackId = kfp::simd::gather(vTracks[iTrTypePos].Id(), idPosDaughters);
   posDaughter.SetId(trackId);
 
   KFParticleSIMD negDaughter(vTracks[iTrTypeNeg], idNegDaughters, daughterNegPDG);
-  trackId = KFP::SIMD::gather(vTracks[iTrTypeNeg].Id(), idNegDaughters);
+  trackId = kfp::simd::gather(vTracks[iTrTypeNeg].Id(), idNegDaughters);
   negDaughter.SetId(trackId);
 #ifdef CBM
   float_v ds[2] = {0.f, 0.f};
@@ -923,7 +923,7 @@ inline void KFParticleFinder::ConstructV0(
   float_v motherPdg    = stdx::static_simd_cast<float_v>(mother.PDG());
   float_v motherAbsPdg = abs(motherPdg);
 
-  float_m saveParticle = (gkIndicesSequenceF < NTracks);
+  float_m saveParticle = (kfp::simd::gkIndicesSequenceF < NTracks);
   float_v chi2Cut      = cuts[1];
   float_v ldlCut       = cuts[2];
   const float_m isD0   = (motherAbsPdg == 421 || motherAbsPdg == 426 || motherAbsPdg == 420);
@@ -1311,7 +1311,7 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<
 
           int iBlockNeg = iTrN / SimdLen;
 
-          int_v negInd = KFP::SIMD::gkIndicesSequenceI + iTrN;
+          int_v negInd = kfp::simd::gkIndicesSequenceI + iTrN;
 
           int_v negPDG        = negTracks.PDG().block(iBlockNeg);
           int_v negPVIndex    = negTracks.PVIndex().block(iBlockNeg);
@@ -1327,7 +1327,7 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<
             activeNeg |= (negPVIndex < 0) && (negPDG == -1);
           }
 #endif
-          activeNeg &= (KFP::SIMD::gkIndicesSequenceI < int(NTracksNeg));
+          activeNeg &= (kfp::simd::gkIndicesSequenceI < int(NTracksNeg));
 
           daughterNeg.Load(negTracks, iTrN, negPDG);
 
@@ -1356,21 +1356,21 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<
             for (int iRot = 0; iRot < SimdLen; iRot++) {
               //               if(iRot>0)
               {
-                negPDG        = KFP::SIMD::rotate<1>(negPDG);
-                negPVIndex    = KFP::SIMD::rotate<1>(negPVIndex);
-                negNPixelHits = KFP::SIMD::rotate<1>(negNPixelHits);
-                negInd        = KFP::SIMD::rotate<1>(negInd);
-                trackPdgNeg   = KFP::SIMD::rotate<1>(trackPdgNeg);
+                negPDG        = kfp::simd::rotate<1>(negPDG);
+                negPVIndex    = kfp::simd::rotate<1>(negPVIndex);
+                negNPixelHits = kfp::simd::rotate<1>(negNPixelHits);
+                negInd        = kfp::simd::rotate<1>(negInd);
+                trackPdgNeg   = kfp::simd::rotate<1>(trackPdgNeg);
 
                 daughterNeg.Rotate();
-                chiPrimNeg = KFP::SIMD::rotate<1>(chiPrimNeg);
+                chiPrimNeg = kfp::simd::rotate<1>(chiPrimNeg);
 
                 activeNeg = ((negPDG != -1) || (negPVIndex < 0)) && (negInd < negTracksSize);
               }
               const int_m isSecondary = (negPVIndex < 0) && isPosSecondary;
               const int_m isPrimary   = (negPVIndex >= 0) && (!isPosSecondary);
 
-              const int_m closeDaughters = (activeNeg && (KFP::SIMD::gkIndicesSequenceI < int_v(NTracks)));
+              const int_m closeDaughters = (activeNeg && (kfp::simd::gkIndicesSequenceI < int_v(NTracks)));
 
               if (none_of(closeDaughters) && (iTC != 0)) { continue; }
 
@@ -1401,7 +1401,7 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<
 
               if (iTC == 0) {
                 nPDGPos   = 1;
-                active[0] = (negInd < negTracksSize) && (KFP::SIMD::gkIndicesSequenceI < NTracks);
+                active[0] = (negInd < negTracksSize) && (kfp::simd::gkIndicesSequenceI < NTracks);
               }
 
               for (int iPDGPos = 0; iPDGPos < nPDGPos; iPDGPos++) {
@@ -1579,9 +1579,9 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<
 
                 if ((iTrTypeNeg == 0) && (iTrTypePos == 0)) {
                   float_v chiprimCut = fCuts2D[0];
-                  chiprimCut = select(KFP::SIMD::mask_cast<float_m>(abs(motherPDG) == 421 || abs(motherPDG) == 426),
+                  chiprimCut = select(kfp::simd::mask_cast<float_m>(abs(motherPDG) == 421 || abs(motherPDG) == 426),
                                       fCutCharmChiPrim, chiprimCut);
-                  active[iPDGPos] &= KFP::SIMD::mask_cast<int_m>(chiPrimNeg > chiprimCut && chiPrimPos > chiprimCut);
+                  active[iPDGPos] &= kfp::simd::mask_cast<int_m>(chiPrimNeg > chiprimCut && chiPrimPos > chiprimCut);
                 }
 
                 active[iPDGPos] &= (motherPDG != -1);
@@ -1610,7 +1610,7 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<
                   float_v dz = negParameters[2] - posParameters[2];
                   float_v dr = sqrt(dx * dx + dy * dy + dz * dz);
 
-                  active[iPDGPos] &= KFP::SIMD::mask_cast<int_m>(dr < fDistanceCut);
+                  active[iPDGPos] &= kfp::simd::mask_cast<int_m>(dr < fDistanceCut);
                   if (none_of(active[iPDGPos])) { continue; }
 
                   float_v p1p2 = posParameters[3] * negParameters[3] + posParameters[4] * negParameters[4]
@@ -1619,16 +1619,16 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<
                                  + posParameters[5] * posParameters[5];
                   float_v p22  = negParameters[3] * negParameters[3] + negParameters[4] * negParameters[4]
                                  + negParameters[5] * negParameters[5];
-                  active[iPDGPos] &= KFP::SIMD::mask_cast<int_m>(p1p2 > -p12);
-                  active[iPDGPos] &= KFP::SIMD::mask_cast<int_m>(p1p2 > -p22);
+                  active[iPDGPos] &= kfp::simd::mask_cast<int_m>(p1p2 > -p12);
+                  active[iPDGPos] &= kfp::simd::mask_cast<int_m>(p1p2 > -p22);
                 }
 
                 const float_v ptNeg2 = daughterNeg.Px() * daughterNeg.Px() + daughterNeg.Py() * daughterNeg.Py();
                 const float_v ptPos2 = daughterPos.Px() * daughterPos.Px() + daughterPos.Py() * daughterPos.Py();
-                int_m activeCharm    = KFP::SIMD::mask_cast<int_m>(abs(motherPDG) == 421 || abs(motherPDG) == 426);
+                int_m activeCharm    = kfp::simd::mask_cast<int_m>(abs(motherPDG) == 421 || abs(motherPDG) == 426);
                 if (any_of(activeCharm)) {
                   active[iPDGPos] &= (!activeCharm)
-                                     || KFP::SIMD::mask_cast<int_m>(                //
+                                     || kfp::simd::mask_cast<int_m>(                //
                                           (ptNeg2 >= fCutCharmPt * fCutCharmPt) &&  //
                                           (ptPos2 >= fCutCharmPt * fCutCharmPt) &&  //
                                           (chiPrimNeg > fCutCharmChiPrim) &&        //
@@ -1791,7 +1791,7 @@ void KFParticleFinder::Find2DaughterDecayOneSign(KFPTrackVector& vTracks, std::v
       fragment.SetId(fragmentId);
 
       for (int iRot = 0; iRot < SimdLen; iRot++) {
-        pionPDG = KFP::SIMD::rotate<1>(pionPDG);
+        pionPDG = kfp::simd::rotate<1>(pionPDG);
         pion.Rotate();
         pion.SetPDG(pionPDG);
 
@@ -1807,8 +1807,8 @@ void KFParticleFinder::Find2DaughterDecayOneSign(KFPTrackVector& vTracks, std::v
         motherPDG = select((fragmentPDG == 1000030070) && isPion, 3036, motherPDG);  //Li7Sp -> Li7+ pi+
         motherPDG = select((fragmentPDG == 1000040070) && isPion, 3037, motherPDG);  //Be7Sp -> Be7+ pi+
 
-        float_m saveParticle = KFP::SIMD::mask_cast<float_m>(
-          (motherPDG != -1) && (KFP::SIMD::gkIndicesSequenceI + iFragment < vTracks.Size()));
+        float_m saveParticle = kfp::simd::mask_cast<float_m>(
+          (motherPDG != -1) && (kfp::simd::gkIndicesSequenceI + iFragment < vTracks.Size()));
 
         KFParticleSIMD mother;
         mother += pion;
@@ -2256,10 +2256,10 @@ void KFParticleFinder::ConstructTrackV0Cand(
    ** \param[out] vMotherSec - array with output secondary candidates if any. If pointer is set to NULL - not filled.
    **/
 
-  float_m isPrimary = KFP::SIMD::mask_cast<float_m>(pvIndex > -1);
+  float_m isPrimary = kfp::simd::mask_cast<float_m>(pvIndex > -1);
 
   int_v trackId = 0;
-  trackId       = KFP::SIMD::gather(vTracks.Id(), idTracks);
+  trackId       = kfp::simd::gather(vTracks.Id(), idTracks);
 
   KFParticleSIMD V0(vV0, nElements);
   KFParticleSIMD track(vTracks, idTracks, trackPDG);
@@ -2311,7 +2311,7 @@ void KFParticleFinder::ConstructTrackV0Cand(
     mother += track;
   }
 
-  float_m active = (KFP::SIMD::gkIndicesSequenceF < (float) nElements);
+  float_m active = (kfp::simd::gkIndicesSequenceF < (float) nElements);
 
   float_m saveParticle = active;
   saveParticle &= (mother.Chi2() / stdx::static_simd_cast<float_v>(mother.NDF()) < cuts[2]);
@@ -2326,7 +2326,7 @@ void KFParticleFinder::ConstructTrackV0Cand(
     isSameTrack |= (int_v(V0.DaughterIds()[iD]) == int_v(trackId));
   }
 
-  saveParticle &= !KFP::SIMD::mask_cast<float_m>(isSameTrack);
+  saveParticle &= !kfp::simd::mask_cast<float_m>(isSameTrack);
   if (none_of(saveParticle)) { return; }
 
   float_v lMin(1.e8f);
@@ -2345,13 +2345,13 @@ void KFParticleFinder::ConstructTrackV0Cand(
   saveParticle &= isPrimary || isParticleFromVertex;
   if (none_of(saveParticle)) { return; }
 
-  isSameParticle = isSameParticle || KFP::SIMD::mask_cast<int_m>(isPrimary);
+  isSameParticle = isSameParticle || kfp::simd::mask_cast<int_m>(isPrimary);
   if (!all_of(isSameParticle)) {
     float_m isParticleFromVertexLocal;
     float_v l1{}, dl1{};
     V0.GetDistanceToVertexLine(mother, l1, dl1, &isParticleFromVertexLocal);
 
-    saveParticle &= KFP::SIMD::mask_cast<float_m>(isSameParticle) || isParticleFromVertexLocal;
+    saveParticle &= kfp::simd::mask_cast<float_m>(isSameParticle) || isParticleFromVertexLocal;
     if (none_of(saveParticle)) { return; }
   }
 
@@ -2364,7 +2364,7 @@ void KFParticleFinder::ConstructTrackV0Cand(
   saveParticle &= p1p2 > -p22;
 
   float_m setLCut =
-    KFP::SIMD::mask_cast<float_m>(abs(mother.PDG()) == 3312 || abs(mother.PDG()) == 3334 || abs(mother.PDG()) == 3001);
+    kfp::simd::mask_cast<float_m>(abs(mother.PDG()) == 3312 || abs(mother.PDG()) == 3334 || abs(mother.PDG()) == 3001);
   saveParticle &= (!setLCut) || (lMin > fLCut);
 
   ldlMin = 1.e8f;
@@ -2668,7 +2668,7 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
       const int_m isPrimary        = isPvIndexPos && (!isTrackSecondary);
       const int_m isSamePV         = !(isPrimary) || (v0PVIndex == trackPVIndex);
 
-      int_m closeDaughters = isSamePV && (KFP::SIMD::gkIndicesSequenceI < int(NTracks));
+      int_m closeDaughters = isSamePV && (kfp::simd::gkIndicesSequenceI < int(NTracks));
 
       //       if(v0PVIndex < 0)
       //       {
@@ -2710,7 +2710,7 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
       if (v0PVIndex < 0) {
         KFParticleSIMD v0(vV0[iV0]);
         track.Load(vTracks, iTr, trackPDG);
-        closeDaughters &= KFP::SIMD::mask_cast<int_m>(v0.GetDistanceFromParticle(track) < float_v(fDistanceCut));
+        closeDaughters &= kfp::simd::mask_cast<int_m>(v0.GetDistanceFromParticle(track) < float_v(fDistanceCut));
         if (none_of(closeDaughters)) { continue; }
       }
 
@@ -2998,7 +2998,7 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
           trackChiToPrimVtx = (*ChiToPrimVtx).block(iBlockTrack);
           active[iPDGPos] &= (!((abs(motherPDG) == 3334 || abs(motherPDG) == 3312))
                               || ((abs(motherPDG) == 3334 || abs(motherPDG) == 3312)
-                                  && KFP::SIMD::mask_cast<int_m>(trackChiToPrimVtx > float_v(fCuts2D[0]))));
+                                  && kfp::simd::mask_cast<int_m>(trackChiToPrimVtx > float_v(fCuts2D[0]))));
         }
 
         if (none_of(active[iPDGPos])) { continue; }
@@ -3010,7 +3010,7 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
           const float_v trackPt = track.Px() * track.Px() + track.Py() * track.Py();
 
 
-          active[iPDGPos] &= KFP::SIMD::mask_cast<int_m>((trackPt >= fCutCharmPt * fCutCharmPt)
+          active[iPDGPos] &= kfp::simd::mask_cast<int_m>((trackPt >= fCutCharmPt * fCutCharmPt)
                                                          && (trackChiToPrimVtx > fCutCharmChiPrim))
                              && (trackNpixelHits >= 3);
         }
@@ -3025,7 +3025,7 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
             const float_v trackPt = track.Px() * track.Px() + track.Py() * track.Py();
 
             active[iPDGPos] &= (!isCharmParticle) ||         //
-                               KFP::SIMD::mask_cast<int_m>(  //
+                               kfp::simd::mask_cast<int_m>(  //
                                  (trackPt >= fCutCharmPt * fCutCharmPt) && (trackChiToPrimVtx > fCutCharmChiPrim))
                                  && (trackNpixelHits >= 3);
           }
@@ -3188,7 +3188,7 @@ void KFParticleFinder::FindLL(const int motherPDG, const int correctTrackPDG, co
       mother += particleSIMD;
       mother.SetPDG(motherPDG);
 
-      isOk &= KFP::SIMD::mask_cast<int_m>                                            //
+      isOk &= kfp::simd::mask_cast<int_m>                                            //
         (                                                                            //
           (mother.Chi2() / stdx::static_simd_cast<float_v>(mother.NDF()) < 10.f) &&  //
           isfinite(mother.GetChi2()) &&                                              //
@@ -3244,7 +3244,7 @@ void KFParticleFinder::SelectParticles(vector<KFParticle>& Particles, vector<KFP
 
     KFParticleSIMD mother(cand, nEntries);
 
-    float_m saveParticle(KFP::SIMD::gkIndicesSequenceF < nEntries);
+    float_m saveParticle(kfp::simd::gkIndicesSequenceF < nEntries);
 
     float_v lMin(1.e8f);
     float_v ldlMin(1.e8f);
@@ -3350,7 +3350,7 @@ void KFParticleFinder::CombinePartPart(vector<KFParticle>& particles1, vector<KF
     if (isSameInputPart) { startIndex = iP1 + 1; }
     for (int iP2 = startIndex; iP2 < nPart2; iP2 += SimdLen) {
       int nElements = (iP2 + SimdLen < nPart2) ? SimdLen : (nPart2 - iP2);
-      float_m active(KFP::SIMD::gkIndicesSequenceF < nElements);
+      float_m active(kfp::simd::gkIndicesSequenceF < nElements);
 
       for (int iv = 0; iv < nElements; iv++) { tmpPart2[iv] = &particles2[iP2 + iv]; }
 
@@ -3409,7 +3409,7 @@ void KFParticleFinder::CombinePartPart(vector<KFParticle>& particles1, vector<KF
           isSameTrack |= (vDaughters[0].DaughterIds()[iD] == vDaughters[1].DaughterIds()[iD1]);
         }
       }
-      saveParticle &= KFP::SIMD::mask_cast<float_m>(!isSameTrack);
+      saveParticle &= kfp::simd::mask_cast<float_m>(!isSameTrack);
       if (none_of(saveParticle)) { continue; }
 
       float_v lMin(1.e8f);
@@ -3428,7 +3428,7 @@ void KFParticleFinder::CombinePartPart(vector<KFParticle>& particles1, vector<KF
       saveParticle &= isPrimary || (ldlMin > cuts[0]);
       saveParticle &= (lMin < 200.f);
 
-      float_m setLCut = KFP::SIMD::mask_cast<float_m>(abs(mother.PDG()) == 3000);
+      float_m setLCut = kfp::simd::mask_cast<float_m>(abs(mother.PDG()) == 3000);
       saveParticle &= (!setLCut) || (lMin > fLCut);
 
       //         if(isPrimary && (float(ldlMin > 3) )) continue;
@@ -3553,10 +3553,10 @@ void KFParticleFinder::MatchKaons(KFPTrackVector* vTracks, std::vector<KFParticl
           const int NTracks         = (iTrack + SimdLen < lastTrack) ? SimdLen : (lastTrack - iTrack);
           const int_v& trackPDG     = primTracks.PDG().block(iBlockTrack);
           const int_v& trackPVIndex = primTracks.PVIndex().block(iBlockTrack);
-          const float_m isSamePV    = KFP::SIMD::mask_cast<float_m>(int_v((int) iPV) == trackPVIndex);
+          const float_m isSamePV    = kfp::simd::mask_cast<float_m>(int_v((int) iPV) == trackPVIndex);
 
-          float_m active = KFP::SIMD::mask_cast<float_m>((abs(trackPDG) == 321)) && isSamePV
-                           && (KFP::SIMD::gkIndicesSequenceF < NTracks);
+          float_m active = kfp::simd::mask_cast<float_m>((abs(trackPDG) == 321)) && isSamePV
+                           && (kfp::simd::gkIndicesSequenceF < NTracks);
 
           if (none_of(active)) { continue; }
 
@@ -3573,7 +3573,7 @@ void KFParticleFinder::MatchKaons(KFPTrackVector* vTracks, std::vector<KFParticl
           KFParticleSIMD check = candidate;
           check.SubtractDaughter(kaonTrack);
 
-          active &= KFP::SIMD::mask_cast<float_m>(check.NDF() >= 0);
+          active &= kfp::simd::mask_cast<float_m>(check.NDF() >= 0);
           active &= (check.Chi2() / stdx::static_simd_cast<float_v>(check.NDF()) <= fCuts2D[1]);
           //fit should converge
           active &= (check.Chi2() >= 0.f);
@@ -3733,13 +3733,13 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
       {
         const unsigned short NTracksDaughter = (iTrD + SimdLen < DaughterTracks.Size()) ? SimdLen : (DaughterTracks.Size() - iTrD);
 
-        int_v DaughterInd = int_v(iTrD) + KFP::SIMD::gkIndicesSequenceI;
+        int_v DaughterInd = int_v(iTrD) + kfp::simd::gkIndicesSequenceI;
 
         int_v DaughterPDG = reinterpret_cast<const int_v&>(DaughterTracks.PDG()[iTrD]);
         int_v DaughterPVIndex = reinterpret_cast<const int_v&>(DaughterTracks.PVIndex()[iTrD]);
         int_v daughterId = reinterpret_cast<const int_v&>(DaughterTracks.Id()[iTrD]);
         
-        float_m activeDaughter = (KFP::SIMD::gkIndicesSequenceI < int(NTracksDaughter));
+        float_m activeDaughter = (kfp::simd::gkIndicesSequenceI < int(NTracksDaughter));
             
         ChargedDaughter.Load(DaughterTracks, iTrD, DaughterPDG);
         ChargedDaughter.SetId(daughterId);
@@ -3756,9 +3756,9 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
           {
             if(iRot>0)
             {
-              DaughterPDG = KFP::SIMD::rotate<1>(DaughterPDG);
-              DaughterPVIndex = KFP::SIMD::rotate<1>(DaughterPVIndex);
-              DaughterInd = KFP::SIMD::rotate<1>(DaughterInd);
+              DaughterPDG = kfp::simd::rotate<1>(DaughterPDG);
+              DaughterPVIndex = kfp::simd::rotate<1>(DaughterPVIndex);
+              DaughterInd = kfp::simd::rotate<1>(DaughterInd);
             
               ChargedDaughter.Rotate();
 
@@ -3782,7 +3782,7 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
               if(iTrTypeDaughter==0) motherKFPDG = -outMotherPDG[iTC][iHypothesis];
               if(!(fDecayReconstructionList.empty()) && (fDecayReconstructionList.find(motherKFPDG) == fDecayReconstructionList.end())) continue;
               
-              float_m active = activeDaughter && (KFP::SIMD::gkIndicesSequenceI < int(NTracks));
+              float_m active = activeDaughter && (kfp::simd::gkIndicesSequenceI < int(NTracks));
 
               if(abs(motherPDGHypothesis[iTC][iHypothesis]) < 1000)
                 active &= (abs(MotherPDG)==abs(motherPDGHypothesis[iTC][iHypothesis]));
@@ -4069,13 +4069,13 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
         const unsigned short NTracksDaughter =
           (iTrD + SimdLen < DaughterTracks.Size()) ? SimdLen : (DaughterTracks.Size() - iTrD);
 
-        int_v DaughterInd = int_v(iTrD) + KFP::SIMD::gkIndicesSequenceI;
+        int_v DaughterInd = int_v(iTrD) + kfp::simd::gkIndicesSequenceI;
 
         int_v DaughterPDG     = DaughterTracks.PDG().block(iBlockTrackD);
         int_v DaughterPVIndex = DaughterTracks.PVIndex().block(iBlockTrackD);
         int_v daughterId      = DaughterTracks.Id().block(iBlockTrackD);
 
-        int_m activeDaughter = (KFP::SIMD::gkIndicesSequenceI < NTracksDaughter);
+        int_m activeDaughter = (kfp::simd::gkIndicesSequenceI < NTracksDaughter);
 
         ChargedDaughter.Load(DaughterTracks, iTrD, DaughterPDG);
         ChargedDaughter.SetId(daughterId);
@@ -4091,9 +4091,9 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
 
           for (int iRot = 0; iRot < SimdLen; iRot++) {
             if (iRot > 0) {
-              DaughterPDG     = KFP::SIMD::rotate<1>(DaughterPDG);
-              DaughterPVIndex = KFP::SIMD::rotate<1>(DaughterPVIndex);
-              DaughterInd     = KFP::SIMD::rotate<1>(DaughterInd);
+              DaughterPDG     = kfp::simd::rotate<1>(DaughterPDG);
+              DaughterPVIndex = kfp::simd::rotate<1>(DaughterPVIndex);
+              DaughterInd     = kfp::simd::rotate<1>(DaughterInd);
 
               ChargedDaughter.Rotate();
 
@@ -4119,16 +4119,16 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
               }
 
               float_m active =
-                KFP::SIMD::mask_cast<float_m>(activeDaughter) && (KFP::SIMD::gkIndicesSequenceF < NTracks);
+                kfp::simd::mask_cast<float_m>(activeDaughter) && (kfp::simd::gkIndicesSequenceF < NTracks);
 
               if (abs(motherPDGHypothesis[iTC][iHypothesis]) < 1000) {
-                active &= KFP::SIMD::mask_cast<float_m>(abs(MotherPDG) == abs(motherPDGHypothesis[iTC][iHypothesis]));
+                active &= kfp::simd::mask_cast<float_m>(abs(MotherPDG) == abs(motherPDGHypothesis[iTC][iHypothesis]));
               }
               else if (abs(motherPDGHypothesis[iTC][iHypothesis]) < 10000) {
-                active &= KFP::SIMD::mask_cast<float_m>(abs(MotherPDG) == 2000003112);
+                active &= kfp::simd::mask_cast<float_m>(abs(MotherPDG) == 2000003112);
               }
               else {
-                active &= KFP::SIMD::mask_cast<float_m>(abs(MotherPDG) >= 1000020030);
+                active &= kfp::simd::mask_cast<float_m>(abs(MotherPDG) >= 1000020030);
               }
 
               MotherTrack.Load(MotherTracks, iTrM, motherPDGHypothesis[iTC][iHypothesis]);
@@ -4176,7 +4176,7 @@ void KFParticleFinder::NeutralDaughterDecay(KFPTrackVector* vTracks, vector<KFPa
               active &= (lNeutral <= (lChargedTrak + 10.0f));
 
               //set cut on chi2 of the fit of the neutral daughter
-              active &= KFP::SIMD::mask_cast<float_m>(neutralDaughter.NDF() >= 0);
+              active &= kfp::simd::mask_cast<float_m>(neutralDaughter.NDF() >= 0);
               active &= (neutralDaughter.Chi2() / stdx::static_simd_cast<float_v>(neutralDaughter.NDF()) <= fCuts2D[1]);
               //fit should converge
               active &= (neutralDaughter.Chi2() >= 0.f);
