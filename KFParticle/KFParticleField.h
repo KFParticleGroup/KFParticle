@@ -68,7 +68,7 @@ class KFParticleFieldValue {
    ** \param[in] B - field vecrot to be printed
    **/
   friend std::ostream& operator<<(std::ostream& out, KFParticleFieldValue& B)
-  { return out << B.x[0] << " | " << B.y[0] << " | " << B.z[0]; };
+  { return out << (float) B.x[0] << " | " << (float) B.y[0] << " | " << (float) B.z[0]; };
 };
 
 /** @class KFParticleFieldRegion
