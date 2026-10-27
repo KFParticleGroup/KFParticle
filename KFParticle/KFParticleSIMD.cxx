@@ -5692,7 +5692,7 @@ void KFParticleSIMD::MultQSQt(const float_v Q[], const float_v S[], float_v SOut
    ** \param[in] kN - dimensionality of the matrices
    **/
 
-  float_v mA[kN * kN]{};
+  float_v mA[kN * kN];
 
   for (Int_t i = 0, ij = 0; i < kN; i++) {
     for (Int_t j = 0; j < kN; j++, ++ij) {
