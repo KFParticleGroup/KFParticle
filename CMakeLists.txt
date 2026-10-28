@@ -29,6 +29,8 @@ endmacro(add_target_property)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_subdirectory (externals)
+
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS} ${ROOTSYS})
 
 set(FIXTARGET FALSE CACHE BOOL "Compile for fix target geometry.")
@@ -39,6 +41,7 @@ Set(INCLUDE_DIRECTORIES
   ${PROJECT_SOURCE_DIR}/KFParticle
   ${PROJECT_SOURCE_DIR}/KFParticlePerformance
   ${PROJECT_SOURCE_DIR}/KFParticleTest
+  ${PROJECT_SOURCE_DIR}/externals/vir-simd
 )
 
 include(${ROOT_USE_FILE})
@@ -109,6 +112,7 @@ if(FIXTARGET)
         ${PROJECT_SOURCE_DIR}/KFParticle
         ${PROJECT_SOURCE_DIR}/KFParticlePerformance
         ${PROJECT_SOURCE_DIR}/KFParticleTest
+        ${PROJECT_SOURCE_DIR}/externals/vir-simd
 )
   target_link_libraries(KFParticle ${ROOT_LIBRARIES} )
   add_target_property(KFParticle COMPILE_FLAGS "-DDO_TPCCATRACKER_EFF_PERFORMANCE -DNonhomogeneousField -DCBM -DUSE_TIMERS")

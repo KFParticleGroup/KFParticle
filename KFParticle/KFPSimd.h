@@ -10,17 +10,17 @@ Emails: se.gorbunov@gsi.de
 
 #include "KFPSimdPaddedVector.h"
 
-#include <experimental/simd>
+#include <vir/simd.h>
 #include <stdexcept>
 #include <type_traits>
 
-//namespace stdx = std::experimental;
-namespace stdx
-{
-  using namespace std::experimental;
-  using namespace std::experimental::__proposed;
-}  // namespace stdx
-
+// Use the project vir::stdx::simd which is a fallback to the
+// std::experimental::simd (Parallelism TS 2) implementation with
+// additional features.
+// The vir/simd.h header will include <experimental/simd> if it is
+// available, so you don't have to add any buildsystem support.
+// It should just work.
+namespace stdx = vir::stdx;
 
 namespace kfp
 {

@@ -11,7 +11,6 @@ Emails: se.gorbunov@gsi.de
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <experimental/simd>
 #include <vector>
 
 namespace kfp
