@@ -102,11 +102,11 @@ KFParticleSIMD::KFParticleSIMD(const KFPTrack* track, Int_t PID)
   Double_t r[3];
   Double_t C[21];
 
-  alignas(SimdSize) float pArray[6][SimdLen]{0};
-  alignas(SimdSize) float cArray[21][SimdLen]{0};
-  alignas(SimdSize) int32_t qArray[SimdLen]{0};
-  alignas(SimdSize) float chi2Array[SimdLen]{0};
-  alignas(SimdSize) int32_t ndfArray[SimdLen]{0};
+  alignas(SimdAlignmentF) float pArray[6][SimdLen]{0};
+  alignas(SimdAlignmentF) float cArray[21][SimdLen]{0};
+  alignas(SimdAlignmentI) int32_t qArray[SimdLen]{0};
+  alignas(SimdAlignmentF) float chi2Array[SimdLen]{0};
+  alignas(SimdAlignmentI) int32_t ndfArray[SimdLen]{0};
 
   for (Int_t iPart = 0; iPart < SimdLen; iPart++) {
     track[iPart].XvYvZv(r);
@@ -233,11 +233,11 @@ void KFParticleSIMD::Create(KFPTrack* Track[], int NTracks, const Int_t* pdg)
   Double_t r[3];
   Double_t C[21];
 
-  alignas(SimdSize) float pArray[6][SimdLen]{0};
-  alignas(SimdSize) float cArray[21][SimdLen]{0};
-  alignas(SimdSize) int32_t qArray[SimdLen]{0};
-  alignas(SimdSize) float chi2Array[SimdLen]{0};
-  alignas(SimdSize) int32_t ndfArray[SimdLen]{0};
+  alignas(SimdAlignmentF) float pArray[6][SimdLen]{0};
+  alignas(SimdAlignmentF) float cArray[21][SimdLen]{0};
+  alignas(SimdAlignmentI) int32_t qArray[SimdLen]{0};
+  alignas(SimdAlignmentF) float chi2Array[SimdLen]{0};
+  alignas(SimdAlignmentI) int32_t ndfArray[SimdLen]{0};
 
   for (Int_t iPart = 0; iPart < SimdLen; iPart++) {
     Int_t iEntry = (iPart < NTracks) ? iPart : 0;
@@ -554,8 +554,8 @@ void KFParticleSIMD::SetOneEntry(int iEntry, KFParticleSIMD& part, int iEntryPar
    ** \param[in] iEntryPart - index of the element of particle part, which should be copied to the current particle
    **/
 
-  alignas(SimdSize) float floatArray[SimdLen]{0};
-  alignas(SimdSize) int32_t intArray[SimdLen]{0};
+  alignas(SimdAlignmentF) float floatArray[SimdLen]{0};
+  alignas(SimdAlignmentI) int32_t intArray[SimdLen]{0};
 
   for (int i = 0; i < 7; ++i) {
     fP[i].copy_to(floatArray, stdx::vector_aligned);
@@ -638,13 +638,13 @@ KFParticleSIMD::KFParticleSIMD(KFParticle* parts[], const int nPart)
     }
   }
 
-  alignas(SimdSize) float pArray[8][SimdLen]{0};
-  alignas(SimdSize) float cArray[36][SimdLen]{0};
-  alignas(SimdSize) float chi2Array[SimdLen]{0};
-  alignas(SimdSize) int32_t qArray[SimdLen]{0};
-  alignas(SimdSize) int32_t ndfArray[SimdLen]{0};
-  alignas(SimdSize) int32_t pdgArray[SimdLen]{0};
-  alignas(SimdSize) int32_t idArray[SimdLen]{0};
+  alignas(SimdAlignmentF) float pArray[8][SimdLen]{0};
+  alignas(SimdAlignmentF) float cArray[36][SimdLen]{0};
+  alignas(SimdAlignmentF) float chi2Array[SimdLen]{0};
+  alignas(SimdAlignmentI) int32_t qArray[SimdLen]{0};
+  alignas(SimdAlignmentI) int32_t ndfArray[SimdLen]{0};
+  alignas(SimdAlignmentI) int32_t pdgArray[SimdLen]{0};
+  alignas(SimdAlignmentI) int32_t idArray[SimdLen]{0};
 
   fDaughterIds.resize((parts[0])->NDaughters(), -1);
 
@@ -676,7 +676,7 @@ KFParticleSIMD::KFParticleSIMD(KFParticle* parts[], const int nPart)
   fId.copy_from(idArray, stdx::vector_aligned);
 
   for (int iD = 0; iD < parts[0]->NDaughters(); iD++) {
-    alignas(SimdSize) int32_t tmp[SimdLen]{0};
+    alignas(SimdAlignmentI) int32_t tmp[SimdLen]{0};
     for (int iPart = 0; iPart < SimdLen; iPart++) {
       Int_t iEntry = (iPart < nPart) ? iPart : 0;
 

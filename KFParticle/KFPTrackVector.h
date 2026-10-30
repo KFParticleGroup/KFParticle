@@ -601,7 +601,7 @@ class KFPTrackVector {
   int fNLi7;    ///< Index of the last Li7.
   int fNBe7;    ///< Index of the last Be7.
   int fNSigma;  ///< Index of the last Sigma.
-} __attribute__((aligned(sizeof(float_v))));
+};
 
 inline void KFPTrackVector::SetParameter(const float_v& value, int iP, int iTr)
 {

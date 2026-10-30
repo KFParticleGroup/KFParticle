@@ -1198,12 +1198,12 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<
 
   // for secondary V0
   unsigned int nBufEntry = 0;
-  alignas(SimdSize) std::int32_t idNegDaughtersArray[SimdLen];
-  alignas(SimdSize) std::int32_t idPosDaughtersArray[SimdLen];
-  alignas(SimdSize) std::int32_t daughterPosPDGArray[SimdLen];
-  alignas(SimdSize) std::int32_t daughterNegPDGArray[SimdLen];
-  alignas(SimdSize) std::int32_t pvIndexMotherArray[SimdLen];
-  alignas(SimdSize) std::int32_t V0PDGArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t idNegDaughtersArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t idPosDaughtersArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t daughterPosPDGArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t daughterNegPDGArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t pvIndexMotherArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t V0PDGArray[SimdLen];
 
   int_v idNegDaughters{};
   int_v idPosDaughters{};
@@ -1586,7 +1586,7 @@ void KFParticleFinder::Find2DaughterDecay(KFPTrackVector* vTracks, PaddedVector<
 
                 active[iPDGPos] &= (motherPDG != -1);
                 if (!(fDecayReconstructionList.empty())) {
-                  alignas(SimdSize) std::int32_t motherPdgArray[SimdLen];
+                  alignas(SimdAlignmentI) std::int32_t motherPdgArray[SimdLen];
                   motherPDG.copy_to(motherPdgArray, stdx::vector_aligned);
                   for (int iV = 0; iV < SimdLen; iV++) {
                     if (!(active[iPDGPos][iV])) { continue; }
@@ -2082,12 +2082,12 @@ void KFParticleFinder::ConstructPrimaryBG(KFPTrackVector* vTracks, vector<KFPart
   // for secondary V0
   unsigned int nBufEntry = 0;
 
-  alignas(SimdSize) std::int32_t idNegDaughtersArray[SimdLen];
-  alignas(SimdSize) std::int32_t idPosDaughtersArray[SimdLen];
-  alignas(SimdSize) std::int32_t daughterPosPDGArray[SimdLen];
-  alignas(SimdSize) std::int32_t daughterNegPDGArray[SimdLen];
-  alignas(SimdSize) std::int32_t pvIndexMotherArray[SimdLen];
-  alignas(SimdSize) std::int32_t V0PDGArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t idNegDaughtersArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t idPosDaughtersArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t daughterPosPDGArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t daughterNegPDGArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t pvIndexMotherArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t V0PDGArray[SimdLen];
 
   int_v idNegDaughters{0};
   int_v idPosDaughters{0};
@@ -2628,13 +2628,13 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
   float_v massMotherPDG(0.f), massMotherPDGSigma(0.f);
   int_v motherParticlePDG(0);
 
-  alignas(SimdSize) std::int32_t idTrackArray[SimdLen];
-  alignas(SimdSize) std::int32_t trackPDGMotherArray[SimdLen];
-  alignas(SimdSize) std::int32_t pvIndexMotherArray[SimdLen];
-  alignas(SimdSize) std::int32_t motherParticlePDGArray[SimdLen];
-  alignas(SimdSize) float massMotherPDGArray[SimdLen];
-  alignas(SimdSize) float massMotherPDGSigmaArray[SimdLen];
-  alignas(SimdSize) float cutsArray[3][SimdLen];
+  alignas(SimdAlignmentI) std::int32_t idTrackArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t trackPDGMotherArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t pvIndexMotherArray[SimdLen];
+  alignas(SimdAlignmentI) std::int32_t motherParticlePDGArray[SimdLen];
+  alignas(SimdAlignmentF) float massMotherPDGArray[SimdLen];
+  alignas(SimdAlignmentF) float massMotherPDGSigmaArray[SimdLen];
+  alignas(SimdAlignmentF) float cutsArray[3][SimdLen];
 
 
   //   Particles.reserve(Particles.size() + vV0.size());
@@ -2980,7 +2980,7 @@ void KFParticleFinder::FindTrackV0Decay(vector<KFParticle>& vV0, const int V0PDG
 
         active[iPDGPos] &= (motherPDG != -1);
         if (!(fDecayReconstructionList.empty())) {
-          alignas(SimdSize) std::int32_t motherPdgArray[SimdLen];
+          alignas(SimdAlignmentI) std::int32_t motherPdgArray[SimdLen];
           motherPDG.copy_to(motherPdgArray, stdx::vector_aligned);
           for (int iV = 0; iV < SimdLen; iV++) {
             if (!(active[iPDGPos][iV])) { continue; }

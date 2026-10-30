@@ -538,7 +538,7 @@ void KFParticleTopoReconstructor::TransportPVTracksToPrimVertex()
    ** for the primary vertex, are transported to the DCA point to the corresponding
    ** primary vertex.
    **/
-  alignas(SimdSize) float pointArray[3][SimdLen];
+  alignas(SimdAlignmentF) float pointArray[3][SimdLen];
   float_v point[3];
   KFParticleSIMD tmpPart;
 
