@@ -38,7 +38,8 @@ namespace kfp
     using int_m   = int_v::mask_type;
 
     constexpr int SimdLen{float_v::size()};   // number of elements in the SIMD float type
-    constexpr int SimdSize{sizeof(float_v)};  // size in bytes of the SIMD float type
+    constexpr int SimdAlignmentF{stdx::memory_alignment_v<float_v>};  // alignment in bytes of the SIMD float type
+    constexpr int SimdAlignmentI{stdx::memory_alignment_v<int_v>};    // alignment in bytes of the SIMD int type
 
     static_assert(std::is_same<float_v::value_type, float>::value,
                   "[Error]: Invalid value type for SSE float SimdClass.");

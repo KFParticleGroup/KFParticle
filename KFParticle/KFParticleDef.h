@@ -44,8 +44,9 @@ namespace kfp
   using kfp::simd::int_v;
   using kfp::simd::PaddedVector;
   using kfp::simd::select;
+  using kfp::simd::SimdAlignmentF;
+  using kfp::simd::SimdAlignmentI;
   using kfp::simd::SimdLen;
-  using kfp::simd::SimdSize;
 }  // namespace kfp
 
 #if defined(HLTCA_STANDALONE)
